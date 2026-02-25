@@ -13,17 +13,16 @@
         <a href="{{ url_for('explorar') }}">📁 Explorador</a>
     </nav>
     <hr>
-    
+
+    <h1>Explorador de Arquivos</h1>
+    <p>Clique em uma das pastas</p>
+    <hr>
     <!-- BOTÃO VOLTAR PASTA (dinâmico) -->
     {% if pasta_pai is not none %}
         <p>
             <a href="{{ url_for('explorar', caminho=pasta_pai) }}">⬅️ Voltar pasta</a>
         </p>
     {% endif %}
-
-    <h1>Explorador de Arquivos</h1>
-    <p>Clique em uma das pastas</p>
-    <hr>
     <h2>📁 Pastas</h2>
     <ul>
         {% for pasta in pastas %}
@@ -35,10 +34,14 @@
         {% endfor %}
     </ul>
 
-    <h2>📄 Arquivos</h2>
+    <h3>📄 Arquivos</h3>
     <ul>
         {% for arquivo in arquivos %}
-            <li>📄 {{ arquivo }}</li>
+            <li>
+                <a href="{{ url_for('download', caminho_arquivo=caminho + '/' + arquivo if caminho else arquivo) }}">
+                    📥 {{ arquivo }}
+                </a>
+            </li>
         {% endfor %}
     </ul>
 </body>
