@@ -6,8 +6,24 @@
     <title>Explorador de Arquivos</title>
 </head>
 <body>
-    <h1>Explorador de Arquivos</h1>
+    <!-- MENU GLOBAL -->
+    <nav>
+        <a href="{{ url_for('home') }}">🏠 Home</a> |
+        <a href="{{ url_for('objetivos') }}">📋 Objetivos</a> |
+        <a href="{{ url_for('explorar') }}">📁 Explorador</a>
+    </nav>
+    <hr>
+    
+    <!-- BOTÃO VOLTAR PASTA (dinâmico) -->
+    {% if pasta_pai is not none %}
+        <p>
+            <a href="{{ url_for('explorar', caminho=pasta_pai) }}">⬅️ Voltar pasta</a>
+        </p>
+    {% endif %}
 
+    <h1>Explorador de Arquivos</h1>
+    <p>Clique em uma das pastas</p>
+    <hr>
     <h2>📁 Pastas</h2>
     <ul>
         {% for pasta in pastas %}
