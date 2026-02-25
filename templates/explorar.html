@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Explorador de Arquivos</title>
+</head>
+<body>
+    <h1>Explorador de Arquivos</h1>
+
+    <h2>📁 Pastas</h2>
+    <ul>
+        {% for pasta in pastas %}
+            <li>
+                <a href="{{ url_for('explorar', caminho=caminho + '/' + pasta if caminho else pasta) }}">
+                    📁 {{ pasta }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <h2>📄 Arquivos</h2>
+    <ul>
+        {% for arquivo in arquivos %}
+            <li>📄 {{ arquivo }}</li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
