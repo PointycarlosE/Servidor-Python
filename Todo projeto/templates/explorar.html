@@ -17,6 +17,35 @@
     <h1>Explorador de Arquivos</h1>
     <p>Clique em uma das pastas</p>
     <hr>
+    <!--Caminho-->
+    <div style="margin-bottom: 15px; font-size: 18px;">
+        <a href="{{ url_for('home') }}">🏠 Home</a> /
+        <a href="{{ url_for('explorar') }}">📁 Repositório</a>
+
+        {% for parte in partes %}
+            / <a href="{{ url_for('explorar', caminho=parte.caminho) }}">
+                {{ parte.nome }}
+            </a>
+        {% endfor %}
+    </div>
+    <hr>
+    
+    <!--Upload-->
+    <h2>Upload de Arquivo</h2>
+        <form action="{{ url_for ('upload', caminho=caminho) }}" method="post" enctype="multipart/form-data"> 
+            <input type="file" name="arquivo" required> 
+            <button type="submit">Enviar</button></form>
+    <!-- Criar pasta -->
+    <h2>Criar Nova Pasta</h2>
+
+    <form action="{{ url_for('criar_pasta', caminho=caminho) }}" method="post">
+        <input type="text" name="nome_pasta" placeholder="Nome da pasta" required>
+        <button type="submit">Criar Pasta</button>
+    </form>
+
+<hr>
+    <hr>
+
     <!-- BOTÃO VOLTAR PASTA (dinâmico) -->
     {% if pasta_pai is not none %}
         <p>
@@ -30,19 +59,91 @@
                 <a href="{{ url_for('explorar', caminho=caminho + '/' + pasta if caminho else pasta) }}">
                     📁 {{ pasta }}
                 </a>
+                 <!-- Botão excluir pasta -->
+                <form action="{{ url_for('deletar_pasta', caminho_pasta=caminho + '/' + pasta if caminho else pasta) }}" 
+                    method="post" 
+                    style="display:inline;"
+                    onsubmit="return confirmarExclusaoPasta('{{ pasta }}')">
+                    <button type="submit">Excluir Pasta</button>
+                </form>
             </li>
         {% endfor %}
     </ul>
 
-    <h3>📄 Arquivos</h3>
+    <h2>Arquivos</h2>
     <ul>
-        {% for arquivo in arquivos %}
-            <li>
-                <a href="{{ url_for('download', caminho_arquivo=caminho + '/' + arquivo if caminho else arquivo) }}">
-                    📥 {{ arquivo }}
-                </a>
-            </li>
+    {% for arquivo in arquivos %}
+        <li>
+            <!-- Botão de download -->
+            <a href="{{ url_for('download', caminho_arquivo=caminho + '/' + arquivo if caminho else arquivo) }}">
+                {{ arquivo }}
+            </a>
+
+            <!-- Botão de deletar -->
+            <form action="{{ url_for('deletar_arquivo', caminho_arquivo=caminho + '/' + arquivo if caminho else arquivo) }}" 
+               method="post" 
+                style="display:inline;"
+                onsubmit="return confirmarExclusao('{{ arquivo }}')">
+                <button type="submit">Excluir</button>
+            </form>
+        </li>
         {% endfor %}
     </ul>
+    <h2>Imagens</h2>
+        <div style="display: flex; flex-wrap: wrap; gap: 15px;">
+            {% for imagem in imagens %}
+            <div style="text-align: center;">
+                <a href="{{ url_for('visualizar_arquivo', caminho_arquivo=caminho + '/' + imagem if caminho else imagem) }}"            target="_blank">
+                <img src="{{ url_for('visualizar_arquivo', caminho_arquivo=caminho + '/' + imagem if caminho else imagem) }}" 
+                     width="150" 
+                     style="border: 1px solid #ccc; padding: 5px;">
+                </a>
+                <br>
+                {{ imagem }}
+            </div>
+            {% endfor %}
+        </div>
+    <h2>Áudios</h2>
+        <div style="display: flex; flex-direction: column; gap: 15px;">
+            {% for audio in audios %}
+            <div style="border: 1px solid #ccc; padding: 10px; border-radius: 8px;">
+            <strong>🎵 {{ audio }}</strong>
+            <br><br>
+
+            <!-- Player de áudio -->
+            <audio controls style="width: 100%;">
+                <source src="{{ url_for('visualizar_arquivo', caminho_arquivo=caminho + '/' + audio if caminho else audio) }}">
+                Seu navegador não suporta reprodução de áudio.
+             </audio>
+
+            <br><br>
+
+            <!-- Botões úteis -->
+            <a href="{{ url_for('download', caminho_arquivo=caminho + '/' + audio if caminho else audio) }}">
+                Download
+            </a>
+
+            <form action="{{ url_for('deletar_arquivo', caminho_arquivo=caminho + '/' + audio if caminho else audio) }}"
+                method="post"
+                style="display:inline;"
+                onsubmit="return confirmarExclusao('{{ audio }}')">
+                <button type="submit">Excluir</button>
+            </form>
+        </div>
+    {% endfor %}
+    </div>
 </body>
+<script>
+function confirmarExclusao(nomeArquivo) {
+    return confirm("Tem certeza que deseja excluir o arquivo: " + nomeArquivo + " ?");
+}
+</script>
+<script>
+function confirmarExclusaoPasta(nomePasta) {
+    return confirm(
+        "ATENÇÃO!\n\nVocê está prestes a excluir a pasta: " + nomePasta +
+        "\n\nTODOS os arquivos dentro dela serão apagados permanentemente.\n\nDeseja continuar?"
+    );
+}
+</script>
 </html>
