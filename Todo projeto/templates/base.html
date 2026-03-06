@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block titulo %}Meu Drive Pessoal{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/estilo.css') }}">
+</head>
+<body>
+    <header class="cabecalho">
+        <nav class="menu-principal">
+            <ul class="menu-lista">
+                <li><a href="{{ url_for('home') }}" class="menu-link">🏠 Home</a></li>
+                <li><a href="{{ url_for('objetivos') }}" class="menu-link">📋 Objetivos</a></li>
+                <li><a href="{{ url_for('explorar') }}" class="menu-link">📁 Explorador</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main class="conteudo-principal">
+        {% block conteudo %}{% endblock %}
+    </main>
+
+    <footer class="rodape">
+        <p>Meu Drive Pessoal © 2024 - Seu repositório de arquivos</p>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

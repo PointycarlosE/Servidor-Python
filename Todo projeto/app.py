@@ -2,6 +2,7 @@ from flask import Flask, render_template, redirect, url_for, abort, send_from_di
 from werkzeug.utils import secure_filename
 import shutil
 import os
+import datetime
 
 app = Flask(__name__)
 
@@ -19,9 +20,6 @@ def objetivos():
     return render_template('objetivos.html')
 
 # -------- EXPLORADOR --------
-from flask import Flask, render_template, abort
-import os
-
 @app.route('/explorar/')
 @app.route('/explorar/<path:caminho>')
 def explorar(caminho=""):
@@ -51,25 +49,70 @@ def explorar(caminho=""):
         imagens = []
         audios = []
 
-        exetensoes_imagens= ('.png','.jpg','.jpeg','.gif','.webp','.bmp')
+        exetensoes_imagens = ('.png','.jpg','.jpeg','.gif','.webp','.bmp')
         extensoes_audio = ('.mp3', '.wav', '.ogg', '.m4a', '.flac')
 
         for item in itens:
             caminho_item = os.path.join(pasta_atual, item)
+            
+            # Pegar informações do arquivo/pasta
+            stats = os.stat(caminho_item)
+            tamanho = stats.st_size
+            data_modificacao = datetime.datetime.fromtimestamp(stats.st_mtime)
+            
+            # Formatar data
+            hoje = datetime.datetime.now().date()
+            se_for_hoje = data_modificacao.date() == hoje
+            se_for_ontem = data_modificacao.date() == (hoje - datetime.timedelta(days=1))
+            
+            if se_for_hoje:
+                data_formatada = f"Hoje às {data_modificacao.strftime('%H:%M')}"
+            elif se_for_ontem:
+                data_formatada = f"Ontem às {data_modificacao.strftime('%H:%M')}"
+            else:
+                data_formatada = data_modificacao.strftime('%d/%m/%Y %H:%M')
+            
+            item_info = {
+                'nome': item,
+                'tamanho': tamanho,
+                'tamanho_formatado': formatar_tamanho(tamanho),
+                'data_modificacao': data_formatada,
+                'data_timestamp': data_modificacao.timestamp()
+            }
+            
             if os.path.isdir(caminho_item):
-                pastas.append(item)
+                # Pastas não têm tamanho
+                item_info['tamanho_formatado'] = '--'
+                pastas.append(item_info)
             else:
                 nome_lower = item.lower()
                 if nome_lower.endswith(exetensoes_imagens):
-                    imagens.append(item)
+                    imagens.append(item_info)
                 elif nome_lower.endswith(extensoes_audio):
-                    audios.append(item)
+                    audios.append(item_info)
                 else:
-                    arquivos.append(item)
-
+                    arquivos.append(item_info)
+                    
         # 🔙 Pasta pai
         pasta_pai = os.path.dirname(caminho) if caminho else None
 
+        # Criar uma lista de partes do caminho para navegação
+        partes = []
+        if caminho:
+            # Divide o caminho usando '/' como separador
+            partes_caminho = caminho.split('/')
+            caminho_acumulado = ""
+            for parte in partes_caminho:
+                if parte:  # Ignora partes vazias
+                    if caminho_acumulado:
+                        caminho_acumulado = caminho_acumulado + '/' + parte
+                    else:
+                        caminho_acumulado = parte
+                    partes.append({
+                        'nome': parte,
+                        'caminho': caminho_acumulado
+                    })
+                    
         return render_template(
             'explorar.html',
             pastas=pastas,
@@ -77,7 +120,9 @@ def explorar(caminho=""):
             imagens=imagens,
             audios=audios,
             caminho=caminho,
-            pasta_pai=pasta_pai
+            caminho_atual=caminho,
+            pasta_pai=pasta_pai,
+            partes=partes
         )
 
     except PermissionError:
@@ -88,6 +133,17 @@ def explorar(caminho=""):
         # Captura qualquer erro inesperado
         return render_template("erro.html", 
                                mensagem=f"Erro inesperado: {str(e)}"), 500
+
+def formatar_tamanho(tamanho):
+    if tamanho == '--' or tamanho == 0:
+        return '--'
+    
+    for unidade in ['B', 'KB', 'MB', 'GB', 'TB']:
+        if tamanho < 1024.0:
+            return f"{tamanho:.1f} {unidade}"
+        tamanho /= 1024.0
+    return f"{tamanho:.1f} PB"
+
 # --- Downloads ---
 @app.route('/download/<path:caminho_arquivo>')
 def download(caminho_arquivo):
@@ -245,6 +301,7 @@ def deletar_pasta(caminho_pasta):
     pasta_pai = os.path.dirname(caminho_pasta)
 
     return redirect(url_for('explorar', caminho=pasta_pai))
+
 # -------- VISUALIZAR ARQUIVO --------
 @app.route('/visualizar/<path:caminho_arquivo>')
 def visualizar_arquivo(caminho_arquivo):
@@ -269,4 +326,4 @@ def visualizar_arquivo(caminho_arquivo):
     return send_from_directory(pasta, nome_arquivo, as_attachment=False)
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
