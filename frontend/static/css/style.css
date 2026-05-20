@@ -702,6 +702,7 @@ body {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
     gap: 16px;
+    overflow: visible;
 }
 
 /* ===== CARDS - VERSÃO UNIFORME ===== */
@@ -712,6 +713,7 @@ body {
     transition: var(--transition);
     /* Altura fixa para todos os cards */
     height: 200px;
+    overflow: visible;
 }
 
 .item-card {
@@ -726,7 +728,7 @@ body {
     flex-direction: column;
     height: 100%;
     width: 100%;
-    overflow: hidden;
+    overflow: visible;
 }
 
 .item-link:hover .item-card {
@@ -2741,19 +2743,21 @@ select:focus {
 }
 
 .item-dropdown {
-    position: absolute;
-    right: 0;
-    top: calc(100% + 4px);
+    position: fixed !important;
+    z-index: 10000 !important;
+    width: 160px !important;
+    min-width: 160px !important;
+    max-width: 160px !important;
+    right: auto !important;
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-    min-width: 180px;
-    z-index: 500;
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
     overflow: hidden;
     display: none;
     flex-direction: column;
     animation: dropdownFadeIn 0.15s ease;
+    pointer-events: all;
 }
 
 @keyframes dropdownFadeIn {
@@ -2768,11 +2772,11 @@ select:focus {
 .dropdown-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 16px;
+    gap: 8px;
+    padding: 8px 12px;
     color: var(--text);
     text-decoration: none;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     background: none;
     border: none;
     cursor: pointer;
@@ -2982,16 +2986,20 @@ select:focus {
 
 .item-dropdown {
     position: fixed !important;
-    z-index: 9999 !important;
-    min-width: 180px;
+    z-index: 10000 !important;
+    width: 160px !important; /* Largura fixa para não esticar */
+    min-width: 160px !important;
+    max-width: 160px !important;
+    right: auto !important; /* Impede que estique até a borda direita */
     background: var(--card);
     border: 1px solid var(--border);
     border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
     overflow: hidden;
     display: none;
     flex-direction: column;
     animation: dropdownFadeIn 0.15s ease;
+    pointer-events: all;
 }
 
 .item-dropdown.open {
@@ -3006,11 +3014,11 @@ select:focus {
 .dropdown-item {
     display: flex;
     align-items: center;
-    gap: 10px;
-    padding: 10px 16px;
+    gap: 8px;
+    padding: 8px 12px;
     color: var(--text);
     text-decoration: none;
-    font-size: 0.875rem;
+    font-size: 0.85rem;
     background: none;
     border: none;
     cursor: pointer;

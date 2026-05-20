@@ -12,8 +12,13 @@ document.addEventListener('DOMContentLoaded', function () {
     if (!themeToggle) return;
 
     function atualizarIconeTema(tema) {
-        const iconEl = document.getElementById('icon-theme');
+        // Busca o ícone dentro do botão de tema, independente do ID
+        const themeToggle = document.getElementById('theme-toggle');
+        if (!themeToggle) return;
+        
+        const iconEl = themeToggle.querySelector('[data-lucide]');
         if (!iconEl) return;
+        
         iconEl.setAttribute('data-lucide', tema === 'dark' ? 'moon' : 'sun');
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }

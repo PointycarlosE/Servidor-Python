@@ -526,11 +526,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // Atalhos de teclado
     document.addEventListener('keydown', function (e) {
-        if (e.ctrlKey && e.key === 'a') { e.preventDefault(); e.stopPropagation(); selecaoSelectAll?.click(); }
-        if ((e.key === 'Delete' || e.key === 'Del') && itensSelecionados.size > 0) {
-            const tag = e.target.tagName.toLowerCase();
-            if (tag !== 'input' && tag !== 'textarea' && !e.target.isContentEditable) {
-                e.preventDefault(); e.stopPropagation();
+        const tag = e.target.tagName.toLowerCase();
+        if (tag === 'input' || tag === 'textarea' || e.target.isContentEditable) return;
+
+        // Ctrl+A: Selecionar todos
+        if (e.ctrlKey && e.key.toLowerCase() === 'a') {
+            e.preventDefault();
+            selecaoSelectAll?.click();
+        }
+
+        // Delete: Excluir selecionados
+        if (e.key === 'Delete' || e.key === 'Del') {
+            if (itensSelecionados.size > 0) {
+                e.preventDefault();
                 selecaoDelete?.click();
             }
         }
@@ -757,42 +765,84 @@ async function atualizarLista() {
 }
 
 // ===== MENU DROPDOWN (TRÊS PONTINHOS) =====
-window.fecharDropdowns = function () {
-    document.querySelectorAll('.item-dropdown.open').forEach(d => d.classList.remove('open'));
-};
-
 window.toggleDropdown = function (btn) {
-    const dropdown = btn.nextElementSibling;
+    // Identifica o dropdown associado ao botão
+    // Se o dropdown já foi movido para o body, ele não é mais o nextElementSibling
+    let dropdown;
+    if (btn.dataset.dropdownId) {
+        dropdown = document.getElementById(btn.dataset.dropdownId);
+    } else {
+        dropdown = btn.nextElementSibling;
+        // Gera um ID único para o dropdown para podermos achá-lo depois de mover para o body
+        const uniqueId = 'dropdown-' + Math.random().toString(36).substr(2, 9);
+        dropdown.id = uniqueId;
+        btn.dataset.dropdownId = uniqueId;
+    }
+
+    if (!dropdown) return;
+    
     const isOpen = dropdown.classList.contains('open');
+    
+    // Se o dropdown clicado já estiver aberto, fecha tudo e para
+    if (isOpen) {
+        fecharDropdowns();
+        return;
+    }
+
+    // Fecha qualquer outro dropdown aberto antes de abrir o novo
     fecharDropdowns();
 
-    if (!isOpen) {
-        // Usa position:fixed com coordenadas reais para sair do overflow:hidden
-        const rect = btn.getBoundingClientRect();
-        const dropdownWidth = 180;
-        const margin = 8;
-
-        // Posição vertical: abaixo do botão por padrão
-        let top = rect.bottom + margin;
-        let left = rect.right - dropdownWidth;
-
-        // Se sair pela esquerda, alinha à esquerda do botão
-        if (left < margin) left = rect.left;
-
-        // Se sair pela direita, empurra para dentro
-        if (left + dropdownWidth > window.innerWidth - margin) {
-            left = window.innerWidth - dropdownWidth - margin;
-        }
-
-        // Se sair pela parte inferior, abre para cima
-        if (top + 200 > window.innerHeight) {
-            top = rect.top - 200 - margin;
-        }
-
-        dropdown.style.top = top + 'px';
-        dropdown.style.left = left + 'px';
-        dropdown.classList.add('open');
+    // Move o dropdown para o final do body para evitar problemas de overflow/z-index
+    if (dropdown.parentNode !== document.body) {
+        document.body.appendChild(dropdown);
     }
+
+    // Calcula a posição
+    const rect = btn.getBoundingClientRect();
+    const dropdownWidth = 160; // Largura fixa definida no CSS
+    const margin = 8;
+
+    // Posição horizontal: alinhado à direita do botão
+    let left = rect.right - dropdownWidth;
+    
+    // Posição vertical: logo abaixo do botão
+    let top = rect.bottom + margin;
+
+    // Ajustes de segurança para não sair da tela
+    if (left < margin) left = margin;
+    if (left + dropdownWidth > window.innerWidth - margin) {
+        left = window.innerWidth - dropdownWidth - margin;
+    }
+
+    // Aplica estilos iniciais para medição
+    dropdown.style.position = 'fixed';
+    dropdown.style.display = 'flex';
+    dropdown.style.visibility = 'hidden'; // Invisível para medir altura real
+
+    // Se não couber embaixo, abre em cima
+    const dropdownHeight = dropdown.offsetHeight;
+    if (top + dropdownHeight > window.innerHeight - margin) {
+        top = rect.top - dropdownHeight - margin;
+    }
+
+    // Aplica os estilos finais
+    dropdown.style.visibility = 'visible';
+    dropdown.style.top = top + 'px';
+    dropdown.style.left = left + 'px';
+    dropdown.style.zIndex = '10000';
+    
+    // Pequeno delay para a animação de fade-in funcionar
+    requestAnimationFrame(() => {
+        dropdown.classList.add('open');
+    });
+};
+
+// Sobrescreve fecharDropdowns para lidar com os elementos movidos para o body
+window.fecharDropdowns = function () {
+    document.querySelectorAll('.item-dropdown.open').forEach(d => {
+        d.classList.remove('open');
+        d.style.display = 'none';
+    });
 };
 
 // Fecha dropdown ao clicar fora ou rolar a página

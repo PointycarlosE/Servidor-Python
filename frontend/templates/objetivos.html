@@ -122,21 +122,7 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
         lucide.createIcons();
-        const themeToggle = document.getElementById('theme-toggle');
-        if (themeToggle) {
-            const iconTheme = document.getElementById('icon-theme');
-            const cur = document.documentElement.getAttribute('data-theme') || 'light';
-            iconTheme.setAttribute('data-lucide', cur === 'dark' ? 'moon' : 'sun');
-            lucide.createIcons();
-            themeToggle.addEventListener('click', () => {
-                const c = document.documentElement.getAttribute('data-theme') || 'light';
-                const n = c === 'light' ? 'dark' : 'light';
-                document.documentElement.setAttribute('data-theme', n);
-                localStorage.setItem('theme', n);
-                iconTheme.setAttribute('data-lucide', n === 'dark' ? 'moon' : 'sun');
-                lucide.createIcons();
-            });
-        }
+
     </script>
 </body>
 </html>
