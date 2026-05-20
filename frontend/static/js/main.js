@@ -5,26 +5,29 @@ function getCsrfToken() {
 }
 
 // ===== TEMA ESCURO =====
+// Funciona em todas as páginas — busca pelo botão de tema seja qual for a classe
 document.addEventListener('DOMContentLoaded', function () {
+    // Suporta tanto .theme-btn (explorar/perfil) quanto .theme-btn-simple (login/setup/etc)
     const themeToggle = document.getElementById('theme-toggle');
     if (!themeToggle) return;
 
-    const iconEl = themeToggle.querySelector('#icon-theme');
-    const cur = document.documentElement.getAttribute('data-theme') || 'light';
-    if (iconEl) {
-        iconEl.setAttribute('data-lucide', cur === 'dark' ? 'moon' : 'sun');
+    function atualizarIconeTema(tema) {
+        const iconEl = document.getElementById('icon-theme');
+        if (!iconEl) return;
+        iconEl.setAttribute('data-lucide', tema === 'dark' ? 'moon' : 'sun');
         if (typeof lucide !== 'undefined') lucide.createIcons();
     }
 
+    // Aplica ícone correto no carregamento
+    const temaAtual = document.documentElement.getAttribute('data-theme') || 'light';
+    atualizarIconeTema(temaAtual);
+
     themeToggle.addEventListener('click', function () {
-        const current = document.documentElement.getAttribute('data-theme') || 'light';
-        const next = current === 'light' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', next);
-        localStorage.setItem('theme', next);
-        if (iconEl) {
-            iconEl.setAttribute('data-lucide', next === 'dark' ? 'moon' : 'sun');
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
+        const atual = document.documentElement.getAttribute('data-theme') || 'light';
+        const proximo = atual === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', proximo);
+        localStorage.setItem('theme', proximo);
+        atualizarIconeTema(proximo);
     });
 });
 

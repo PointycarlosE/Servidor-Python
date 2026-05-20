@@ -2643,12 +2643,188 @@ select:focus {
     -webkit-tap-highlight-color: transparent;
 }
 
-/* ===== ÍCONES POR TIPO DE ARQUIVO ===== */
+/* ===== CORREÇÕES — colar no final do style.css, substituindo o bloco antigo de .file-icon ===== */
+
+/* 1. REMOVER TODOS OS EMOJIS DO ::before NAS .file-icon
+   Estas regras sobrescrevem o bloco antigo de ícones emoji */
+.file-icon::before,
+.file-icon[data-extensao]::before,
+.file-icon[data-extensao="pdf"]::before,
+.file-icon[data-extensao="doc"]::before,
+.file-icon[data-extensao="docx"]::before,
+.file-icon[data-extensao="xls"]::before,
+.file-icon[data-extensao="xlsx"]::before,
+.file-icon[data-extensao="ppt"]::before,
+.file-icon[data-extensao="pptx"]::before,
+.file-icon[data-extensao="txt"]::before,
+.file-icon[data-extensao="rtf"]::before,
+.file-icon[data-extensao="jpg"]::before,
+.file-icon[data-extensao="jpeg"]::before,
+.file-icon[data-extensao="png"]::before,
+.file-icon[data-extensao="gif"]::before,
+.file-icon[data-extensao="bmp"]::before,
+.file-icon[data-extensao="webp"]::before,
+.file-icon[data-extensao="svg"]::before,
+.file-icon[data-extensao="mp3"]::before,
+.file-icon[data-extensao="wav"]::before,
+.file-icon[data-extensao="ogg"]::before,
+.file-icon[data-extensao="m4a"]::before,
+.file-icon[data-extensao="flac"]::before,
+.file-icon[data-extensao="mp4"]::before,
+.file-icon[data-extensao="avi"]::before,
+.file-icon[data-extensao="mkv"]::before,
+.file-icon[data-extensao="mov"]::before,
+.file-icon[data-extensao="wmv"]::before,
+.file-icon[data-extensao="flv"]::before,
+.file-icon[data-extensao="zip"]::before,
+.file-icon[data-extensao="rar"]::before,
+.file-icon[data-extensao="7z"]::before,
+.file-icon[data-extensao="tar"]::before,
+.file-icon[data-extensao="gz"]::before,
+.file-icon[data-extensao="html"]::before,
+.file-icon[data-extensao="htm"]::before,
+.file-icon[data-extensao="css"]::before,
+.file-icon[data-extensao="js"]::before,
+.file-icon[data-extensao="py"]::before,
+.file-icon[data-extensao="java"]::before,
+.file-icon[data-extensao="c"]::before,
+.file-icon[data-extensao="cpp"]::before,
+.file-icon[data-extensao="h"]::before,
+.file-icon[data-extensao="php"]::before,
+.file-icon[data-extensao="json"]::before,
+.file-icon[data-extensao="xml"]::before,
+.file-icon[data-extensao="exe"]::before,
+.file-icon[data-extensao="msi"]::before,
+.file-icon[data-extensao="bat"]::before,
+.file-icon[data-extensao="sh"]::before,
+.file-icon[data-extensao="sql"]::before,
+.file-icon[data-extensao="db"]::before,
+.file-icon[data-extensao="sqlite"]::before {
+    content: none !important;
+    display: none !important;
+}
+
+/* 2. BASE DO .file-icon — limpa e alinha para o Lucide */
 .file-icon {
-    font-size: 2rem;
+    font-size: 0 !important; /* remove qualquer texto residual */
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
+}
+
+/* 3. MENU DE TRÊS PONTINHOS */
+.item-menu-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.btn-menu-item {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     justify-content: center;
+    transition: var(--transition);
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.btn-menu-item:hover {
+    background: var(--border);
+    color: var(--text);
+}
+
+.item-dropdown {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 4px);
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    min-width: 180px;
+    z-index: 500;
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    animation: dropdownFadeIn 0.15s ease;
+}
+
+@keyframes dropdownFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.item-dropdown.open {
+    display: flex;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.875rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: background 0.15s;
+}
+
+.dropdown-item:hover {
+    background: var(--bg);
+}
+
+.dropdown-item.danger {
+    color: #d32f2f;
+}
+
+.dropdown-item.danger:hover {
+    background: #ffebee;
+}
+
+[data-theme="dark"] .dropdown-item.danger:hover {
+    background: #5f2d3a;
+    color: #f28b82;
+}
+
+.dropdown-item svg,
+.dropdown-item [data-lucide] {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+}
+
+/* Remove os botões antigos de ação individuais */
+.item-acoes {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+/* Garante que o dropdown não saia da tela em itens no final da lista */
+.item-link:last-child .item-dropdown,
+.item-link:nth-last-child(-n+3) .item-dropdown {
+    top: auto;
+    bottom: calc(100% + 4px);
 }
 
 
@@ -2791,4 +2967,168 @@ select:focus {
     display: inline-flex;
     align-items: center;
     vertical-align: middle;
+}
+
+/* ===== CORREÇÕES — colar no final do style.css ===== */
+
+/* -------------------------------------------------------
+   1. FIX DO DROPDOWN — overflow:hidden do .item-card
+      cortava o dropdown. O dropdown agora usa
+      position:fixed via JS para sair do fluxo.
+   ------------------------------------------------------- */
+.item-card {
+    overflow: visible !important;
+}
+
+.item-dropdown {
+    position: fixed !important;
+    z-index: 9999 !important;
+    min-width: 180px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+    display: none;
+    flex-direction: column;
+    animation: dropdownFadeIn 0.15s ease;
+}
+
+.item-dropdown.open {
+    display: flex;
+}
+
+@keyframes dropdownFadeIn {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 16px;
+    color: var(--text);
+    text-decoration: none;
+    font-size: 0.875rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+    transition: background 0.15s;
+}
+
+.dropdown-item:hover { background: var(--bg); }
+.dropdown-item.danger { color: #d32f2f; }
+.dropdown-item.danger:hover { background: #ffebee; }
+[data-theme="dark"] .dropdown-item.danger { color: #f28b82; }
+[data-theme="dark"] .dropdown-item.danger:hover { background: #5f2d3a; }
+
+.dropdown-item svg,
+.dropdown-item [data-lucide] {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+}
+
+.dropdown-divider {
+    height: 1px;
+    background: var(--border);
+    margin: 4px 0;
+}
+
+.item-menu-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.btn-menu-item {
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 50%;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+    width: 32px;
+    height: 32px;
+    flex-shrink: 0;
+}
+
+.btn-menu-item:hover {
+    background: var(--border);
+    color: var(--text);
+}
+
+/* -------------------------------------------------------
+   2. FIX ÍCONES EMOJI DUPLICADOS — remove todos os
+      ::before com emoji nas .file-icon
+   ------------------------------------------------------- */
+.file-icon::before,
+.file-icon[data-extensao]::before,
+.file-icon[data-extensao="pdf"]::before,
+.file-icon[data-extensao="doc"]::before,
+.file-icon[data-extensao="docx"]::before,
+.file-icon[data-extensao="xls"]::before,
+.file-icon[data-extensao="xlsx"]::before,
+.file-icon[data-extensao="ppt"]::before,
+.file-icon[data-extensao="pptx"]::before,
+.file-icon[data-extensao="txt"]::before,
+.file-icon[data-extensao="rtf"]::before,
+.file-icon[data-extensao="jpg"]::before,
+.file-icon[data-extensao="jpeg"]::before,
+.file-icon[data-extensao="png"]::before,
+.file-icon[data-extensao="gif"]::before,
+.file-icon[data-extensao="bmp"]::before,
+.file-icon[data-extensao="webp"]::before,
+.file-icon[data-extensao="svg"]::before,
+.file-icon[data-extensao="mp3"]::before,
+.file-icon[data-extensao="wav"]::before,
+.file-icon[data-extensao="ogg"]::before,
+.file-icon[data-extensao="m4a"]::before,
+.file-icon[data-extensao="flac"]::before,
+.file-icon[data-extensao="mp4"]::before,
+.file-icon[data-extensao="avi"]::before,
+.file-icon[data-extensao="mkv"]::before,
+.file-icon[data-extensao="mov"]::before,
+.file-icon[data-extensao="wmv"]::before,
+.file-icon[data-extensao="flv"]::before,
+.file-icon[data-extensao="zip"]::before,
+.file-icon[data-extensao="rar"]::before,
+.file-icon[data-extensao="7z"]::before,
+.file-icon[data-extensao="tar"]::before,
+.file-icon[data-extensao="gz"]::before,
+.file-icon[data-extensao="html"]::before,
+.file-icon[data-extensao="htm"]::before,
+.file-icon[data-extensao="css"]::before,
+.file-icon[data-extensao="js"]::before,
+.file-icon[data-extensao="py"]::before,
+.file-icon[data-extensao="java"]::before,
+.file-icon[data-extensao="c"]::before,
+.file-icon[data-extensao="cpp"]::before,
+.file-icon[data-extensao="h"]::before,
+.file-icon[data-extensao="php"]::before,
+.file-icon[data-extensao="json"]::before,
+.file-icon[data-extensao="xml"]::before,
+.file-icon[data-extensao="exe"]::before,
+.file-icon[data-extensao="msi"]::before,
+.file-icon[data-extensao="bat"]::before,
+.file-icon[data-extensao="sh"]::before,
+.file-icon[data-extensao="sql"]::before,
+.file-icon[data-extensao="db"]::before,
+.file-icon[data-extensao="sqlite"]::before {
+    content: none !important;
+    display: none !important;
+}
+
+.file-icon {
+    font-size: 0 !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: center;
 }

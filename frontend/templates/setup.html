@@ -7,7 +7,7 @@
     <title>Configuração Inicial - Meu Drive Pessoal</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
-<script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
     <script>
         (function () {
             try {
@@ -158,24 +158,6 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
         lucide.createIcons();
-
-        // Toggle tema
-        const themeToggle = document.getElementById('theme-toggle');
-        if (themeToggle) {
-            const iconTheme = document.getElementById('icon-theme');
-            const current = document.documentElement.getAttribute('data-theme') || 'light';
-            iconTheme.setAttribute('data-lucide', current === 'dark' ? 'moon' : 'sun');
-            lucide.createIcons();
-            themeToggle.addEventListener('click', () => {
-                const cur = document.documentElement.getAttribute('data-theme') || 'light';
-                const next = cur === 'light' ? 'dark' : 'light';
-                document.documentElement.setAttribute('data-theme', next);
-                localStorage.setItem('theme', next);
-                iconTheme.setAttribute('data-lucide', next === 'dark' ? 'moon' : 'sun');
-                lucide.createIcons();
-            });
-        }
-
         // Toggle senhas
         function setupToggle(btnId, inputId, iconId) {
             const btn = document.getElementById(btnId);

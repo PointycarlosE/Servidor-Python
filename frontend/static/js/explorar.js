@@ -463,7 +463,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const textoOriginal = selecaoDelete.innerHTML;
         selecaoDelete.disabled = true;
-        selecaoDelete.innerHTML = '<span>⏳</span> Excluindo...';
+        selecaoDelete.textContent = '⏳';
 
         try {
             const response = await fetch('/deletar_multiplos', {
@@ -492,6 +492,7 @@ document.addEventListener('DOMContentLoaded', function () {
         } finally {
             selecaoDelete.disabled = false;
             selecaoDelete.innerHTML = textoOriginal;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
         }
     });
 
@@ -754,6 +755,57 @@ async function atualizarLista() {
         console.error('Erro ao atualizar lista:', error);
     }
 }
+
+// ===== MENU DROPDOWN (TRÊS PONTINHOS) =====
+window.fecharDropdowns = function () {
+    document.querySelectorAll('.item-dropdown.open').forEach(d => d.classList.remove('open'));
+};
+
+window.toggleDropdown = function (btn) {
+    const dropdown = btn.nextElementSibling;
+    const isOpen = dropdown.classList.contains('open');
+    fecharDropdowns();
+
+    if (!isOpen) {
+        // Usa position:fixed com coordenadas reais para sair do overflow:hidden
+        const rect = btn.getBoundingClientRect();
+        const dropdownWidth = 180;
+        const margin = 8;
+
+        // Posição vertical: abaixo do botão por padrão
+        let top = rect.bottom + margin;
+        let left = rect.right - dropdownWidth;
+
+        // Se sair pela esquerda, alinha à esquerda do botão
+        if (left < margin) left = rect.left;
+
+        // Se sair pela direita, empurra para dentro
+        if (left + dropdownWidth > window.innerWidth - margin) {
+            left = window.innerWidth - dropdownWidth - margin;
+        }
+
+        // Se sair pela parte inferior, abre para cima
+        if (top + 200 > window.innerHeight) {
+            top = rect.top - 200 - margin;
+        }
+
+        dropdown.style.top = top + 'px';
+        dropdown.style.left = left + 'px';
+        dropdown.classList.add('open');
+    }
+};
+
+// Fecha dropdown ao clicar fora ou rolar a página
+document.addEventListener('click', function (e) {
+    if (!e.target.closest('.item-menu-wrapper')) fecharDropdowns();
+});
+
+document.addEventListener('scroll', fecharDropdowns, true);
+
+// Fecha dropdown com Escape
+document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') fecharDropdowns();
+});
 
 // ===== ATALHOS DE NAVEGAÇÃO =====
 document.addEventListener('keydown', function (e) {
