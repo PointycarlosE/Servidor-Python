@@ -1,14 +1,13 @@
 <!--perfil.html-->
 <!DOCTYPE html>
 <html lang="pt-br" data-theme="light">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Meu Perfil — Meu Drive</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
-
+<script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
     <script>
         (function () {
             try {
@@ -17,155 +16,126 @@
             } catch (e) {}
         })();
     </script>
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        .password-wrapper {
-            position: relative;
-        }
-        .password-wrapper .form-input {
-            padding-right: 44px;
-        }
+        .password-wrapper { position: relative; }
+        .password-wrapper .form-input { padding-right: 44px; }
         .btn-toggle-senha {
-            position: absolute;
-            right: 12px;
-            top: 50%;
-            transform: translateY(-50%);
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.1rem;
-            color: var(--text-secondary);
-            padding: 4px;
-            line-height: 1;
-            transition: color 0.2s;
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; cursor: pointer;
+            color: var(--text-secondary); padding: 4px; line-height: 1;
+            display: flex; align-items: center; transition: color 0.2s;
         }
-        .btn-toggle-senha:hover {
-            color: var(--text);
-        }
+        .btn-toggle-senha:hover { color: var(--text); }
     </style>
 </head>
-
 <body>
-
     <div class="app">
 
-        <!-- ===== SIDEBAR ===== -->
+        <!-- SIDEBAR -->
         <aside class="sidebar" id="sidebar">
             <div class="logo">
-                <span class="logo-icon">☁️</span>
+                <span class="logo-icon"><i data-lucide="cloud" style="width:28px;height:28px;color:var(--primary);"></i></span>
                 <span class="logo-text">Meu Drive</span>
             </div>
-
             <nav class="sidebar-nav">
                 <a href="{{ url_for('file.explorar') }}" class="nav-item">
-                    <span class="nav-icon">📁</span>
+                    <span class="nav-icon"><i data-lucide="folder"></i></span>
                     <span class="nav-text">Meus arquivos</span>
                 </a>
                 <a href="{{ url_for('main.objetivos') }}" class="nav-item">
-                    <span class="nav-icon">📋</span>
+                    <span class="nav-icon"><i data-lucide="list-checks"></i></span>
                     <span class="nav-text">Objetivos</span>
                 </a>
                 <a href="#" class="nav-item" style="opacity: 0.6; cursor: not-allowed;">
-                    <span class="nav-icon">⭐</span>
+                    <span class="nav-icon"><i data-lucide="star"></i></span>
                     <span class="nav-text">Favoritos</span>
                     <span class="nav-badge">Em breve</span>
                 </a>
                 <a href="#" class="nav-item" style="opacity: 0.6; cursor: not-allowed;">
-                    <span class="nav-icon">🗑️</span>
+                    <span class="nav-icon"><i data-lucide="trash-2"></i></span>
                     <span class="nav-text">Lixeira</span>
                     <span class="nav-badge">Em breve</span>
                 </a>
             </nav>
-
             <div class="sidebar-footer">
                 <a href="{{ url_for('auth.perfil') }}" class="user-info user-info-link active">
-                    <span class="user-icon">👤</span>
+                    <span class="user-icon"><i data-lucide="circle-user-round"></i></span>
                     <span class="user-name">{{ current_user.nome if current_user.is_authenticated else 'Usuário' }}</span>
                 </a>
                 <a href="{{ url_for('auth.logout') }}" class="logout-link">
-                    <span class="logout-icon">🚪</span>
+                    <span class="logout-icon"><i data-lucide="log-out"></i></span>
                     <span>Sair</span>
                 </a>
             </div>
         </aside>
 
-        <!-- ===== MAIN ===== -->
+        <!-- MAIN -->
         <main class="main">
-
-            <!-- TOPBAR -->
             <header class="topbar">
                 <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">
-                    <span>☰</span>
+                    <i data-lucide="menu"></i>
                 </button>
-                <div style="flex: 1;">
+                <div style="flex: 1; display:flex; align-items:center; gap:8px;">
+                    <i data-lucide="circle-user-round" style="width:20px;height:20px;color:var(--primary);"></i>
                     <span style="font-weight: 600; font-size: 1rem;">Meu Perfil</span>
                 </div>
                 <button id="theme-toggle" class="theme-btn" aria-label="Alternar tema">
-                    <span class="theme-icon">☀️</span>
+                    <span class="theme-icon"><i data-lucide="sun" id="icon-theme"></i></span>
                 </button>
             </header>
 
-            <!-- CONTEÚDO -->
             <div class="content" style="max-width: 600px;">
 
-                <!-- Flashs -->
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                 {% for category, message in messages %}
                 <div class="alert alert-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }}" style="margin-bottom: 20px;">
-                    <span>{{ '✅' if category == 'success' else '❌' if category == 'error' else 'ℹ️' }}</span>
                     {{ message }}
                 </div>
                 {% endfor %}
                 {% endif %}
                 {% endwith %}
 
-                <!-- Card: Nome de exibição -->
+                <!-- Nome de exibição -->
                 <div class="form-section" style="margin-bottom: 24px;">
                     <div class="form-section-header">
-                        <span class="form-section-icon">✏️</span>
+                        <span class="form-section-icon"><i data-lucide="pencil" style="width:28px;height:28px;color:var(--primary);"></i></span>
                         <div>
                             <h2 class="form-section-title">Nome de exibição</h2>
                             <p class="form-section-desc">Como seu nome aparece na interface do Drive.</p>
                         </div>
                     </div>
-
                     <form method="POST" action="{{ url_for('auth.perfil') }}">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="acao" value="nome">
-
                         <div class="form-group">
                             <label class="form-label" for="nome">Nome de exibição</label>
                             <input type="text" id="nome" name="nome" class="form-input"
-                                value="{{ current_user.nome }}" required maxlength="50"
-                                placeholder="Como quer ser chamado?">
+                                value="{{ current_user.nome }}" required maxlength="50" placeholder="Como quer ser chamado?">
                             <div class="form-hint">
-                                <span>ℹ️</span>
+                                <i data-lucide="info" style="width:14px;height:14px;flex-shrink:0;"></i>
                                 <span>Este é apenas o nome exibido na interface. O nome de usuário de login
                                 <strong>{{ current_user.username }}</strong> não é alterado aqui.</span>
                             </div>
                         </div>
-
                         <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 8px;">
-                            Salvar nome
+                            <i data-lucide="save" style="width:16px;height:16px;"></i> Salvar nome
                         </button>
                     </form>
                 </div>
 
-                <!-- Divisor -->
                 <div style="border-top: 1px solid var(--border); margin-bottom: 24px;"></div>
 
-                <!-- Card: Alterar senha -->
+                <!-- Alterar senha -->
                 <div class="form-section">
                     <div class="form-section-header">
-                        <span class="form-section-icon">🔒</span>
+                        <span class="form-section-icon"><i data-lucide="lock" style="width:28px;height:28px;color:var(--primary);"></i></span>
                         <div>
                             <h2 class="form-section-title">Alterar senha</h2>
                             <p class="form-section-desc">Use uma senha forte com no mínimo 12 caracteres.</p>
                         </div>
                     </div>
-
                     <form method="POST" action="{{ url_for('auth.perfil') }}" id="form-senha">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <input type="hidden" name="acao" value="senha">
@@ -175,7 +145,9 @@
                             <div class="password-wrapper">
                                 <input type="password" id="senha_atual" name="senha_atual" class="form-input"
                                     required placeholder="Digite sua senha atual" autocomplete="current-password">
-                                <button type="button" class="btn-toggle-senha" onclick="toggleSenha('senha_atual', this)" title="Mostrar/ocultar senha">👁️</button>
+                                <button type="button" class="btn-toggle-senha" id="btn-toggle-atual" title="Mostrar/ocultar">
+                                    <i data-lucide="eye" id="icon-toggle-atual" style="width:18px;height:18px;"></i>
+                                </button>
                             </div>
                             <div class="form-error" id="senha-atual-error"></div>
                         </div>
@@ -185,11 +157,11 @@
                             <div class="password-wrapper">
                                 <input type="password" id="nova_senha" name="nova_senha" class="form-input"
                                     required placeholder="Mínimo 12 caracteres" autocomplete="new-password">
-                                <button type="button" class="btn-toggle-senha" onclick="toggleSenha('nova_senha', this)" title="Mostrar/ocultar senha">👁️</button>
+                                <button type="button" class="btn-toggle-senha" id="btn-toggle-nova" title="Mostrar/ocultar">
+                                    <i data-lucide="eye" id="icon-toggle-nova" style="width:18px;height:18px;"></i>
+                                </button>
                             </div>
                             <div class="form-error" id="nova-senha-error"></div>
-
-                            <!-- Indicador visual de força da senha -->
                             <div id="password-strength" style="margin-top: 8px; display: none;">
                                 <div style="display: flex; gap: 4px; margin-bottom: 6px;">
                                     <div class="strength-bar" id="bar-1" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
@@ -212,151 +184,119 @@
                             <div class="password-wrapper">
                                 <input type="password" id="confirmar_senha" name="confirmar_senha" class="form-input"
                                     required placeholder="Repita a nova senha" autocomplete="new-password">
-                                <button type="button" class="btn-toggle-senha" onclick="toggleSenha('confirmar_senha', this)" title="Mostrar/ocultar senha">👁️</button>
+                                <button type="button" class="btn-toggle-senha" id="btn-toggle-confirmar" title="Mostrar/ocultar">
+                                    <i data-lucide="eye" id="icon-toggle-confirmar" style="width:18px;height:18px;"></i>
+                                </button>
                             </div>
                             <div class="form-error" id="confirmar-senha-error"></div>
                         </div>
 
-                        <button type="submit" class="btn-primary" id="btn-alterar-senha"
-                            style="width: 100%; justify-content: center; margin-top: 8px;">
-                            Alterar senha
+                        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 8px;">
+                            <i data-lucide="shield-check" style="width:16px;height:16px;"></i> Alterar senha
                         </button>
                     </form>
                 </div>
-
             </div>
         </main>
     </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
-        // ===== TOGGLE SENHA =====
-        function toggleSenha(inputId, btn) {
-            const input = document.getElementById(inputId);
-            if (input.type === 'password') {
-                input.type = 'text';
-                btn.textContent = '🙈';
-            } else {
-                input.type = 'password';
-                btn.textContent = '👁️';
-            }
-        }
+        lucide.createIcons();
 
-        // ===== MOBILE MENU =====
+        // Mobile menu
         const mobileBtn = document.getElementById('mobile-menu-btn');
         const sidebar = document.getElementById('sidebar');
         if (mobileBtn && sidebar) {
             mobileBtn.addEventListener('click', () => sidebar.classList.toggle('active'));
             document.addEventListener('click', (e) => {
-                if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !mobileBtn.contains(e.target)) {
+                if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !mobileBtn.contains(e.target))
                     sidebar.classList.remove('active');
-                }
             });
         }
 
-        // ===== TEMA =====
+        // Tema
         const themeToggle = document.getElementById('theme-toggle');
         if (themeToggle) {
-            const themeIcon = themeToggle.querySelector('.theme-icon');
-            themeIcon.textContent = document.documentElement.getAttribute('data-theme') === 'dark' ? '🌙' : '☀️';
+            const iconTheme = document.getElementById('icon-theme');
+            const cur = document.documentElement.getAttribute('data-theme') || 'light';
+            iconTheme.setAttribute('data-lucide', cur === 'dark' ? 'moon' : 'sun');
+            lucide.createIcons();
             themeToggle.addEventListener('click', () => {
-                const current = document.documentElement.getAttribute('data-theme') || 'light';
-                const next = current === 'light' ? 'dark' : 'light';
-                document.documentElement.setAttribute('data-theme', next);
-                localStorage.setItem('theme', next);
-                themeIcon.textContent = next === 'dark' ? '🌙' : '☀️';
+                const c = document.documentElement.getAttribute('data-theme') || 'light';
+                const n = c === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', n);
+                localStorage.setItem('theme', n);
+                iconTheme.setAttribute('data-lucide', n === 'dark' ? 'moon' : 'sun');
+                lucide.createIcons();
             });
         }
 
-        // ===== VALIDAÇÃO DE SENHA =====
+        // Toggle senhas
+        function setupToggle(btnId, inputId, iconId) {
+            const btn = document.getElementById(btnId);
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (!btn) return;
+            btn.addEventListener('click', () => {
+                if (input.type === 'password') { input.type = 'text'; icon.setAttribute('data-lucide', 'eye-off'); }
+                else { input.type = 'password'; icon.setAttribute('data-lucide', 'eye'); }
+                lucide.createIcons();
+            });
+        }
+        setupToggle('btn-toggle-atual', 'senha_atual', 'icon-toggle-atual');
+        setupToggle('btn-toggle-nova', 'nova_senha', 'icon-toggle-nova');
+        setupToggle('btn-toggle-confirmar', 'confirmar_senha', 'icon-toggle-confirmar');
+
+        // Validação de senha
         document.addEventListener('DOMContentLoaded', function () {
             const novaSenhaInput = document.getElementById('nova_senha');
             const confirmarInput = document.getElementById('confirmar_senha');
             const novaSenhaError = document.getElementById('nova-senha-error');
             const confirmarError = document.getElementById('confirmar-senha-error');
-            const formSenha      = document.getElementById('form-senha');
+            const formSenha = document.getElementById('form-senha');
 
-            function showError(input, errorDiv, msg) {
-                input.classList.add('error');
-                errorDiv.textContent = msg;
-                errorDiv.style.display = 'block';
-            }
-
-            function clearError(input, errorDiv) {
-                input.classList.remove('error');
-                errorDiv.textContent = '';
-                errorDiv.style.display = 'none';
-            }
+            function showError(input, div, msg) { input.classList.add('error'); div.textContent = msg; div.style.display = 'block'; }
+            function clearError(input, div) { input.classList.remove('error'); div.textContent = ''; div.style.display = 'none'; }
 
             function checkPassword(senha) {
-                return {
-                    len:     senha.length >= 12,
-                    upper:   /[A-Z]/.test(senha),
-                    lower:   /[a-z]/.test(senha),
-                    num:     /\d/.test(senha),
-                    special: /[^A-Za-z0-9]/.test(senha),
-                };
+                return { len: senha.length >= 12, upper: /[A-Z]/.test(senha), lower: /[a-z]/.test(senha), num: /\d/.test(senha), special: /[^A-Za-z0-9]/.test(senha) };
             }
 
             function updateStrengthUI(senha) {
                 const el = document.getElementById('password-strength');
                 if (!senha) { el.style.display = 'none'; return; }
                 el.style.display = 'block';
-
                 const r = checkPassword(senha);
-                const rules = {
-                    'rule-len':     r.len,
-                    'rule-upper':   r.upper,
-                    'rule-lower':   r.lower,
-                    'rule-num':     r.num,
-                    'rule-special': r.special
-                };
-                Object.entries(rules).forEach(([id, ok]) => {
-                    document.getElementById(id).style.color = ok ? '#22c55e' : 'var(--text-secondary)';
-                });
-
+                const rules = { 'rule-len': r.len, 'rule-upper': r.upper, 'rule-lower': r.lower, 'rule-num': r.num, 'rule-special': r.special };
+                Object.entries(rules).forEach(([id, ok]) => { document.getElementById(id).style.color = ok ? '#22c55e' : 'var(--text-secondary)'; });
                 const score = Object.values(r).filter(Boolean).length;
                 const colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e'];
-                for (let i = 1; i <= 4; i++) {
-                    document.getElementById('bar-' + i).style.background =
-                        i <= score ? colors[score] : 'var(--border)';
-                }
+                for (let i = 1; i <= 4; i++) { document.getElementById('bar-' + i).style.background = i <= score ? colors[score] : 'var(--border)'; }
             }
 
             function validateNovaSenha() {
                 const senha = novaSenhaInput.value;
                 if (!senha) { showError(novaSenhaInput, novaSenhaError, 'Digite a nova senha'); return false; }
                 const r = checkPassword(senha);
-                if (!r.len)     { showError(novaSenhaInput, novaSenhaError, 'Mínimo 12 caracteres'); return false; }
-                if (!r.upper)   { showError(novaSenhaInput, novaSenhaError, 'Adicione uma letra maiúscula'); return false; }
-                if (!r.lower)   { showError(novaSenhaInput, novaSenhaError, 'Adicione uma letra minúscula'); return false; }
-                if (!r.num)     { showError(novaSenhaInput, novaSenhaError, 'Adicione um número'); return false; }
+                if (!r.len) { showError(novaSenhaInput, novaSenhaError, 'Mínimo 12 caracteres'); return false; }
+                if (!r.upper) { showError(novaSenhaInput, novaSenhaError, 'Adicione uma letra maiúscula'); return false; }
+                if (!r.lower) { showError(novaSenhaInput, novaSenhaError, 'Adicione uma letra minúscula'); return false; }
+                if (!r.num) { showError(novaSenhaInput, novaSenhaError, 'Adicione um número'); return false; }
                 if (!r.special) { showError(novaSenhaInput, novaSenhaError, 'Adicione um caractere especial'); return false; }
-                clearError(novaSenhaInput, novaSenhaError);
-                return true;
+                clearError(novaSenhaInput, novaSenhaError); return true;
             }
 
             function validateConfirmar() {
                 if (!confirmarInput.value) { showError(confirmarInput, confirmarError, 'Confirme a nova senha'); return false; }
                 if (confirmarInput.value !== novaSenhaInput.value) { showError(confirmarInput, confirmarError, 'As senhas não coincidem'); return false; }
-                clearError(confirmarInput, confirmarError);
-                return true;
+                clearError(confirmarInput, confirmarError); return true;
             }
 
-            novaSenhaInput.addEventListener('input', () => {
-                updateStrengthUI(novaSenhaInput.value);
-                validateNovaSenha();
-                if (confirmarInput.value) validateConfirmar();
-            });
-
+            novaSenhaInput.addEventListener('input', () => { updateStrengthUI(novaSenhaInput.value); validateNovaSenha(); if (confirmarInput.value) validateConfirmar(); });
             confirmarInput.addEventListener('input', validateConfirmar);
-
-            formSenha.addEventListener('submit', function (e) {
-                const ok = [validateNovaSenha(), validateConfirmar()].every(Boolean);
-                if (!ok) e.preventDefault();
-            });
+            formSenha.addEventListener('submit', function (e) { const ok = [validateNovaSenha(), validateConfirmar()].every(Boolean); if (!ok) e.preventDefault(); });
         });
     </script>
 </body>
-
 </html>

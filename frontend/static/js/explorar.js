@@ -536,28 +536,35 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// ===== ÍCONES DINÂMICOS (FALLBACK) =====
+// ===== ÍCONES DINÂMICOS (LUCIDE) =====
 document.addEventListener('DOMContentLoaded', function () {
+    // Mapeia extensão → nome do ícone Lucide
     const iconMap = {
-        'pdf': '📕', 'doc': '📘', 'docx': '📘', 'xls': '📊', 'xlsx': '📊',
-        'ppt': '📽️', 'pptx': '📽️', 'txt': '📃', 'rtf': '📄',
-        'jpg': '🖼️', 'jpeg': '🖼️', 'png': '🖼️', 'gif': '🖼️', 'svg': '🖼️',
-        'mp3': '🎵', 'wav': '🎵', 'ogg': '🎵', 'flac': '🎵',
-        'mp4': '🎬', 'avi': '🎬', 'mkv': '🎬', 'mov': '🎬',
-        'zip': '📦', 'rar': '📦', '7z': '📦', 'tar': '📦', 'gz': '📦',
-        'html': '🌐', 'htm': '🌐', 'css': '🎨', 'js': '⚡', 'py': '🐍',
-        'java': '☕', 'c': '⚙️', 'cpp': '⚙️', 'php': '🐘', 'json': '📋',
-        'exe': '⚙️', 'msi': '⚙️', 'bat': '📜', 'sh': '📜',
-        'sql': '🗄️', 'db': '🗄️', 'sqlite': '🗄️'
+        'doc': 'file-text', 'docx': 'file-text', 'txt': 'file-text', 'rtf': 'file-text', 'md': 'file-text',
+        'xls': 'bar-chart-2', 'xlsx': 'bar-chart-2', 'csv': 'bar-chart-2',
+        'ppt': 'presentation', 'pptx': 'presentation',
+        'mp4': 'video', 'avi': 'video', 'mkv': 'video', 'mov': 'video', 'webm': 'video',
+        'zip': 'archive', 'rar': 'archive', '7z': 'archive', 'tar': 'archive', 'gz': 'archive',
+        'html': 'globe', 'htm': 'globe',
+        'css': 'palette',
+        'js': 'zap', 'ts': 'zap', 'mjs': 'zap',
+        'py': 'terminal', 'sh': 'terminal', 'bash': 'terminal',
+        'json': 'braces', 'xml': 'braces', 'yaml': 'braces', 'yml': 'braces',
+        'sql': 'database', 'db': 'database', 'sqlite': 'database',
+        'exe': 'settings', 'msi': 'settings', 'bat': 'settings',
+        'java': 'coffee', 'c': 'cpu', 'cpp': 'cpu', 'php': 'code',
     };
-    
+
     function updateIcons() {
         document.querySelectorAll('.file-icon').forEach(icon => {
+            if (icon.innerHTML.trim() !== '') return; // já tem ícone
             const ext = icon.dataset.extensao;
-            if (ext && iconMap[ext] && (icon.textContent === '📄' || icon.textContent === '')) icon.textContent = iconMap[ext];
+            const lucideIcon = (ext && iconMap[ext]) ? iconMap[ext] : 'file';
+            icon.innerHTML = `<i data-lucide="${lucideIcon}" style="width:40px;height:40px;color:var(--text-secondary);"></i>`;
         });
+        if (typeof lucide !== 'undefined') lucide.createIcons();
     }
-    
+
     updateIcons();
     document.addEventListener('listaAtualizada', updateIcons);
 });

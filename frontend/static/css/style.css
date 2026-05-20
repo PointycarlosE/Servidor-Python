@@ -2651,74 +2651,144 @@ select:focus {
     justify-content: center;
 }
 
-/* Ícone padrão para arquivos sem extensão conhecida */
-.file-icon[data-extensao]::before {
-    content: "📄";
+
+/* ===== ÍCONES LUCIDE — adicionar ao final do style.css ===== */
+
+/* Ícones na listagem de arquivos */
+.item-icone svg,
+.item-icone [data-lucide] {
+    width: 40px;
+    height: 40px;
 }
 
-/* Documentos */
-.file-icon[data-extensao="pdf"]::before { content: "📕"; }
-.file-icon[data-extensao="doc"]::before,
-.file-icon[data-extensao="docx"]::before { content: "📘"; }
-.file-icon[data-extensao="xls"]::before,
-.file-icon[data-extensao="xlsx"]::before { content: "📊"; }
-.file-icon[data-extensao="ppt"]::before,
-.file-icon[data-extensao="pptx"]::before { content: "📽️"; }
-.file-icon[data-extensao="txt"]::before { content: "📃"; }
-.file-icon[data-extensao="rtf"]::before { content: "📄"; }
+.icon-pasta {
+    color: #f59e0b;
+}
 
-/* Imagens */
-.file-icon[data-extensao="jpg"]::before,
-.file-icon[data-extensao="jpeg"]::before,
-.file-icon[data-extensao="png"]::before,
-.file-icon[data-extensao="gif"]::before,
-.file-icon[data-extensao="bmp"]::before,
-.file-icon[data-extensao="webp"]::before,
-.file-icon[data-extensao="svg"]::before { content: "🖼️"; }
+.icon-audio {
+    color: #8b5cf6;
+}
 
-/* Áudios */
-.file-icon[data-extensao="mp3"]::before,
-.file-icon[data-extensao="wav"]::before,
-.file-icon[data-extensao="ogg"]::before,
-.file-icon[data-extensao="m4a"]::before,
-.file-icon[data-extensao="flac"]::before { content: "🎵"; }
+.icon-pdf {
+    color: #ef4444;
+}
 
-/* Vídeos */
-.file-icon[data-extensao="mp4"]::before,
-.file-icon[data-extensao="avi"]::before,
-.file-icon[data-extensao="mkv"]::before,
-.file-icon[data-extensao="mov"]::before,
-.file-icon[data-extensao="wmv"]::before,
-.file-icon[data-extensao="flv"]::before { content: "🎬"; }
+/* Botões de ação com ícones Lucide */
+.botao-download svg,
+.botao-download [data-lucide],
+.botao-excluir svg,
+.botao-excluir [data-lucide] {
+    width: 16px;
+    height: 16px;
+    pointer-events: none;
+}
 
-/* Compactados */
-.file-icon[data-extensao="zip"]::before,
-.file-icon[data-extensao="rar"]::before,
-.file-icon[data-extensao="7z"]::before,
-.file-icon[data-extensao="tar"]::before,
-.file-icon[data-extensao="gz"]::before { content: "📦"; }
+/* Navegação — ícones da sidebar */
+.nav-icon svg,
+.nav-icon [data-lucide] {
+    width: 18px;
+    height: 18px;
+}
 
-/* Código */
-.file-icon[data-extensao="html"]::before,
-.file-icon[data-extensao="htm"]::before { content: "🌐"; }
-.file-icon[data-extensao="css"]::before { content: "🎨"; }
-.file-icon[data-extensao="js"]::before { content: "⚡"; }
-.file-icon[data-extensao="py"]::before { content: "🐍"; }
-.file-icon[data-extensao="java"]::before { content: "☕"; }
-.file-icon[data-extensao="c"]::before,
-.file-icon[data-extensao="cpp"]::before,
-.file-icon[data-extensao="h"]::before { content: "⚙️"; }
-.file-icon[data-extensao="php"]::before { content: "🐘"; }
-.file-icon[data-extensao="json"]::before { content: "📋"; }
-.file-icon[data-extensao="xml"]::before { content: "🔧"; }
+/* User info icon */
+.user-icon svg,
+.user-icon [data-lucide] {
+    width: 20px;
+    height: 20px;
+}
 
-/* Executáveis */
-.file-icon[data-extensao="exe"]::before,
-.file-icon[data-extensao="msi"]::before { content: "⚙️"; }
-.file-icon[data-extensao="bat"]::before,
-.file-icon[data-extensao="sh"]::before { content: "📜"; }
+.logout-icon svg,
+.logout-icon [data-lucide] {
+    width: 16px;
+    height: 16px;
+}
 
-/* Banco de dados */
-.file-icon[data-extensao="sql"]::before,
-.file-icon[data-extensao="db"]::before,
-.file-icon[data-extensao="sqlite"]::before { content: "🗄️"; }
+/* Topbar */
+.mobile-menu-btn svg,
+.mobile-menu-btn [data-lucide] {
+    width: 22px;
+    height: 22px;
+}
+
+.view-btn svg,
+.view-btn [data-lucide] {
+    width: 16px;
+    height: 16px;
+}
+
+.theme-btn svg,
+.theme-btn [data-lucide],
+.theme-btn-simple svg,
+.theme-btn-simple [data-lucide] {
+    width: 18px;
+    height: 18px;
+}
+
+/* Lightbox nav */
+.lightbox-nav svg,
+.lightbox-nav [data-lucide] {
+    width: 24px;
+    height: 24px;
+}
+
+.lightbox-close svg,
+.lightbox-close [data-lucide],
+.modal-close svg,
+.modal-close [data-lucide],
+.upload-panel-close svg,
+.upload-panel-close [data-lucide] {
+    width: 18px;
+    height: 18px;
+}
+
+/* Seleção múltipla */
+.selection-btn svg,
+.selection-btn [data-lucide] {
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+}
+
+/* Arquivos genéricos — ícone fallback Lucide */
+.file-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-secondary);
+}
+
+.file-icon svg,
+.file-icon [data-lucide] {
+    width: 40px;
+    height: 40px;
+}
+
+/* Drop overlay */
+.drop-icon svg,
+.drop-icon [data-lucide] {
+    color: var(--primary);
+    opacity: 0.8;
+}
+
+/* Form section icon no perfil */
+.form-section-icon svg,
+.form-section-icon [data-lucide] {
+    width: 28px;
+    height: 28px;
+}
+
+/* Form hint icon */
+.form-hint svg,
+.form-hint [data-lucide] {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+}
+
+/* Sort arrow */
+.sort-arrow {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+}

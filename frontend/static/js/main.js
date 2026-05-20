@@ -1,6 +1,4 @@
 // ===== CSRF TOKEN =====
-// Lê o token CSRF do meta tag definido no explorar.html
-// Usado em todas as requisições POST/AJAX para evitar ataques CSRF
 function getCsrfToken() {
     const meta = document.querySelector('meta[name="csrf-token"]');
     return meta ? meta.getAttribute('content') : '';
@@ -11,16 +9,22 @@ document.addEventListener('DOMContentLoaded', function () {
     const themeToggle = document.getElementById('theme-toggle');
     if (!themeToggle) return;
 
-    const themeIcon = themeToggle.querySelector('.theme-icon');
-    const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-    themeIcon.textContent = currentTheme === 'dark' ? '🌙' : '☀️';
+    const iconEl = themeToggle.querySelector('#icon-theme');
+    const cur = document.documentElement.getAttribute('data-theme') || 'light';
+    if (iconEl) {
+        iconEl.setAttribute('data-lucide', cur === 'dark' ? 'moon' : 'sun');
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
 
     themeToggle.addEventListener('click', function () {
-        const currentTheme = document.documentElement.getAttribute('data-theme') || 'light';
-        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        themeIcon.textContent = newTheme === 'dark' ? '🌙' : '☀️';
+        const current = document.documentElement.getAttribute('data-theme') || 'light';
+        const next = current === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', next);
+        localStorage.setItem('theme', next);
+        if (iconEl) {
+            iconEl.setAttribute('data-lucide', next === 'dark' ? 'moon' : 'sun');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
     });
 });
 
@@ -32,12 +36,18 @@ function showToast(message, type = 'success', duration = 3000) {
     const toastIcon = document.getElementById('toast-icon');
     const toastMessage = document.getElementById('toast-message');
 
-    const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
+    // Ícones SVG inline por tipo
+    const icons = {
+        success: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>',
+        error:   '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+        warning: '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>',
+        info:    '<svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>',
+    };
 
     toast.classList.remove('success', 'error', 'warning', 'info');
     toast.classList.add(type);
-    toastIcon.textContent = icons[type] || '✅';
-    toastMessage.textContent = message;
+    if (toastIcon) toastIcon.innerHTML = icons[type] || icons.info;
+    if (toastMessage) toastMessage.textContent = message;
     toast.style.display = 'block';
 
     setTimeout(() => { toast.style.display = 'none'; }, duration);
@@ -88,37 +98,26 @@ const ConfirmModal = {
 
 document.addEventListener('DOMContentLoaded', () => ConfirmModal.init());
 
-// Função genérica para exclusão via AJAX
+// Exclusão via AJAX
 async function executarExclusaoAjax(url, nomeItem, tipo = 'arquivo') {
     try {
         const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'X-CSRFToken': getCsrfToken(),
-                'X-Requested-With': 'XMLHttpRequest'
-            }
+            headers: { 'X-CSRFToken': getCsrfToken(), 'X-Requested-With': 'XMLHttpRequest' }
         });
-
         if (response.ok) {
-            showToast(`✅ ${tipo === 'pasta' ? '📁' : '📄'} "${nomeItem}" excluído com sucesso!`, 'success');
-            // Atualiza a lista sem recarregar a página
-            if (typeof atualizarLista === 'function') {
-                atualizarLista();
-            } else {
-                // Fallback caso a função não esteja disponível
-                window.location.reload();
-            }
+            showToast(`"${nomeItem}" excluído com sucesso!`, 'success');
+            if (typeof atualizarLista === 'function') atualizarLista();
+            else window.location.reload();
         } else {
             const erro = await response.text();
-            showToast(`❌ Erro ao excluir: ${erro}`, 'error');
+            showToast(`Erro ao excluir: ${erro}`, 'error');
         }
     } catch (error) {
-        console.error('Erro na requisição de exclusão:', error);
-        showToast('❌ Erro de conexão ao excluir item', 'error');
+        showToast('Erro de conexão ao excluir item', 'error');
     }
 }
 
-// Confirmação de exclusão de arquivo (chamada pelo HTML inline)
 window.confirmarExclusao = async (nomeArquivo, form) => {
     const result = await ConfirmModal.open({
         title: 'Excluir arquivo',
@@ -126,39 +125,23 @@ window.confirmarExclusao = async (nomeArquivo, form) => {
         detail: 'Esta ação não pode ser desfeita.'
     });
     if (result) {
-        // Tenta excluir via AJAX primeiro
-        if (form && form.action) {
-            executarExclusaoAjax(form.action, nomeArquivo, 'arquivo');
-        } else {
-            // Fallback para o comportamento antigo se necessário
-            sessionStorage.setItem('toastMessage', `✅ "${nomeArquivo}" excluído com sucesso!`);
-            sessionStorage.setItem('toastType', 'success');
-            form.submit();
-        }
+        if (form && form.action) executarExclusaoAjax(form.action, nomeArquivo, 'arquivo');
+        else { sessionStorage.setItem('toastMessage', `"${nomeArquivo}" excluído com sucesso!`); sessionStorage.setItem('toastType', 'success'); form.submit(); }
     }
 };
 
-// Confirmação de exclusão de pasta (chamada pelo HTML inline)
 window.confirmarExclusaoPasta = async (nomePasta, form) => {
     const result = await ConfirmModal.open({
-        title: '⚠️ Excluir pasta',
+        title: 'Excluir pasta',
         message: `Tem certeza que deseja excluir a pasta "${nomePasta}"?`,
         detail: 'ATENÇÃO! TODOS os arquivos dentro dela serão apagados permanentemente.'
     });
     if (result) {
-        // Tenta excluir via AJAX primeiro
-        if (form && form.action) {
-            executarExclusaoAjax(form.action, nomePasta, 'pasta');
-        } else {
-            // Fallback para o comportamento antigo se necessário
-            sessionStorage.setItem('toastMessage', `📁 "${nomePasta}" excluída com sucesso!`);
-            sessionStorage.setItem('toastType', 'success');
-            form.submit();
-        }
+        if (form && form.action) executarExclusaoAjax(form.action, nomePasta, 'pasta');
+        else { sessionStorage.setItem('toastMessage', `"${nomePasta}" excluída com sucesso!`); sessionStorage.setItem('toastType', 'success'); form.submit(); }
     }
 };
 
-// Exibir toast persistido no sessionStorage (após reload da página)
 document.addEventListener('DOMContentLoaded', () => {
     const message = sessionStorage.getItem('toastMessage');
     const type = sessionStorage.getItem('toastType');
@@ -176,9 +159,8 @@ document.addEventListener('DOMContentLoaded', function () {
     if (mobileBtn && sidebar) {
         mobileBtn.addEventListener('click', function () { sidebar.classList.toggle('active'); });
         document.addEventListener('click', function (e) {
-            if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !mobileBtn.contains(e.target)) {
+            if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !mobileBtn.contains(e.target))
                 sidebar.classList.remove('active');
-            }
         });
     }
 });
@@ -189,61 +171,50 @@ document.addEventListener('DOMContentLoaded', function () {
     const createFolderModal = document.getElementById('create-folder-modal');
     const closeFolderModal = document.getElementById('close-folder-modal');
     const cancelFolderModal = document.getElementById('cancel-folder-modal');
-
     const closeModal = () => { if (createFolderModal) createFolderModal.style.display = 'none'; };
-
-    if (createFolderTrigger) {
-        createFolderTrigger.addEventListener('click', function () {
-            if (createFolderModal) createFolderModal.style.display = 'flex';
-        });
-    }
-
+    if (createFolderTrigger) createFolderTrigger.addEventListener('click', () => { if (createFolderModal) createFolderModal.style.display = 'flex'; });
     if (closeFolderModal) closeFolderModal.addEventListener('click', closeModal);
     if (cancelFolderModal) cancelFolderModal.addEventListener('click', closeModal);
-    if (createFolderModal) {
-        createFolderModal.addEventListener('click', function (e) { if (e.target === createFolderModal) closeModal(); });
-    }
+    if (createFolderModal) createFolderModal.addEventListener('click', (e) => { if (e.target === createFolderModal) closeModal(); });
 });
 
 // ===== UPLOAD DE ARQUIVOS =====
-// Função central de upload — usada pelo botão, pelo drag & drop e pelo input file
-// ===== UPLOAD DE ARQUIVOS =====
-// Substitua a função window.uploadFiles inteira no seu main.js por esta.
-// O restante do arquivo permanece igual.
+const _uploadIconeMap = {
+    pdf: 'file-text', jpg: 'image', jpeg: 'image', png: 'image', gif: 'image', webp: 'image', bmp: 'image',
+    mp3: 'music', wav: 'music', ogg: 'music', m4a: 'music', flac: 'music',
+    mp4: 'video', avi: 'video', mkv: 'video', mov: 'video',
+    doc: 'file-text', docx: 'file-text', xls: 'bar-chart-2', xlsx: 'bar-chart-2',
+    ppt: 'presentation', pptx: 'presentation',
+    zip: 'archive', rar: 'archive', '7z': 'archive', tar: 'archive', gz: 'archive',
+    txt: 'file-text',
+};
+
+function _getUploadIconeSvg(nomeArquivo) {
+    const ext = nomeArquivo.split('.').pop().toLowerCase();
+    const lucideIcon = _uploadIconeMap[ext] || 'file';
+    return `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-${lucideIcon}" style="color:var(--primary);"><use href="#lucide-${lucideIcon}"/></svg>
+    <i data-lucide="${lucideIcon}" style="width:24px;height:24px;color:var(--primary);"></i>`;
+}
 
 window.uploadFiles = function (files) {
     if (!files || files.length === 0) return;
 
     const panel = document.getElementById('upload-panel');
     const list = document.getElementById('upload-list');
-
     if (panel) panel.style.display = 'flex';
 
     const caminho = window.location.pathname.replace(/^\/explorar/, '') || '/';
 
-    // Mapa de ícones por extensão
-    const iconeMap = {
-        pdf: '📕',
-        jpg: '🖼️', jpeg: '🖼️', png: '🖼️', gif: '🖼️', webp: '🖼️', bmp: '🖼️',
-        mp3: '🎵', wav: '🎵', ogg: '🎵', m4a: '🎵', flac: '🎵',
-        mp4: '🎬', avi: '🎬', mkv: '🎬', mov: '🎬',
-        doc: '📘', docx: '📘',
-        xls: '📊', xlsx: '📊',
-        ppt: '📽️', pptx: '📽️',
-        zip: '📦', rar: '📦', '7z': '📦', tar: '📦', gz: '📦',
-        txt: '📃',
-    };
-
-    function getIcone(nomeArquivo) {
-        const ext = nomeArquivo.split('.').pop().toLowerCase();
-        return iconeMap[ext] || '📄';
-    }
-
     Array.from(files).forEach(file => {
+        const ext = file.name.split('.').pop().toLowerCase();
+        const iconName = _uploadIconeMap[ext] || 'file';
+
         const item = document.createElement('div');
         item.className = 'upload-item';
         item.innerHTML = `
-            <div class="upload-item-icon">${getIcone(file.name)}</div>
+            <div class="upload-item-icon">
+                <i data-lucide="${iconName}" style="width:24px;height:24px;color:var(--primary);"></i>
+            </div>
             <div class="upload-item-body">
                 <div class="upload-name" title="${escapeHtml(file.name)}">${escapeHtml(file.name)}</div>
                 <div class="upload-progress-row">
@@ -254,6 +225,7 @@ window.uploadFiles = function (files) {
             </div>
         `;
         if (list) list.appendChild(item);
+        if (typeof lucide !== 'undefined') lucide.createIcons();
 
         const fill = item.querySelector('.upload-fill');
         const percent = item.querySelector('.upload-percent');
@@ -281,25 +253,23 @@ window.uploadFiles = function (files) {
                 if (percent) percent.textContent = '100%';
                 if (status) status.textContent = 'Concluído ✓';
                 item.classList.add('success');
-                showToast(`✅ "${file.name}" enviado com sucesso!`, 'success');
-                setTimeout(() => {
-                    if (typeof atualizarLista === 'function') atualizarLista();
-                }, 500);
+                showToast(`"${file.name}" enviado com sucesso!`, 'success');
+                setTimeout(() => { if (typeof atualizarLista === 'function') atualizarLista(); }, 500);
             } else if (xhr.status === 400) {
                 if (percent) percent.textContent = '';
-                if (status) status.textContent = 'Tipo não permitido ✗';
+                if (status) status.textContent = 'Tipo não permitido';
                 item.classList.add('error');
-                showToast(`❌ Tipo de arquivo não permitido: "${file.name}"`, 'error');
+                showToast(`Tipo de arquivo não permitido: "${file.name}"`, 'error');
             } else if (xhr.status === 413) {
                 if (percent) percent.textContent = '';
-                if (status) status.textContent = 'Arquivo muito grande ✗';
+                if (status) status.textContent = 'Arquivo muito grande';
                 item.classList.add('error');
-                showToast(`❌ "${file.name}" excede o limite de tamanho`, 'error');
+                showToast(`"${file.name}" excede o limite de tamanho`, 'error');
             } else {
                 if (percent) percent.textContent = '';
-                if (status) status.textContent = 'Erro ✗';
+                if (status) status.textContent = 'Erro no envio';
                 item.classList.add('error');
-                showToast(`❌ Erro ao enviar "${file.name}"`, 'error');
+                showToast(`Erro ao enviar "${file.name}"`, 'error');
             }
         };
 
@@ -307,43 +277,33 @@ window.uploadFiles = function (files) {
             if (percent) percent.textContent = '';
             if (status) status.textContent = 'Erro de conexão';
             item.classList.add('error');
-            showToast(`❌ Erro de conexão ao enviar "${file.name}"`, 'error');
+            showToast(`Erro de conexão ao enviar "${file.name}"`, 'error');
         };
 
         xhr.send(formData);
     });
 };
 
-// ===== UPLOAD VIA BOTÃO (input file) =====
+// ===== UPLOAD VIA BOTÃO =====
 document.addEventListener('DOMContentLoaded', function () {
     setTimeout(function () {
         const uploadInput = document.getElementById('arquivo');
         const uploadBtn = document.querySelector('.upload-btn');
-
         if (uploadInput) {
             uploadInput.addEventListener('change', function (e) {
                 const files = e.target.files;
-                if (files && files.length > 0) {
-                    window.uploadFiles(files);
-                    uploadInput.value = ''; // Permite reselecionar os mesmos arquivos
-                }
+                if (files && files.length > 0) { window.uploadFiles(files); uploadInput.value = ''; }
             });
         }
-
         if (uploadBtn && uploadInput) {
-            // Substituir o nó para limpar listeners antigos
             const newBtn = uploadBtn.cloneNode(true);
             uploadBtn.parentNode.replaceChild(newBtn, uploadBtn);
-            newBtn.addEventListener('click', function (e) {
-                e.preventDefault();
-                e.stopPropagation();
-                uploadInput.click();
-            });
+            newBtn.addEventListener('click', function (e) { e.preventDefault(); e.stopPropagation(); uploadInput.click(); });
         }
     }, 100);
 });
 
-// ===== HELPER: ESCAPAR HTML =====
+// ===== HELPER =====
 function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;

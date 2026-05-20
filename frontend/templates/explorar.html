@@ -8,11 +8,8 @@
     <title>Meu Drive Pessoal</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
-
-    <!-- Token CSRF disponível para o JavaScript via meta tag -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <!-- Script de tema ANTES do CSS para evitar flash -->
+<script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
     <script>
         (function () {
             try {
@@ -22,35 +19,35 @@
             } catch (e) {}
         })();
     </script>
-
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
 <body>
-
     <div class="app">
 
         <!-- ===== SIDEBAR ===== -->
         <aside class="sidebar" id="sidebar">
             <div class="logo">
-                <span class="logo-icon">☁️</span>
+                <span class="logo-icon"><i data-lucide="cloud" style="width:28px;height:28px;color:var(--primary);"></i></span>
                 <span class="logo-text">Meu Drive</span>
             </div>
 
             <nav class="sidebar-nav">
                 <a href="{{ url_for('file.explorar') }}" class="nav-item active">
-                    <span class="nav-icon">📁</span>
+                    <span class="nav-icon"><i data-lucide="folder"></i></span>
                     <span class="nav-text">Meus arquivos</span>
                 </a>
-                <a href="{{ url_for('main.objetivos') }}" class="nav-item" id="nav-objetivos"
-                    style="opacity: 0.6; cursor: pointer;">📋 Objetivos</a>
+                <a href="{{ url_for('main.objetivos') }}" class="nav-item" id="nav-objetivos">
+                    <span class="nav-icon"><i data-lucide="list-checks"></i></span>
+                    <span class="nav-text">Objetivos</span>
+                </a>
                 <a href="#" class="nav-item" id="nav-favoritos" style="opacity: 0.6; cursor: not-allowed;">
-                    <span class="nav-icon">⭐</span>
+                    <span class="nav-icon"><i data-lucide="star"></i></span>
                     <span class="nav-text">Favoritos</span>
                     <span class="nav-badge">Em breve</span>
                 </a>
                 <a href="#" class="nav-item" id="nav-lixeira" style="opacity: 0.6; cursor: not-allowed;">
-                    <span class="nav-icon">🗑️</span>
+                    <span class="nav-icon"><i data-lucide="trash-2"></i></span>
                     <span class="nav-text">Lixeira</span>
                     <span class="nav-badge">Em breve</span>
                 </a>
@@ -58,11 +55,11 @@
 
             <div class="sidebar-footer">
                 <a href="{{ url_for('auth.perfil') }}" class="user-info user-info-link">
-                    <span class="user-icon">👤</span>
+                    <span class="user-icon"><i data-lucide="circle-user-round"></i></span>
                     <span class="user-name">{{ current_user.nome if current_user.is_authenticated else 'Usuário' }}</span>
                 </a>
                 <a href="{{ url_for('auth.logout') }}" class="logout-link">
-                    <span class="logout-icon">🚪</span>
+                    <span class="logout-icon"><i data-lucide="log-out"></i></span>
                     <span>Sair</span>
                 </a>
             </div>
@@ -71,35 +68,36 @@
         <!-- ===== MAIN ===== -->
         <main class="main">
 
-            <!-- ===== TOPBAR ===== -->
+            <!-- TOPBAR -->
             <header class="topbar">
                 <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">
-                    <span>☰</span>
+                    <i data-lucide="menu"></i>
                 </button>
 
                 <div class="search-wrapper">
-                    <span class="search-icon">🔍</span>
-                    <input type="text" id="pesquisa-input" class="search-input" placeholder="Buscar arquivos..."
-                        autocomplete="off">
-                    <button id="pesquisa-limpar" class="search-clear" title="Limpar busca">✕</button>
+                    <span class="search-icon"><i data-lucide="search" style="width:16px;height:16px;"></i></span>
+                    <input type="text" id="pesquisa-input" class="search-input" placeholder="Buscar arquivos..." autocomplete="off">
+                    <button id="pesquisa-limpar" class="search-clear" title="Limpar busca">
+                        <i data-lucide="x" style="width:14px;height:14px;"></i>
+                    </button>
                 </div>
 
                 <div class="top-actions">
                     <div class="view-toggle">
                         <button id="view-grid" class="view-btn active" title="Visualização em grade">
-                            <span>🗂️</span> <span class="view-text">Grade</span>
+                            <i data-lucide="layout-grid"></i> <span class="view-text">Grade</span>
                         </button>
                         <button id="view-list" class="view-btn" title="Visualização em lista">
-                            <span>📋</span> <span class="view-text">Lista</span>
+                            <i data-lucide="layout-list"></i> <span class="view-text">Lista</span>
                         </button>
                     </div>
                     <button id="theme-toggle" class="theme-btn" aria-label="Alternar tema">
-                        <span class="theme-icon">☀️</span>
+                        <span class="theme-icon"><i data-lucide="sun" id="icon-theme"></i></span>
                     </button>
                 </div>
             </header>
 
-            <!-- ===== CONTEÚDO ===== -->
+            <!-- CONTEÚDO -->
             <div class="content">
 
                 <!-- BREADCRUMB -->
@@ -123,23 +121,21 @@
                 <div class="actions-bar">
                     <div class="upload-area">
                         <label for="arquivo" class="action-btn upload-btn">
-                            <span>📤</span> Upload
+                            <i data-lucide="upload"></i> Upload
                         </label>
-                        <input type="file" name="arquivo" id="arquivo" class="upload-input" multiple
-                            style="display: none;">
-
+                        <input type="file" name="arquivo" id="arquivo" class="upload-input" multiple style="display: none;">
                         <button class="action-btn create-folder-btn" id="create-folder-trigger">
-                            <span>📁</span> Nova pasta
+                            <i data-lucide="folder-plus"></i> Nova pasta
                         </button>
                     </div>
 
                     <div class="sort-bar">
                         <span class="sort-label">Ordenar:</span>
                         <div class="sort-buttons">
-                            <button id="ordenar-tipo" class="sort-btn active" data-order="asc">Tipo <span class="sort-arrow">↑</span></button>
-                            <button id="ordenar-nome" class="sort-btn" data-order="asc">Nome <span class="sort-arrow">↑</span></button>
-                            <button id="ordenar-tamanho" class="sort-btn" data-order="asc">Tamanho <span class="sort-arrow">↑</span></button>
-                            <button id="ordenar-data" class="sort-btn" data-order="asc">Data <span class="sort-arrow">↑</span></button>
+                            <button id="ordenar-tipo" class="sort-btn active" data-order="asc">Tipo <i data-lucide="chevron-up" class="sort-arrow" style="width:12px;height:12px;"></i></button>
+                            <button id="ordenar-nome" class="sort-btn" data-order="asc">Nome <i data-lucide="chevron-up" class="sort-arrow" style="width:12px;height:12px;"></i></button>
+                            <button id="ordenar-tamanho" class="sort-btn" data-order="asc">Tamanho <i data-lucide="chevron-up" class="sort-arrow" style="width:12px;height:12px;"></i></button>
+                            <button id="ordenar-data" class="sort-btn" data-order="asc">Data <i data-lucide="chevron-up" class="sort-arrow" style="width:12px;height:12px;"></i></button>
                         </div>
                         <div class="item-count-wrapper">
                             <span class="item-count" id="view-total-itens">0</span>
@@ -152,28 +148,27 @@
                 {% if pasta_pai is not none %}
                 <div class="back-button-wrapper">
                     <a href="{{ url_for('file.explorar', caminho=pasta_pai) }}" class="back-btn">
-                        <span>⬅️</span> Voltar para pasta anterior
+                        <i data-lucide="arrow-left"></i> Voltar para pasta anterior
                     </a>
                 </div>
                 {% endif %}
 
-                <!-- LISTAGEM DE ARQUIVOS -->
+                <!-- LISTAGEM -->
                 <div id="file-list-container">
                     {% include 'partials/_lista_arquivos.html' %}
                 </div>
-
             </div>
 
-            <!-- BARRA DE SELEÇÃO MÚLTIPLA (FLUTUANTE) -->
+            <!-- BARRA DE SELEÇÃO MÚLTIPLA -->
             <div id="selecao-barra" class="selection-bar" style="display: none;">
                 <div class="selection-info">
                     <span id="selecao-contador">0</span> selecionados
                 </div>
                 <div class="selection-actions">
-                    <button id="selecao-select-all" class="selection-btn" title="Selecionar todos">✅</button>
-                    <button id="selecao-clear" class="selection-btn" title="Limpar seleção">✕</button>
-                    <button id="selecao-delete" class="selection-btn delete-btn" title="Excluir selecionados">🗑️</button>
-                    <button id="selecao-download" class="selection-btn download-btn" title="Download ZIP">📦</button>
+                    <button id="selecao-select-all" class="selection-btn" title="Selecionar todos"><i data-lucide="check-square"></i></button>
+                    <button id="selecao-clear" class="selection-btn" title="Limpar seleção"><i data-lucide="x"></i></button>
+                    <button id="selecao-delete" class="selection-btn delete-btn" title="Excluir selecionados"><i data-lucide="trash-2"></i></button>
+                    <button id="selecao-download" class="selection-btn download-btn" title="Download ZIP"><i data-lucide="archive"></i></button>
                 </div>
             </div>
 
@@ -181,19 +176,16 @@
             <div id="create-folder-modal" class="modal-overlay" style="display: none;">
                 <div class="modal-container modal-small">
                     <div class="modal-header">
-                        <h3 class="modal-title">📁 Criar nova pasta</h3>
-                        <button class="modal-close" id="close-folder-modal">&times;</button>
+                        <h3 class="modal-title"><i data-lucide="folder-plus" style="width:18px;height:18px;"></i> Criar nova pasta</h3>
+                        <button class="modal-close" id="close-folder-modal"><i data-lucide="x"></i></button>
                     </div>
-                    <form action="{{ url_for('file.criar_pasta', caminho=caminho_atual) }}" method="post"
-                        class="modal-form">
+                    <form action="{{ url_for('file.criar_pasta', caminho=caminho_atual) }}" method="post" class="modal-form">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <div class="modal-body">
-                            <input type="text" name="nome_pasta" placeholder="Nome da pasta" required
-                                class="modal-input">
+                            <input type="text" name="nome_pasta" placeholder="Nome da pasta" required class="modal-input">
                         </div>
                         <div class="modal-footer">
-                            <button type="button" class="modal-btn modal-btn-cancel"
-                                id="cancel-folder-modal">Cancelar</button>
+                            <button type="button" class="modal-btn modal-btn-cancel" id="cancel-folder-modal">Cancelar</button>
                             <button type="submit" class="modal-btn modal-btn-confirm">Criar</button>
                         </div>
                     </form>
@@ -203,18 +195,20 @@
         </main>
     </div>
 
-    <!-- ===== COMPONENTES GLOBAIS ===== -->
+    <!-- COMPONENTES GLOBAIS -->
 
-    <!-- Audio Player Modal -->
+    <!-- Audio Modal -->
     <div id="audioModal" class="lightbox-overlay" style="display: none;">
         <div class="lightbox-container">
             <div class="lightbox-content">
                 <div class="lightbox-header">
                     <span class="lightbox-title" id="audioModalTitle"></span>
-                    <button class="lightbox-close" id="audioModalClose">&times;</button>
+                    <button class="lightbox-close" id="audioModalClose"><i data-lucide="x"></i></button>
                 </div>
                 <div class="audio-player-container" style="padding: 30px; text-align: center;">
-                    <div class="audio-player-icon" style="font-size: 4rem; margin-bottom: 20px;">🎵</div>
+                    <div class="audio-player-icon" style="margin-bottom: 20px;">
+                        <i data-lucide="music" style="width:64px;height:64px;color:var(--primary);"></i>
+                    </div>
                     <audio id="audioPlayer" controls style="width: 100%; max-width: 500px; border-radius: 40px;">
                         <source id="audioSource" src="" type="audio/mpeg">
                         Seu navegador não suporta o elemento de áudio.
@@ -226,44 +220,52 @@
                 <div class="lightbox-footer">
                     <span class="lightbox-info" id="audioModalInfo"></span>
                     <div class="lightbox-actions">
-                        <a href="#" class="lightbox-btn download" id="audioModalDownload" download>⬇️ Download</a>
-                        <button class="lightbox-btn delete" id="audioModalDelete">🗑️ Excluir</button>
+                        <a href="#" class="lightbox-btn download" id="audioModalDownload" download>
+                            <i data-lucide="download" style="width:15px;height:15px;"></i> Download
+                        </a>
+                        <button class="lightbox-btn delete" id="audioModalDelete">
+                            <i data-lucide="trash-2" style="width:15px;height:15px;"></i> Excluir
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Lightbox para imagens -->
+    <!-- Lightbox imagens -->
     <div class="lightbox-overlay" id="lightbox">
         <div class="lightbox-container">
             <div class="lightbox-content">
                 <div class="lightbox-header">
                     <span class="lightbox-title" id="lightbox-title"></span>
-                    <button class="lightbox-close" id="lightbox-close">&times;</button>
+                    <button class="lightbox-close" id="lightbox-close"><i data-lucide="x"></i></button>
                 </div>
                 <div class="lightbox-image-container">
-                    <button class="lightbox-nav prev" id="lightbox-prev">❮</button>
+                    <button class="lightbox-nav prev" id="lightbox-prev"><i data-lucide="chevron-left"></i></button>
                     <img src="" alt="" class="lightbox-image" id="lightbox-image">
-                    <button class="lightbox-nav next" id="lightbox-next">❯</button>
+                    <button class="lightbox-nav next" id="lightbox-next"><i data-lucide="chevron-right"></i></button>
                 </div>
                 <div class="lightbox-footer">
                     <span class="lightbox-info" id="lightbox-info"></span>
                     <div class="lightbox-actions">
-                        <a href="#" class="lightbox-btn download" id="lightbox-download" download>⬇️ Download</a>
-                        <button class="lightbox-btn delete" id="lightbox-delete">🗑️ Excluir</button>
+                        <a href="#" class="lightbox-btn download" id="lightbox-download" download>
+                            <i data-lucide="download" style="width:15px;height:15px;"></i> Download
+                        </a>
+                        <button class="lightbox-btn delete" id="lightbox-delete">
+                            <i data-lucide="trash-2" style="width:15px;height:15px;"></i> Excluir
+                        </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Modal de Confirmação Genérico -->
+    <!-- Modal de Confirmação -->
     <div id="confirmModal" class="modal-overlay" style="display: none;">
         <div class="modal-container modal-small">
             <div class="modal-header">
                 <h3 class="modal-title" id="modalTitle">Confirmar</h3>
-                <button class="modal-close" id="modalClose">&times;</button>
+                <button class="modal-close" id="modalClose"><i data-lucide="x"></i></button>
             </div>
             <div class="modal-body">
                 <p id="modalMessage" style="margin-bottom: 10px; font-weight: 500;"></p>
@@ -276,10 +278,10 @@
         </div>
     </div>
 
-    <!-- Overlay Global de Drag & Drop -->
+    <!-- Overlay Drag & Drop -->
     <div id="global-drop-overlay" class="drop-overlay">
         <div class="drop-content">
-            <div class="drop-icon">📤</div>
+            <div class="drop-icon"><i data-lucide="upload-cloud" style="width:64px;height:64px;"></i></div>
             <div class="drop-text">Solte seus arquivos aqui para fazer upload</div>
         </div>
     </div>
@@ -288,25 +290,21 @@
     <div id="upload-panel" class="upload-panel" style="display: none;">
         <div class="upload-panel-header">
             <span class="upload-panel-title">Uploads</span>
-            <button class="upload-panel-close" onclick="fecharPainel()">&times;</button>
+            <button class="upload-panel-close" onclick="fecharPainel()"><i data-lucide="x"></i></button>
         </div>
-        <div id="upload-list" class="upload-list">
-            <!-- Itens de upload serão inseridos aqui -->
-        </div>
+        <div id="upload-list" class="upload-list"></div>
     </div>
 
-    <!-- Toast Notification -->
+    <!-- Toast -->
     <div id="toast" class="toast" style="display: none;">
         <div class="toast-content">
-            <span id="toast-icon" class="toast-icon">✅</span>
+            <span id="toast-icon" class="toast-icon"></span>
             <span id="toast-message" class="toast-message">Operação realizada!</span>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script src="{{ url_for('static', filename='js/explorar.js') }}"></script>
-
+    <script>lucide.createIcons();</script>
 </body>
-
 </html>
