@@ -11,6 +11,7 @@ from app.config import (
     PERMANENT_SESSION_LIFETIME, MAX_CONTENT_LENGTH, IS_PRODUCTION,
 )
 from app.extensions import limiter
+from app.email import mail
 from app.auth.models import User
 from app.auth.routes import auth_bp
 from app.routes.main import main_bp
@@ -35,12 +36,21 @@ def create_app():
         SESSION_COOKIE_SAMESITE=SESSION_COOKIE_SAMESITE,
         PERMANENT_SESSION_LIFETIME=PERMANENT_SESSION_LIFETIME,
         WTF_CSRF_ENABLED=True,
-        WTF_CSRF_TIME_LIMIT=3600
+        WTF_CSRF_TIME_LIMIT=3600,
+        # Configurações de email
+        MAIL_SERVER=os.environ.get('MAIL_SERVER', 'smtp.gmail.com'),
+        MAIL_PORT=int(os.environ.get('MAIL_PORT', 587)),
+        MAIL_USE_TLS=os.environ.get('MAIL_USE_TLS', 'True').lower() == 'true',
+        MAIL_USE_SSL=os.environ.get('MAIL_USE_SSL', 'False').lower() == 'true',
+        MAIL_USERNAME=os.environ.get('MAIL_USERNAME'),
+        MAIL_PASSWORD=os.environ.get('MAIL_PASSWORD'),
+        MAIL_DEFAULT_SENDER=os.environ.get('MAIL_DEFAULT_SENDER', os.environ.get('MAIL_USERNAME'))
     )
 
     # Inicialização de extensões
     csrf.init_app(app)
     limiter.init_app(app)
+    mail.init_app(app)
     login_manager.init_app(app)
     
     login_manager.login_view = 'auth.login'

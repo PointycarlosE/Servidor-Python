@@ -19,33 +19,6 @@
             display: flex; align-items: center; transition: color 0.2s;
         }
         .btn-toggle-senha:hover { color: var(--text); }
-
-        /* Grid responsivo para perfil */
-        .perfil-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 24px;
-        }
-
-        @media (min-width: 900px) {
-            .perfil-grid {
-                grid-template-columns: 1fr 1fr;
-                align-items: start;
-            }
-        }
-
-        .perfil-column {
-            display: flex;
-            flex-direction: column;
-            gap: 24px;
-        }
-
-        .form-section {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-        }
     </style>
 </head>
 <body>
@@ -95,9 +68,10 @@
                 <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">
                     <i data-lucide="menu"></i>
                 </button>
-                <h1 style="font-size: 1.5rem; font-weight: 600; color: var(--text);">
-                    <i data-lucide="user-circle" style="width:24px;height:24px;"></i> Meu Perfil
-                </h1>
+                <div style="flex: 1; display:flex; align-items:center; gap:8px;">
+                    <i data-lucide="circle-user-round" style="width:20px;height:20px;color:var(--primary);"></i>
+                    <span style="font-weight: 600; font-size: 1rem;">Meu Perfil</span>
+                </div>
             </header>
 
             <div class="content" style="max-width: 1200px;">
@@ -202,12 +176,12 @@
                                 <span class="form-section-icon"><i data-lucide="shield" style="width:28px;height:28px;color:var(--primary);"></i></span>
                                 <div>
                                     <h2 class="form-section-title">Autenticação de Dois Fatores</h2>
-                                    <p class="form-section-desc">Segurança extra para sua conta.</p>
+                                    <p class="form-section-desc">Adicione segurança extra à sua conta.</p>
                                 </div>
                             </div>
                             {% if not current_user.tem_2fa_ativo %}
                                 <p style="margin-bottom: 16px; color: var(--text-secondary); font-size: 0.9rem;">
-                                    O 2FA exige um código do celular além da senha.
+                                    O 2FA exige um código do seu celular além da senha.
                                 </p>
                                 <form method="POST" action="{{ url_for('auth.ativar_2fa') }}">
                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
@@ -261,75 +235,168 @@
                     <!-- COLUNA DIREITA -->
                     <div class="perfil-column">
                         <!-- Alterar senha -->
-                        <div class="form-section">
+                        <div class="form-section" style="height: fit-content;">
                             <div class="form-section-header">
                                 <span class="form-section-icon"><i data-lucide="lock" style="width:28px;height:28px;color:var(--primary);"></i></span>
                                 <div>
                                     <h2 class="form-section-title">Alterar senha</h2>
-                                    <p class="form-section-desc">Use uma senha forte (mínimo 12 caracteres).</p>
+                                    <p class="form-section-desc">Use uma senha forte com no mínimo 12 caracteres.</p>
                                 </div>
                             </div>
                             <form method="POST" action="{{ url_for('auth.perfil') }}" id="form-senha">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <input type="hidden" name="acao" value="senha">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <input type="hidden" name="acao" value="senha">
 
-                                <div class="form-group">
-                                    <label class="form-label" for="senha_atual">Senha atual</label>
-                                    <div class="password-wrapper">
-                                        <input type="password" id="senha_atual" name="senha_atual" class="form-input"
-                                            required placeholder="Digite sua senha atual" autocomplete="current-password">
-                                        <button type="button" class="btn-toggle-senha" id="btn-toggle-atual" title="Mostrar/ocultar">
-                                            <i data-lucide="eye" id="icon-toggle-atual" style="width:18px;height:18px;"></i>
-                                        </button>
-                                    </div>
-                                    <div class="form-error" id="senha-atual-error"></div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label" for="nova_senha">Nova senha</label>
-                                    <div class="password-wrapper">
-                                        <input type="password" id="nova_senha" name="nova_senha" class="form-input"
-                                            required placeholder="Mínimo 12 caracteres" autocomplete="new-password">
-                                        <button type="button" class="btn-toggle-senha" id="btn-toggle-nova" title="Mostrar/ocultar">
-                                            <i data-lucide="eye" id="icon-toggle-nova" style="width:18px;height:18px;"></i>
-                                        </button>
-                                    </div>
-                                    <div class="form-error" id="nova-senha-error"></div>
-                                    <div id="password-strength" style="margin-top: 8px; display: none;">
-                                        <div style="display: flex; gap: 4px; margin-bottom: 6px;">
-                                            <div class="strength-bar" id="bar-1" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
-                                            <div class="strength-bar" id="bar-2" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
-                                            <div class="strength-bar" id="bar-3" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
-                                            <div class="strength-bar" id="bar-4" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
-                                        </div>
-                                        <ul id="password-rules" style="font-size:0.75rem; color: var(--text-secondary); padding-left: 16px; margin: 0;">
-                                            <li id="rule-len">Mínimo 12 caracteres</li>
-                                            <li id="rule-upper">Uma letra maiúscula</li>
-                                            <li id="rule-lower">Uma letra minúscula</li>
-                                            <li id="rule-num">Um número</li>
-                                            <li id="rule-special">Um caractere especial (!@#$%...)</li>
-                                        </ul>
-                                    </div>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="form-label" for="confirmar_senha">Confirmar nova senha</label>
-                                    <div class="password-wrapper">
-                                        <input type="password" id="confirmar_senha" name="confirmar_senha" class="form-input"
-                                            required placeholder="Repita a nova senha" autocomplete="new-password">
-                                        <button type="button" class="btn-toggle-senha" id="btn-toggle-confirmar" title="Mostrar/ocultar">
-                                            <i data-lucide="eye" id="icon-toggle-confirmar" style="width:18px;height:18px;"></i>
-                                        </button>
-                                    </div>
-                                    <div class="form-error" id="confirmar-senha-error"></div>
-                                </div>
-
-                                <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 8px;">
-                                    <i data-lucide="shield-check" style="width:16px;height:16px;"></i> Alterar senha
+                        <div class="form-group">
+                            <label class="form-label" for="senha_atual">Senha atual</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="senha_atual" name="senha_atual" class="form-input"
+                                    required placeholder="Digite sua senha atual" autocomplete="current-password">
+                                <button type="button" class="btn-toggle-senha" id="btn-toggle-atual" title="Mostrar/ocultar">
+                                    <i data-lucide="eye" id="icon-toggle-atual" style="width:18px;height:18px;"></i>
                                 </button>
-                            </form>
+                            </div>
+                            <div class="form-error" id="senha-atual-error"></div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="nova_senha">Nova senha</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="nova_senha" name="nova_senha" class="form-input"
+                                    required placeholder="Mínimo 12 caracteres" autocomplete="new-password">
+                                <button type="button" class="btn-toggle-senha" id="btn-toggle-nova" title="Mostrar/ocultar">
+                                    <i data-lucide="eye" id="icon-toggle-nova" style="width:18px;height:18px;"></i>
+                                </button>
+                            </div>
+                            <div class="form-error" id="nova-senha-error"></div>
+                            <div id="password-strength" style="margin-top: 8px; display: none;">
+                                <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+                                    <div class="strength-bar" id="bar-1" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
+                                    <div class="strength-bar" id="bar-2" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
+                                    <div class="strength-bar" id="bar-3" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
+                                    <div class="strength-bar" id="bar-4" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
+                                </div>
+                                <ul id="password-rules" style="font-size:0.75rem; color: var(--text-secondary); padding-left: 16px; margin: 0;">
+                                    <li id="rule-len">Mínimo 12 caracteres</li>
+                                    <li id="rule-upper">Uma letra maiúscula</li>
+                                    <li id="rule-lower">Uma letra minúscula</li>
+                                    <li id="rule-num">Um número</li>
+                                    <li id="rule-special">Um caractere especial (!@#$%...)</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label" for="confirmar_senha">Confirmar nova senha</label>
+                            <div class="password-wrapper">
+                                <input type="password" id="confirmar_senha" name="confirmar_senha" class="form-input"
+                                    required placeholder="Repita a nova senha" autocomplete="new-password">
+                                <button type="button" class="btn-toggle-senha" id="btn-toggle-confirmar" title="Mostrar/ocultar">
+                                    <i data-lucide="eye" id="icon-toggle-confirmar" style="width:18px;height:18px;"></i>
+                                </button>
+                            </div>
+                            <div class="form-error" id="confirmar-senha-error"></div>
+                        </div>
+
+                        <button type="submit" class="btn-primary" style="width: 100%; justify-content: center; margin-top: 8px;">
+                            <i data-lucide="shield-check" style="width:16px;height:16px;"></i> Alterar senha
+                        </button>
+                    </form>
                         </div>
                     </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        /* Grid responsivo para perfil */
+        .perfil-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 24px;
+        }
+
+        @media (min-width: 900px) {
+            .perfil-grid {
+                grid-template-columns: 1fr 1fr;
+                align-items: start;
+            }
+        }
+
+        .perfil-column {
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .form-section {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+    </style>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        lucide.createIcons();
+                        <i data-lucide="shield" style="width:20px;height:20px;"></i> Autenticação de Dois Fatores (2FA)
+                    </h2>
+                </div>
+
+                <div class="section-body">
+                    {% if not current_user.tem_2fa_ativo %}
+                        <p style="margin-bottom: 16px; color: var(--text-secondary);">
+                            Adicione uma camada extra de segurança à sua conta. O 2FA exige um código do seu celular além da senha.
+                        </p>
+                        <form method="POST" action="{{ url_for('auth.ativar_2fa') }}">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-primary">
+                                <i data-lucide="shield-check" style="width:18px;height:18px;"></i> Ativar 2FA
+                            </button>
+                        </form>
+                    {% else %}
+                        <div class="alert alert-success" style="margin-bottom: 16px;">
+                            <i data-lucide="shield-check" style="width:18px;height:18px;"></i>
+                            <span>2FA está ativo! Sua conta está mais segura.</span>
+                        </div>
+
+                        <!-- Códigos de backup -->
+                        <details style="margin-bottom: 16px; border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
+                            <summary style="cursor: pointer; font-weight: 600; color: var(--text); list-style: none; display: flex; align-items: center; gap: 8px;">
+                                <i data-lucide="key" style="width:16px;height:16px;"></i>
+                                <span>Ver códigos de backup</span>
+                                <i data-lucide="chevron-down" style="width:16px;height:16px; margin-left: auto;"></i>
+                            </summary>
+                            <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);">
+                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
+                                    Use estes códigos se perder acesso ao autenticador. Cada código pode ser usado apenas uma vez.
+                                </p>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; margin-bottom: 12px;">
+                                    {% for code in current_user.backup_codes %}
+                                    <div style="background: var(--bg); border: 1px solid var(--border); padding: 8px; border-radius: 6px; font-family: 'Courier New', monospace; font-weight: 600; text-align: center; font-size: 0.9rem;">
+                                        {{ code }}
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                                <form method="POST" action="{{ url_for('auth.regenerar_backup_codes') }}" style="margin-top: 12px;">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <button type="submit" class="btn-secondary" onclick="return confirm('Tem certeza? Os códigos antigos deixarão de funcionar.')">
+                                        <i data-lucide="refresh-cw" style="width:16px;height:16px;"></i> Regenerar códigos
+                                    </button>
+                                </form>
+                            </div>
+                        </details>
+
+                        <form method="POST" action="{{ url_for('auth.desativar_2fa') }}"
+                              onsubmit="return confirm('⚠️ Tem certeza que deseja desativar o 2FA? Sua conta ficará menos segura.')">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="btn-danger">
+                                <i data-lucide="shield-off" style="width:18px;height:18px;"></i> Desativar 2FA
+                            </button>
+                        </form>
+                    {% endif %}
                 </div>
             </div>
         </main>
@@ -355,16 +422,21 @@
             const input = option.querySelector('input[type="radio"]');
             const card = option.querySelector('.theme-card');
 
+            // Estado inicial
             if (input.checked) {
                 card.classList.add('selected');
             }
 
             option.addEventListener('click', () => {
+                // Remove seleção de todos
                 document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
+                // Adiciona na opção clicada
                 card.classList.add('selected');
                 input.checked = true;
             });
         });
+
+
 
         // Toggle senhas
         function setupToggle(btnId, inputId, iconId) {
@@ -429,10 +501,7 @@
 
             novaSenhaInput.addEventListener('input', () => { updateStrengthUI(novaSenhaInput.value); validateNovaSenha(); if (confirmarInput.value) validateConfirmar(); });
             confirmarInput.addEventListener('input', validateConfirmar);
-            formSenha.addEventListener('submit', function (e) {
-                const ok = validateNovaSenha() && validateConfirmar();
-                if (!ok) e.preventDefault();
-            });
+            formSenha.addEventListener('submit', function (e) { const ok = [validateNovaSenha(), validateConfirmar()].every(Boolean); if (!ok) e.preventDefault(); });
         });
     </script>
 </body>

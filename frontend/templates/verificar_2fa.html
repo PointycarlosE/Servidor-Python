@@ -1,0 +1,174 @@
+<!--verificar_2fa.html-->
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Verificação 2FA - Meu Drive Pessoal</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .code-input {
+            font-size: 24px;
+            letter-spacing: 8px;
+            text-align: center;
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+        }
+        .backup-code-toggle {
+            text-align: center;
+            margin-top: 16px;
+        }
+        .backup-code-toggle a {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .backup-code-toggle a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body class="page-simple">
+    <header class="header-simple">
+        <nav class="header-nav">
+            <a href="{{ url_for('auth.logout') }}">
+                <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Cancelar
+            </a>
+        </nav>
+    </header>
+
+    <main class="content-centered">
+        <div class="form-card">
+            <div class="form-card-header">
+                <h1 class="form-card-title">
+                    <i data-lucide="shield-check" style="width:32px;height:32px;color:var(--primary);"></i>
+                    Autenticação de Dois Fatores
+                </h1>
+                <p class="form-card-subtitle" id="subtitle-text">
+                    Digite o código de 6 dígitos do seu autenticador
+                </p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" class="login-form" id="verify-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <input type="hidden" name="usar_backup" id="usar_backup" value="false">
+
+                <div class="form-group">
+                    <label for="codigo" class="form-label" id="label-text">
+                        <i data-lucide="key" style="width:15px;height:15px;"></i> Código
+                    </label>
+                    <input type="text" name="codigo" id="codigo" class="form-input code-input"
+                        placeholder="000000" autofocus autocomplete="off" maxlength="16" inputmode="numeric">
+                    <div class="form-error" id="codigo-error"></div>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    <i data-lucide="check-circle" style="width:18px;height:18px;"></i> Verificar
+                </button>
+            </form>
+
+            <div class="backup-code-toggle">
+                <a href="#" id="toggle-backup">Usar código de backup</a>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer-simple">
+        <p>Meu Drive Pessoal - Seu repositório de arquivos pessoal</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        lucide.createIcons();
+
+        const codigoInput = document.getElementById('codigo');
+        const codigoError = document.getElementById('codigo-error');
+        const verifyForm = document.getElementById('verify-form');
+        const toggleBackup = document.getElementById('toggle-backup');
+        const usarBackupInput = document.getElementById('usar_backup');
+        const subtitleText = document.getElementById('subtitle-text');
+        const labelText = document.getElementById('label-text');
+
+        let isBackupMode = false;
+
+        // Toggle entre modo normal e backup
+        toggleBackup.addEventListener('click', function(e) {
+            e.preventDefault();
+            isBackupMode = !isBackupMode;
+
+            if (isBackupMode) {
+                subtitleText.textContent = 'Digite um dos seus códigos de backup';
+                labelText.innerHTML = '<i data-lucide="key" style="width:15px;height:15px;"></i> Código de Backup';
+                codigoInput.placeholder = 'XXXXXXXX';
+                codigoInput.maxLength = 16;
+                toggleBackup.textContent = 'Usar código do autenticador';
+                usarBackupInput.value = 'true';
+            } else {
+                subtitleText.textContent = 'Digite o código de 6 dígitos do seu autenticador';
+                labelText.innerHTML = '<i data-lucide="key" style="width:15px;height:15px;"></i> Código';
+                codigoInput.placeholder = '000000';
+                codigoInput.maxLength = 6;
+                toggleBackup.textContent = 'Usar código de backup';
+                usarBackupInput.value = 'false';
+            }
+
+            codigoInput.value = '';
+            codigoInput.focus();
+            lucide.createIcons();
+        });
+
+        function showError(el, div, msg) {
+            el.classList.add('error');
+            div.textContent = msg;
+            div.style.display = 'block';
+        }
+
+        function clearError(el, div) {
+            el.classList.remove('error');
+            div.textContent = '';
+            div.style.display = 'none';
+        }
+
+        function validateCodigo() {
+            const v = codigoInput.value.trim();
+            if (!v) {
+                showError(codigoInput, codigoError, 'Digite o código');
+                return false;
+            }
+            if (isBackupMode) {
+                if (v.length < 8) {
+                    showError(codigoInput, codigoError, 'Código de backup inválido');
+                    return false;
+                }
+            } else {
+                if (!/^\d{6}$/.test(v)) {
+                    showError(codigoInput, codigoError, 'Digite um código de 6 dígitos');
+                    return false;
+                }
+            }
+            clearError(codigoInput, codigoError);
+            return true;
+        }
+
+        codigoInput.addEventListener('input', validateCodigo);
+
+        verifyForm.addEventListener('submit', function (e) {
+            if (!validateCodigo()) {
+                e.preventDefault();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,245 @@
+<!--resetar_senha.html-->
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redefinir Senha - Meu Drive Pessoal</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .password-wrapper { position: relative; }
+        .password-wrapper .form-input { padding-right: 44px; }
+        .btn-toggle-senha {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
+            background: none; border: none; cursor: pointer;
+            color: var(--text-secondary); padding: 4px; line-height: 1;
+            display: flex; align-items: center; transition: color 0.2s;
+        }
+        .btn-toggle-senha:hover { color: var(--text); }
+    </style>
+</head>
+<body class="page-simple">
+    <header class="header-simple">
+        <nav class="header-nav">
+            <a href="{{ url_for('auth.login') }}">
+                <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Voltar ao login
+            </a>
+        </nav>
+    </header>
+
+    <main class="content-centered">
+        <div class="form-card">
+            <div class="form-card-header">
+                <h1 class="form-card-title">
+                    <i data-lucide="shield-check" style="width:32px;height:32px;color:var(--primary);"></i>
+                    Redefinir Senha
+                </h1>
+                <p class="form-card-subtitle">Crie uma nova senha forte e segura</p>
+            </div>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" class="login-form" id="reset-form">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+                <div class="form-group">
+                    <label for="nova_senha" class="form-label">
+                        <i data-lucide="lock" style="width:15px;height:15px;"></i> Nova Senha
+                    </label>
+                    <div class="password-wrapper">
+                        <input type="password" name="nova_senha" id="nova_senha" class="form-input"
+                            placeholder="Digite sua nova senha" autofocus autocomplete="new-password">
+                        <button type="button" class="btn-toggle-senha" id="btn-toggle-nova" title="Mostrar/ocultar senha">
+                            <i data-lucide="eye" id="icon-toggle-nova" style="width:18px;height:18px;"></i>
+                        </button>
+                    </div>
+                    <div class="form-error" id="nova-senha-error"></div>
+                    <div id="password-strength" style="margin-top: 8px; display: none;">
+                        <div style="display: flex; gap: 4px; margin-bottom: 6px;">
+                            <div class="strength-bar" id="bar-1" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
+                            <div class="strength-bar" id="bar-2" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
+                            <div class="strength-bar" id="bar-3" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
+                            <div class="strength-bar" id="bar-4" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
+                        </div>
+                        <ul id="password-rules" style="font-size:0.75rem; color: var(--text-secondary); padding-left: 16px; margin: 0;">
+                            <li id="rule-len">Mínimo 12 caracteres</li>
+                            <li id="rule-upper">Uma letra maiúscula</li>
+                            <li id="rule-lower">Uma letra minúscula</li>
+                            <li id="rule-num">Um número</li>
+                            <li id="rule-special">Um caractere especial (!@#$%...)</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="confirmar_senha" class="form-label">
+                        <i data-lucide="check-circle" style="width:15px;height:15px;"></i> Confirmar Nova Senha
+                    </label>
+                    <div class="password-wrapper">
+                        <input type="password" name="confirmar_senha" id="confirmar_senha" class="form-input"
+                            placeholder="Digite a senha novamente" autocomplete="new-password">
+                        <button type="button" class="btn-toggle-senha" id="btn-toggle-confirmar" title="Mostrar/ocultar senha">
+                            <i data-lucide="eye" id="icon-toggle-confirmar" style="width:18px;height:18px;"></i>
+                        </button>
+                    </div>
+                    <div class="form-error" id="confirmar-senha-error"></div>
+                </div>
+
+                <button type="submit" class="btn-primary">
+                    <i data-lucide="shield-check" style="width:18px;height:18px;"></i> Redefinir Senha
+                </button>
+            </form>
+        </div>
+    </main>
+
+    <footer class="footer-simple">
+        <p>Meu Drive Pessoal - Seu repositório de arquivos pessoal</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        lucide.createIcons();
+
+        // Toggle senhas
+        function setupToggle(btnId, inputId, iconId) {
+            const btn = document.getElementById(btnId);
+            const input = document.getElementById(inputId);
+            const icon = document.getElementById(iconId);
+            if (!btn) return;
+            btn.addEventListener('click', () => {
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.setAttribute('data-lucide', 'eye-off');
+                } else {
+                    input.type = 'password';
+                    icon.setAttribute('data-lucide', 'eye');
+                }
+                lucide.createIcons();
+            });
+        }
+        setupToggle('btn-toggle-nova', 'nova_senha', 'icon-toggle-nova');
+        setupToggle('btn-toggle-confirmar', 'confirmar_senha', 'icon-toggle-confirmar');
+
+        // Validação
+        const resetForm = document.getElementById('reset-form');
+        const novaSenhaInput = document.getElementById('nova_senha');
+        const confirmarSenhaInput = document.getElementById('confirmar_senha');
+        const novaSenhaError = document.getElementById('nova-senha-error');
+        const confirmarSenhaError = document.getElementById('confirmar-senha-error');
+
+        function showError(el, div, msg) {
+            el.classList.add('error');
+            div.textContent = msg;
+            div.style.display = 'block';
+        }
+
+        function clearError(el, div) {
+            el.classList.remove('error');
+            div.textContent = '';
+            div.style.display = 'none';
+        }
+
+        function checkPassword(senha) {
+            return {
+                len: senha.length >= 12,
+                upper: /[A-Z]/.test(senha),
+                lower: /[a-z]/.test(senha),
+                num: /\d/.test(senha),
+                special: /[^A-Za-z0-9]/.test(senha)
+            };
+        }
+
+        function updateStrengthUI(senha) {
+            const el = document.getElementById('password-strength');
+            if (!senha) {
+                el.style.display = 'none';
+                return;
+            }
+            el.style.display = 'block';
+            const r = checkPassword(senha);
+            const rules = {
+                'rule-len': r.len,
+                'rule-upper': r.upper,
+                'rule-lower': r.lower,
+                'rule-num': r.num,
+                'rule-special': r.special
+            };
+            Object.entries(rules).forEach(([id, ok]) => {
+                document.getElementById(id).style.color = ok ? '#22c55e' : 'var(--text-secondary)';
+            });
+            const score = Object.values(r).filter(Boolean).length;
+            const colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e'];
+            for (let i = 1; i <= 4; i++) {
+                document.getElementById('bar-' + i).style.background =
+                    i <= score ? colors[score] : 'var(--border)';
+            }
+        }
+
+        function validateNovaSenha() {
+            const senha = novaSenhaInput.value;
+            if (!senha) {
+                showError(novaSenhaInput, novaSenhaError, 'Digite uma senha');
+                return false;
+            }
+            const r = checkPassword(senha);
+            if (!r.len) {
+                showError(novaSenhaInput, novaSenhaError, 'Mínimo 12 caracteres');
+                return false;
+            }
+            if (!r.upper) {
+                showError(novaSenhaInput, novaSenhaError, 'Adicione uma letra maiúscula');
+                return false;
+            }
+            if (!r.lower) {
+                showError(novaSenhaInput, novaSenhaError, 'Adicione uma letra minúscula');
+                return false;
+            }
+            if (!r.num) {
+                showError(novaSenhaInput, novaSenhaError, 'Adicione um número');
+                return false;
+            }
+            if (!r.special) {
+                showError(novaSenhaInput, novaSenhaError, 'Adicione um caractere especial');
+                return false;
+            }
+            clearError(novaSenhaInput, novaSenhaError);
+            return true;
+        }
+
+        function validateConfirmar() {
+            if (!confirmarSenhaInput.value) {
+                showError(confirmarSenhaInput, confirmarSenhaError, 'Confirme a senha');
+                return false;
+            }
+            if (confirmarSenhaInput.value !== novaSenhaInput.value) {
+                showError(confirmarSenhaInput, confirmarSenhaError, 'As senhas não coincidem');
+                return false;
+            }
+            clearError(confirmarSenhaInput, confirmarSenhaError);
+            return true;
+        }
+
+        novaSenhaInput.addEventListener('input', () => {
+            updateStrengthUI(novaSenhaInput.value);
+            validateNovaSenha();
+            if (confirmarSenhaInput.value) validateConfirmar();
+        });
+
+        confirmarSenhaInput.addEventListener('input', validateConfirmar);
+
+        resetForm.addEventListener('submit', function (e) {
+            const ok = validateNovaSenha() && validateConfirmar();
+            if (!ok) e.preventDefault();
+        });
+    </script>
+</body>
+</html>

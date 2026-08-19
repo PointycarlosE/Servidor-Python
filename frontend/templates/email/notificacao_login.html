@@ -1,0 +1,146 @@
+<!--email/notificacao_login.html-->
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 0;
+        }
+        .email-container {
+            max-width: 600px;
+            margin: 40px auto;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .email-header {
+            background: linear-gradient(135deg, #34a853, #5bb974);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .email-header h1 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: 600;
+        }
+        .email-body {
+            padding: 40px 30px;
+        }
+        .email-body h2 {
+            color: #34a853;
+            font-size: 20px;
+            margin-top: 0;
+        }
+        .email-body p {
+            color: #5f6368;
+            font-size: 15px;
+            margin: 15px 0;
+        }
+        .info-box {
+            background: #f8f9fa;
+            border-left: 4px solid #34a853;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .info-box table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .info-box td {
+            padding: 8px 0;
+            font-size: 14px;
+        }
+        .info-box td:first-child {
+            font-weight: 600;
+            color: #202124;
+            width: 120px;
+        }
+        .info-box td:last-child {
+            color: #5f6368;
+        }
+        .alert-box {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 4px;
+        }
+        .alert-box p {
+            margin: 0;
+            color: #856404;
+            font-size: 14px;
+        }
+        .email-footer {
+            background: #f8f9fa;
+            padding: 20px 30px;
+            text-align: center;
+            border-top: 1px solid #e0e0e0;
+        }
+        .email-footer p {
+            margin: 5px 0;
+            font-size: 13px;
+            color: #5f6368;
+        }
+        .security-icon {
+            font-size: 48px;
+            text-align: center;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="email-container">
+        <div class="email-header">
+            <h1>🔔 Novo Acesso Detectado</h1>
+        </div>
+
+        <div class="email-body">
+            <div class="security-icon">🔐</div>
+
+            <h2>Olá!</h2>
+            <p>Um novo acesso foi realizado na sua conta do <strong>Meu Drive Pessoal</strong>.</p>
+
+            <div class="info-box">
+                <table>
+                    <tr>
+                        <td>Data e Hora:</td>
+                        <td>{{ data_hora }}</td>
+                    </tr>
+                    <tr>
+                        <td>Endereço IP:</td>
+                        <td>{{ ip }}</td>
+                    </tr>
+                    <tr>
+                        <td>Dispositivo:</td>
+                        <td>{{ user_agent }}</td>
+                    </tr>
+                </table>
+            </div>
+
+            <p>Se foi você quem fez login, pode ignorar este email com segurança.</p>
+
+            <div class="alert-box">
+                <p><strong>⚠️ Não foi você?</strong> Sua conta pode estar comprometida. Recomendamos alterar sua senha imediatamente e ativar a autenticação de dois fatores (2FA) nas configurações do perfil.</p>
+            </div>
+
+            <p style="margin-top: 30px;">Esta notificação ajuda a manter sua conta segura. Se você não reconhece este acesso, entre em contato conosco o mais rápido possível.</p>
+        </div>
+
+        <div class="email-footer">
+            <p><strong>Meu Drive Pessoal</strong></p>
+            <p>Este é um email automático. Por favor, não responda.</p>
+            <p style="margin-top: 15px; color: #999;">© 2024 Meu Drive Pessoal - Todos os direitos reservados</p>
+        </div>
+    </div>
+</body>
+</html>

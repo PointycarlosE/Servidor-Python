@@ -4,6 +4,10 @@
 
 > 🚀 Sistema de armazenamento em nuvem self-hosted inspirado no **Google Drive**, com interface moderna, **otimizada para mobile** e foco em **segurança, simplicidade e controle total dos dados**.
 
+### ✨ Novidade: Sistema de Autenticação Avançado (Agosto 2026)
+
+Sistema completo de autenticação implementado com email, 2FA e recuperação de senha. [Ver detalhes](#-segurança--autenticação)
+
 ### ✨ Novidade: Interface Mobile Redesenhada (Agosto 2026)
 
 A interface foi completamente otimizada para dispositivos móveis, com **~40% mais espaço para arquivos** e design inspirado no Google Drive. [Ver detalhes](#-interface-mobile-otimizada)
@@ -17,6 +21,7 @@ O **Cloud Storage App** é uma aplicação web desenvolvida com **Python (Flask)
 > 🔒 Garantir ao usuário **controle total sobre seus dados**, sem dependência de serviços terceiros e sem assinaturas.
 
 **Destaques:**
+- 🔐 **Sistema de Autenticação Avançado** - 2FA, recuperação de senha e notificações por email (agosto/2026)
 - ✨ **Interface Mobile Otimizada** - Redesenhada em agosto/2026 com ~40% mais espaço para conteúdo
 - 📱 Interface responsiva e moderna (Desktop, Tablet e Mobile)
 - 🎨 Design System inspirado no Google Drive
@@ -35,6 +40,24 @@ O **Cloud Storage App** é uma aplicação web desenvolvida com **Python (Flask)
 - **Senhas Seguras:** Hash pbkdf2:sha256 com 600.000 iterações
 - **Validação de Senha Forte:** Requisitos obrigatórios com indicador visual em tempo real
 - **Toggle Mostrar/Ocultar Senha:** Em todos os campos do sistema
+- **Autenticação de Dois Fatores (2FA):** 
+  - Compatível com Google Authenticator e apps TOTP
+  - QR code para configuração fácil
+  - 10 códigos de backup de uso único
+  - Ativar/desativar no perfil do usuário
+- **Recuperação de Senha:** 
+  - Sistema completo via email
+  - Tokens seguros com expiração de 1 hora
+  - Rate limiting de 5 tentativas por hora
+  - Templates de email profissionais e responsivos
+- **Notificações de Login:** 
+  - Email automático a cada acesso
+  - Informações de IP, navegador e data/hora
+  - Ajuda a detectar acessos não autorizados
+- **Gerenciamento de Email:**
+  - Suporte para Gmail, Outlook e SMTP customizado
+  - Envio em background (não bloqueia interface)
+  - Templates HTML profissionais
 - **Sessões Blindadas:** Cookies `HttpOnly`, `SameSite=Lax` e `Secure` em produção
 - **Headers de Segurança:** CSP, HSTS, X-Frame-Options e X-Content-Type-Options
 - **Proteção de Rotas:** Validação contra path traversal e CSRF
@@ -142,8 +165,14 @@ A interface mobile foi **completamente redesenhada** seguindo os padrões do Goo
 
 ### 👤 Perfil do Usuário
 
+- **Interface Redesenhada:** Layout em 2 colunas no desktop para melhor aproveitamento do espaço
 - **Nome de Exibição:** Altere o nome mostrado na interface sem afetar o login
-- **Troca de Senha:** Com validação da senha atual e indicador de força
+- **Preferência de Tema:** Escolha entre tema claro e escuro com preview visual
+- **Troca de Senha:** Com validação da senha atual e indicador de força em tempo real
+- **Gerenciamento 2FA:** 
+  - Ativar/desativar autenticação de dois fatores
+  - Visualizar e regenerar códigos de backup
+  - Interface compacta e organizada
 
 ---
 
@@ -195,7 +224,49 @@ curl -o frontend/static/js/lucide.min.js https://unpkg.com/lucide@0.383.0/dist/u
 python run.py
 ```
 
-Acesse `http://localhost:5000/setup` no navegador e crie sua conta de administrador. Após o setup, pare o servidor com `Ctrl+C`.
+Acesse `http://localhost:5000/setup` no navegador e configure:
+- **Nome de usuário** e **senha** para login
+- **Nome de exibição** para a interface
+- **Email** para recuperação de senha e notificações
+- **Pasta base** onde os arquivos serão armazenados
+
+#### 📧 Configurar Email (Opcional mas Recomendado)
+
+Para usar recuperação de senha, notificações de login e 2FA, configure o email no `instance/.env`:
+
+**Gmail:**
+```env
+MAIL_SERVER=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USE_TLS=True
+MAIL_USERNAME=seu-email@gmail.com
+MAIL_PASSWORD=sua-senha-de-app
+MAIL_DEFAULT_SENDER=seu-email@gmail.com
+```
+
+> 💡 **Gmail requer senha de app:** Acesse [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) para gerar uma senha específica.
+
+**Outlook:**
+```env
+MAIL_SERVER=smtp-mail.outlook.com
+MAIL_PORT=587
+MAIL_USE_TLS=True
+MAIL_USERNAME=seu-email@outlook.com
+MAIL_PASSWORD=sua-senha
+MAIL_DEFAULT_SENDER=seu-email@outlook.com
+```
+
+**SMTP Customizado:**
+```env
+MAIL_SERVER=smtp.seudominio.com
+MAIL_PORT=587
+MAIL_USE_TLS=True
+MAIL_USERNAME=seu-email@seudominio.com
+MAIL_PASSWORD=sua-senha
+MAIL_DEFAULT_SENDER=seu-email@seudominio.com
+```
+
+Após configurar, reinicie o servidor para aplicar as mudanças.
 
 ---
 
@@ -319,15 +390,18 @@ cloud-storage-app/
 │   ├── __init__.py             # Factory do app Flask
 │   ├── extensions.py           # Extensões Flask (Login, Limiter)
 │   ├── config.py               # Configurações e variáveis de ambiente
+│   ├── email.py                # Sistema de envio de emails
 │   ├── auth/                   # Autenticação e perfil
 │   │   ├── models.py           # Modelo de usuário
-│   │   └── routes.py           # Rotas de login, setup, perfil
+│   │   └── routes.py           # Rotas de login, setup, perfil, 2FA
 │   ├── routes/                 # Rotas principais
 │   │   ├── files.py            # Upload, download, exclusão, navegação
 │   │   └── main.py             # Página inicial
 │   ├── utils/                  # Utilitários
 │   │   ├── security.py         # Validações de segurança
-│   │   └── audit_log.py        # Sistema de auditoria
+│   │   ├── audit_log.py        # Sistema de auditoria
+│   │   ├── tokens.py           # Gerenciamento de tokens de reset
+│   │   └── totp.py             # Funções 2FA/TOTP
 │   └── gunicorn_config.py      # Configuração do Gunicorn
 ├── frontend/                   # Interface (HTML, CSS, JS)
 │   ├── static/
@@ -340,7 +414,15 @@ cloud-storage-app/
 │   └── templates/              # Templates Jinja2
 │       ├── explorar.html       # Página principal do drive
 │       ├── login.html          # Tela de login
-│       ├── perfil.html         # Perfil do usuário
+│       ├── setup.html          # Configuração inicial
+│       ├── perfil.html         # Perfil do usuário (layout 2 colunas)
+│       ├── esqueceu_senha.html # Recuperação de senha
+│       ├── resetar_senha.html  # Reset de senha
+│       ├── verificar_2fa.html  # Verificação 2FA
+│       ├── ativar_2fa.html     # Configuração 2FA
+│       ├── email/              # Templates de email
+│       │   ├── recuperacao_senha.html
+│       │   └── notificacao_login.html
 │       └── partials/           # Componentes reutilizáveis
 ├── instance/                   # Dados locais (gitignored)
 │   ├── .env                    # Variáveis de ambiente
@@ -416,6 +498,13 @@ pytest --cov=app tests/
 - [x] Sistema de login com proteção contra força bruta
 - [x] Senhas com hash forte (pbkdf2:sha256:600000)
 - [x] Toggle mostrar/ocultar senha
+- [x] **Sistema de Autenticação Avançado** (Agosto 2026)
+  - [x] Autenticação de Dois Fatores (2FA/TOTP)
+  - [x] Compatibilidade com Google Authenticator
+  - [x] Recuperação de senha via email
+  - [x] Notificações de login por email
+  - [x] Códigos de backup para 2FA
+  - [x] Suporte para Gmail, Outlook e SMTP customizado
 - [x] Upload múltiplo com drag & drop
 - [x] Painel de progresso em tempo real
 - [x] Download individual e em lote (ZIP)
@@ -432,7 +521,11 @@ pytest --cov=app tests/
 - [x] FAB expansível no mobile (estilo Google Drive)
 - [x] Grid responsivo de 2 colunas no mobile
 - [x] Seleção múltipla (Ctrl+Clique, Ctrl+A)
-- [x] Perfil do usuário (nome de exibição e troca de senha)
+- [x] **Perfil do Usuário Redesenhado** (Agosto 2026)
+  - [x] Layout em 2 colunas no desktop
+  - [x] Nome de exibição e troca de senha
+  - [x] Gerenciamento completo de 2FA
+  - [x] Seletor visual de tema
 - [x] Log de auditoria com rotação automática
 - [x] Paginação com lazy loading
 - [x] Sistema de extensões bloqueadas configurável
@@ -454,7 +547,6 @@ pytest --cov=app tests/
 - [ ] **Player de Vídeo:** Visualizador integrado em modal
 - [ ] **Lixeira:** Recuperação de arquivos excluídos
 - [ ] **Favoritos:** Marcar arquivos/pastas importantes
-- [ ] **2FA:** Autenticação de dois fatores (TOTP)
 - [ ] **Multi-usuários:** Sistema de permissões e quotas
 - [ ] **Busca Avançada:** Filtros por tipo, data, tamanho
 - [ ] **Preview de Documentos:** Visualização de .docx, .xlsx, .pptx
