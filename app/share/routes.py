@@ -2,17 +2,28 @@
 Rotas de compartilhamento de arquivos
 """
 import os
+import logging
 from flask import Blueprint, request, jsonify, render_template, send_file, abort, flash, redirect, url_for
 from flask_login import login_required, current_user
 from werkzeug.utils import secure_filename
 from app.share import models as share_models
-from app.config import Config
+from app.config import PASTA_BASE
 from app.extensions import limiter
-from app.utils.security import validate_path
-from app.utils.audit_log import log_action
+from app.routes.files import caminho_seguro
+from app.utils.audit import log_download
 import time
 
 share_bp = Blueprint('share', __name__)
+
+# Logger para compartilhamento
+logger = logging.getLogger(__name__)
+
+def log_share_action(action: str, user: str, file_path: str, details: str = ''):
+    """Log de ações de compartilhamento"""
+    msg = f"[SHARE] {action} | User: {user} | File: {file_path}"
+    if details:
+        msg += f" | {details}"
+    logger.info(msg)
 
 
 # ==================== ROTAS PARA USUÁRIOS LOGADOS ====================
@@ -32,9 +43,9 @@ def create_share():
             return jsonify({'error': 'Caminho do arquivo não fornecido'}), 400
 
         # Validar caminho e verificar se arquivo existe
-        full_path = os.path.join(Config.PASTA_BASE, file_path)
+        full_path = caminho_seguro(file_path)
 
-        if not validate_path(full_path, Config.PASTA_BASE):
+        if not full_path:
             return jsonify({'error': 'Caminho inválido'}), 400
 
         if not os.path.isfile(full_path):
@@ -49,9 +60,9 @@ def create_share():
         )
 
         # Log de auditoria
-        log_action(
+        log_share_action(
+            'CREATE',
             current_user.username,
-            'share_create',
             file_path,
             f"Token: {link.token}, Expira: {expires_in_hours or 'nunca'}h"
         )
@@ -135,9 +146,9 @@ def revoke_share(link_id):
 
         link = share_models.buscar_por_id(link_id)
         if link:
-            log_action(
+            log_share_action(
+                'REVOKE',
                 current_user.username,
-                'share_revoke',
                 link.file_path,
                 f"Token: {link.token}"
             )
@@ -170,7 +181,7 @@ def public_share(token):
         return render_template('share_expired.html'), 410
 
     # Verificar se arquivo ainda existe
-    full_path = os.path.join(Config.PASTA_BASE, link.file_path)
+    full_path = os.path.join(PASTA_BASE, link.file_path)
     if not os.path.isfile(full_path):
         return render_template('share_not_found.html'), 404
 
@@ -241,7 +252,7 @@ def download_shared(token):
             return jsonify({'error': 'Senha incorreta'}), 401
 
     # Verificar se arquivo existe
-    full_path = os.path.join(Config.PASTA_BASE, link.file_path)
+    full_path = os.path.join(PASTA_BASE, link.file_path)
     if not os.path.isfile(full_path):
         return jsonify({'error': 'Arquivo não encontrado'}), 404
 
@@ -249,9 +260,9 @@ def download_shared(token):
     link.registrar_acesso()
 
     # Log
-    log_action(
+    log_share_action(
+        'DOWNLOAD',
         'anonymous',
-        'share_download',
         link.file_path,
         f"Token: {token}, IP: {request.remote_addr}"
     )
