@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function () {
             if (link) {
                 const thumbnail = card.querySelector('.item-thumbnail');
                 const nomeElement = card.querySelector('.item-nome');
-                const downloadBtn = card.querySelector('.botao-download');
+                const downloadBtn = card.querySelector('a[href^="/download/"]');
                 const deleteForm = card.querySelector('form');
                 images.push({
                     nome: nomeElement ? nomeElement.textContent : '',
@@ -861,5 +861,301 @@ document.addEventListener('keydown', function (e) {
 document.addEventListener('keydown', function (e) {
     if (e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); document.querySelector('.back-btn')?.click() || window.history.back(); }
     if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); window.history.forward(); }
-    if (e.ctrlKey && e.key === 'z') { e.preventDefault(); document.querySelector('.back-btn')?.click() || window.history.back(); }
 });
+
+// ===== LAZY LOADING / PAGINAÇÃO =====
+// Sistema de paginação para evitar travamento em pastas com muitos arquivos
+
+(function () {
+    let currentOffset = 0;
+    let isLoading = false;
+    let hasMore = true;
+    let itemsPerPage = 100;
+    let totalCount = 0;
+
+    function initPagination() {
+        const explorarPage = document.querySelector('[data-total-count]');
+        if (!explorarPage) return;
+
+        const totalCountAttr = explorarPage.getAttribute('data-total-count');
+        const itemsPerPageAttr = explorarPage.getAttribute('data-items-per-page');
+
+        if (totalCountAttr) totalCount = parseInt(totalCountAttr);
+        if (itemsPerPageAttr) itemsPerPage = parseInt(itemsPerPageAttr);
+
+        const loadedItems = document.querySelectorAll('.item-link').length;
+        currentOffset = loadedItems;
+        hasMore = loadedItems < totalCount;
+
+        updateLoadMoreButton();
+    }
+
+    function updateLoadMoreButton() {
+        let loadMoreContainer = document.getElementById('load-more-container');
+
+        if (hasMore && totalCount > currentOffset) {
+            if (!loadMoreContainer) {
+                loadMoreContainer = document.createElement('div');
+                loadMoreContainer.id = 'load-more-container';
+                loadMoreContainer.style.cssText = 'text-align:center;padding:2rem;';
+                loadMoreContainer.innerHTML = `
+                    <button id="load-more-btn" class="btn-secondary" style="padding:0.75rem 2rem;">
+                        <i data-lucide="chevron-down" style="width:20px;height:20px;"></i>
+                        Carregar mais (${totalCount - currentOffset} restantes)
+                    </button>
+                `;
+
+                const container = document.querySelector('.listagem-itens');
+                if (container && container.parentNode) {
+                    container.parentNode.appendChild(loadMoreContainer);
+                }
+
+                document.getElementById('load-more-btn')?.addEventListener('click', loadMoreItems);
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            } else {
+                const btn = document.getElementById('load-more-btn');
+                if (btn) {
+                    btn.innerHTML = `<i data-lucide="chevron-down"></i> Carregar mais (${totalCount - currentOffset} restantes)`;
+                    if (typeof lucide !== 'undefined') lucide.createIcons();
+                }
+            }
+        } else {
+            if (loadMoreContainer) loadMoreContainer.remove();
+        }
+    }
+
+    async function loadMoreItems() {
+        if (isLoading || !hasMore) return;
+        isLoading = true;
+        const btn = document.getElementById('load-more-btn');
+
+        if (btn) {
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader"></i> Carregando...';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        try {
+            const caminho = window.location.pathname.replace(/^\/explorar\/?/, '');
+            const url = `/partial/lista${caminho ? '/' + caminho : '/'}?offset=${currentOffset}&limit=${itemsPerPage}`;
+            const response = await fetch(url);
+
+            if (response.ok) {
+                const html = await response.text();
+                const container = document.querySelector('.listagem-itens');
+
+                if (container) {
+                    const temp = document.createElement('div');
+                    temp.innerHTML = html;
+                    const newItems = temp.querySelectorAll('.item-link');
+                    newItems.forEach(item => container.appendChild(item));
+
+                    currentOffset += newItems.length;
+                    hasMore = currentOffset < totalCount;
+
+                    document.dispatchEvent(new CustomEvent('listaAtualizada'));
+                    updateLoadMoreButton();
+
+                    if (typeof showToast === 'function') {
+                        showToast(`✅ ${newItems.length} itens carregados`, 'success', 2000);
+                    }
+                }
+            }
+        } catch (error) {
+            console.error('Erro ao carregar mais itens:', error);
+            if (typeof showToast === 'function') {
+                showToast('❌ Erro ao carregar mais itens', 'error');
+            }
+        } finally {
+            isLoading = false;
+            if (btn) btn.disabled = false;
+        }
+    }
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initPagination);
+    } else {
+        initPagination();
+    }
+
+    document.addEventListener('listaAtualizada', () => {
+        currentOffset = document.querySelectorAll('.item-link').length;
+        const explorarPage = document.querySelector('[data-total-count]');
+        if (explorarPage) {
+            const totalCountAttr = explorarPage.getAttribute('data-total-count');
+            if (totalCountAttr) totalCount = parseInt(totalCountAttr);
+        }
+        hasMore = currentOffset < totalCount;
+        updateLoadMoreButton();
+    });
+})();
+
+// ===== FAB EXPANSÍVEL (MOBILE) =====
+(function() {
+    const fabContainer = document.getElementById('fab-container');
+    const fabMain = document.getElementById('fab-main');
+    const fabOverlay = document.getElementById('fab-overlay');
+    const fabUploadOption = document.getElementById('fab-upload-option');
+    const fabFolderOption = document.getElementById('fab-folder-option');
+    const uploadInput = document.getElementById('arquivo');
+
+    if (!fabContainer || !fabMain) return;
+
+    // Toggle FAB menu
+    function toggleFAB() {
+        const isOpen = fabContainer.classList.contains('open');
+        
+        if (isOpen) {
+            closeFAB();
+        } else {
+            openFAB();
+        }
+    }
+
+    function openFAB() {
+        fabContainer.classList.add('open');
+        fabOverlay.classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeFAB() {
+        fabContainer.classList.remove('open');
+        fabOverlay.classList.remove('active');
+        document.body.style.overflow = '';
+    }
+
+    // Event listeners
+    fabMain.addEventListener('click', toggleFAB);
+    fabOverlay.addEventListener('click', closeFAB);
+
+    // Upload option
+    if (fabUploadOption && uploadInput) {
+        fabUploadOption.addEventListener('click', () => {
+            closeFAB();
+            uploadInput.click();
+        });
+    }
+
+    // Folder option
+    if (fabFolderOption) {
+        fabFolderOption.addEventListener('click', () => {
+            closeFAB();
+            const createFolderTrigger = document.getElementById('create-folder-trigger');
+            if (createFolderTrigger) {
+                createFolderTrigger.click();
+            } else {
+                // Fallback: abre modal diretamente
+                const createFolderModal = document.getElementById('create-folder-modal');
+                if (createFolderModal) {
+                    createFolderModal.style.display = 'flex';
+                }
+            }
+        });
+    }
+
+    // Fecha FAB ao pressionar Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && fabContainer.classList.contains('open')) {
+            closeFAB();
+        }
+    });
+})();
+
+// ===== DROPDOWN DE ORDENAÇÃO MOBILE =====
+(function() {
+    const dropdownBtn = document.getElementById('sort-dropdown-btn');
+    const dropdownMenu = document.getElementById('sort-dropdown-menu');
+    const dropdownLabel = document.getElementById('sort-dropdown-label');
+    const dropdownItems = document.querySelectorAll('.sort-dropdown-item');
+
+    // Botões desktop (para sincronizar)
+    const desktopButtons = {
+        tipo: document.getElementById('ordenar-tipo'),
+        nome: document.getElementById('ordenar-nome'),
+        tamanho: document.getElementById('ordenar-tamanho'),
+        data: document.getElementById('ordenar-data')
+    };
+
+    if (!dropdownBtn || !dropdownMenu) return;
+
+    // Toggle do dropdown
+    dropdownBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdownMenu.classList.toggle('open');
+    });
+
+    // Fechar ao clicar fora
+    document.addEventListener('click', (e) => {
+        if (!dropdownMenu.contains(e.target) && e.target !== dropdownBtn) {
+            dropdownMenu.classList.remove('open');
+        }
+    });
+
+    // Itens do dropdown
+    dropdownItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+
+            const sortType = item.getAttribute('data-sort');
+            const currentOrder = item.getAttribute('data-order') || 'asc';
+            const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
+
+            // Atualiza o estado visual do dropdown
+            dropdownItems.forEach(i => {
+                i.classList.remove('active');
+                i.removeAttribute('data-order');
+            });
+            item.classList.add('active');
+            item.setAttribute('data-order', newOrder);
+
+            // Atualiza o label do botão
+            dropdownLabel.textContent = item.querySelector('span').textContent;
+
+            // Sincroniza com o botão desktop correspondente e aciona o clique
+            const desktopBtn = desktopButtons[sortType];
+            if (desktopBtn) {
+                // Remove active de todos os botões desktop
+                Object.values(desktopButtons).forEach(btn => {
+                    if (btn) btn.classList.remove('active');
+                });
+
+                // Adiciona active no botão correto
+                desktopBtn.classList.add('active');
+                desktopBtn.setAttribute('data-order', newOrder);
+
+                // Aciona o clique para executar a ordenação
+                desktopBtn.click();
+            }
+
+            // Fecha o dropdown
+            dropdownMenu.classList.remove('open');
+        });
+    });
+
+    // Sincroniza quando os botões desktop são clicados
+    Object.entries(desktopButtons).forEach(([sortType, btn]) => {
+        if (!btn) return;
+
+        btn.addEventListener('click', () => {
+            const order = btn.getAttribute('data-order') || 'asc';
+            const dropdownItem = Array.from(dropdownItems).find(
+                item => item.getAttribute('data-sort') === sortType
+            );
+
+            if (dropdownItem) {
+                // Atualiza dropdown
+                dropdownItems.forEach(i => i.classList.remove('active'));
+                dropdownItem.classList.add('active');
+                dropdownItem.setAttribute('data-order', order);
+                dropdownLabel.textContent = dropdownItem.querySelector('span').textContent;
+            }
+        });
+    });
+
+    // Fecha dropdown ao pressionar Escape
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && dropdownMenu.classList.contains('open')) {
+            dropdownMenu.classList.remove('open');
+        }
+    });
+})();

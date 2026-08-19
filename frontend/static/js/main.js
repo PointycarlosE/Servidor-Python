@@ -4,38 +4,6 @@ function getCsrfToken() {
     return meta ? meta.getAttribute('content') : '';
 }
 
-// ===== TEMA ESCURO =====
-// Funciona em todas as páginas — busca pelo botão de tema seja qual for a classe
-document.addEventListener('DOMContentLoaded', function () {
-    // Suporta tanto .theme-btn (explorar/perfil) quanto .theme-btn-simple (login/setup/etc)
-    const themeToggle = document.getElementById('theme-toggle');
-    if (!themeToggle) return;
-
-    function atualizarIconeTema(tema) {
-        // Busca o ícone dentro do botão de tema, independente do ID
-        const themeToggle = document.getElementById('theme-toggle');
-        if (!themeToggle) return;
-        
-        const iconEl = themeToggle.querySelector('[data-lucide]');
-        if (!iconEl) return;
-        
-        iconEl.setAttribute('data-lucide', tema === 'dark' ? 'moon' : 'sun');
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    }
-
-    // Aplica ícone correto no carregamento
-    const temaAtual = document.documentElement.getAttribute('data-theme') || 'light';
-    atualizarIconeTema(temaAtual);
-
-    themeToggle.addEventListener('click', function () {
-        const atual = document.documentElement.getAttribute('data-theme') || 'light';
-        const proximo = atual === 'light' ? 'dark' : 'light';
-        document.documentElement.setAttribute('data-theme', proximo);
-        localStorage.setItem('theme', proximo);
-        atualizarIconeTema(proximo);
-    });
-});
-
 // ===== TOAST NOTIFICATION =====
 function showToast(message, type = 'success', duration = 3000) {
     const toast = document.getElementById('toast');
@@ -160,17 +128,49 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ===== MOBILE MENU =====
+// ===== GERENCIAMENTO DO MENU MOBILE (SIDEBAR) =====
 document.addEventListener('DOMContentLoaded', function () {
-    const mobileBtn = document.getElementById('mobile-menu-btn');
-    const sidebar = document.getElementById('sidebar');
-    if (mobileBtn && sidebar) {
-        mobileBtn.addEventListener('click', function () { sidebar.classList.toggle('active'); });
-        document.addEventListener('click', function (e) {
-            if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !mobileBtn.contains(e.target))
-                sidebar.classList.remove('active');
-        });
+    const sidebar = document.querySelector('.sidebar');
+    const menuBtn = document.getElementById('mobile-menu-btn');
+    
+    // Cria o overlay dinamicamente se não existir
+    let overlay = document.querySelector('.sidebar-overlay');
+    if (!overlay) {
+        overlay = document.createElement('div');
+        overlay.className = 'sidebar-overlay';
+        document.body.appendChild(overlay);
     }
+
+    function openMenu() {
+        if (!sidebar || !overlay) return; // Garante que os elementos existem
+        sidebar.classList.add('active');
+        overlay.classList.add('active');
+        document.body.style.overflow = 'hidden'; // Bloqueia a rolagem do corpo
+    }
+
+    function closeMenu() {
+        if (!sidebar || !overlay) return; // Garante que os elementos existem
+        sidebar.classList.remove('active');
+        overlay.classList.remove('active');
+        document.body.style.overflow = ''; // Restaura a rolagem do corpo
+    }
+
+    menuBtn?.addEventListener('click', openMenu);
+    overlay?.addEventListener('click', closeMenu);
+
+    // Fecha ao clicar em itens de navegação (útil para links internos)
+    document.querySelectorAll('.nav-item').forEach(item => {
+        item.addEventListener('click', () => {
+            if (sidebar?.classList.contains('active')) closeMenu();
+        });
+    });
+
+    // Fecha com a tecla Escape
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape' && sidebar?.classList.contains('active')) {
+            closeMenu();
+        }
+    });
 });
 
 // ===== MODAL CRIAR PASTA =====

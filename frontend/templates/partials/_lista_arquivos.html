@@ -29,6 +29,7 @@
                         <form action="{{ url_for('file.deletar_pasta', caminho_pasta=caminho + '/' + pasta.nome if caminho else pasta.nome) }}"
                             method="post" class="form-excluir"
                             onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusaoPasta('{{ pasta.nome }}', this); return false;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="dropdown-item danger">
                                 <i data-lucide="trash-2"></i> Excluir pasta
                             </button>
@@ -77,6 +78,7 @@
                         <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=caminho + '/' + imagem.nome if caminho else imagem.nome) }}"
                             method="post" class="form-excluir"
                             onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusao('{{ imagem.nome }}', this); return false;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="dropdown-item danger">
                                 <i data-lucide="trash-2"></i> Excluir
                             </button>
@@ -122,6 +124,7 @@
                         <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=caminho + '/' + audio.nome if caminho else audio.nome) }}"
                             method="post" class="form-excluir"
                             onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusao('{{ audio.nome }}', this); return false;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="dropdown-item danger">
                                 <i data-lucide="trash-2"></i> Excluir
                             </button>
@@ -171,6 +174,7 @@
                         <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=caminho + '/' + pdf.nome if caminho else pdf.nome) }}"
                             method="post" class="form-excluir"
                             onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusao('{{ pdf.nome }}', this); return false;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="dropdown-item danger">
                                 <i data-lucide="trash-2"></i> Excluir
                             </button>
@@ -218,6 +222,7 @@
                         <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=caminho + '/' + arquivo.nome if caminho else arquivo.nome) }}"
                             method="post" class="form-excluir"
                             onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusao('{{ arquivo.nome }}', this); return false;">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <button type="submit" class="dropdown-item danger">
                                 <i data-lucide="trash-2"></i> Excluir
                             </button>

@@ -4,11 +4,12 @@ import os
 
 class User:
     """Modelo de usuário seguro"""
-    
-    def __init__(self, username, nome=None, password_hash=None):
+
+    def __init__(self, username, nome=None, password_hash=None, tema='light'):
         self.username = username
         self.nome = nome if nome else username  # Se não tiver nome, usa o username
         self.password_hash = password_hash
+        self.tema = tema  # Preferência de tema: 'light' ou 'dark'
         self._is_authenticated = True
         self._is_active = True
         self._is_anonymous = False
@@ -26,33 +27,25 @@ class User:
     def get(username):
         """Busca usuário pelo nome"""
         admin_username = os.environ.get('ADMIN_USERNAME', 'admin')
-        admin_nome = os.environ.get('ADMIN_NOME', admin_username)  # Novo campo
+        admin_nome = os.environ.get('ADMIN_NOME', admin_username)
         admin_password_hash = os.environ.get('ADMIN_PASSWORD_HASH', '')
-        
+        admin_tema = os.environ.get('ADMIN_TEMA', 'light')  # Tema do usuário
+
         if username == admin_username:
-            return User(admin_username, admin_nome, admin_password_hash)
+            return User(admin_username, admin_nome, admin_password_hash, admin_tema)
         return None
     
     @property
     def is_authenticated(self):
+        """Read-only: usuário sempre autenticado após login"""
         return self._is_authenticated
-    
-    @is_authenticated.setter
-    def is_authenticated(self, value):
-        self._is_authenticated = value
-    
+
     @property
     def is_active(self):
+        """Read-only: usuário sempre ativo no sistema"""
         return self._is_active
-    
-    @is_active.setter
-    def is_active(self, value):
-        self._is_active = value
-    
+
     @property
     def is_anonymous(self):
+        """Read-only: usuário nunca é anônimo após login"""
         return self._is_anonymous
-    
-    @is_anonymous.setter
-    def is_anonymous(self, value):
-        self._is_anonymous = value

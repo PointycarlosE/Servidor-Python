@@ -71,6 +71,7 @@ IS_FIRST_RUN = not CONFIGURADO
 # ===== LIMITES DE UPLOAD =====
 MAX_UPLOAD_SIZE_MB = int(os.environ.get('MAX_UPLOAD_MB', 500))
 MAX_CONTENT_LENGTH = MAX_UPLOAD_SIZE_MB * 1024 * 1024
+MAX_FILE_SIZE_MB = int(os.environ.get('MAX_FILE_SIZE_MB', 100)) # Limite por arquivo individual
 
 # ===== LIMITES DO ZIP =====
 MAX_ZIP_FILES = int(os.environ.get('MAX_ZIP_FILES', 100))       # máx arquivos por ZIP
@@ -81,10 +82,26 @@ MAX_ZIP_SIZE_MB = int(os.environ.get('MAX_ZIP_SIZE_MB', 1024))  # máx 1GB por Z
 RATELIMIT_DEFAULT = os.environ.get('RATELIMIT_DEFAULT', '60 per minute')
 # Limite específico para login (mais restritivo)
 RATELIMIT_LOGIN = os.environ.get('RATELIMIT_LOGIN', '10 per minute')
+# Limites específicos para operações de arquivos (adicionados para resolver o ImportError)
+RATELIMIT_UPLOAD = os.environ.get('RATELIMIT_UPLOAD', '20 per minute')
+RATELIMIT_DELETE = os.environ.get('RATELIMIT_DELETE', '30 per minute')
+RATELIMIT_ZIP = os.environ.get('RATELIMIT_ZIP', '5 per minute')
 
 # ===== LOG DE AUDITORIA =====
 AUDIT_LOG_PATH = os.path.join(ROOT_DIR, 'instance', 'audit.log')
 AUDIT_LOG_MAX_MB = int(os.environ.get('AUDIT_LOG_MAX_MB', 10))  # rotação a cada 10MB
+
+# ===== UPLOAD: EXTENSÕES BLOQUEADAS =====
+# Apenas extensões que podem ser executadas no SERVIDOR são bloqueadas por padrão
+# Scripts client-side (.js, .py para backup) são permitidos
+# Usuário pode adicionar mais no .env como: BLOCKED_EXTENSIONS=".exe,.dll,.so"
+BLOCKED_EXTENSIONS_DEFAULT = '.php,.php3,.php4,.php5,.phtml,.cgi,.pl,.sh,.bash,.zsh,.fish,.bat,.cmd,.com,.exe,.msi,.scr,.vbs,.jar,.class,.htaccess,.htpasswd'
+BLOCKED_EXTENSIONS = os.environ.get('BLOCKED_EXTENSIONS', BLOCKED_EXTENSIONS_DEFAULT)
+BLOCKED_EXTENSIONS_SET = set(ext.strip().lower() for ext in BLOCKED_EXTENSIONS.split(',') if ext.strip())
+
+# ===== PAGINAÇÃO =====
+# Quantos itens carregar por vez na listagem (evita travamento em pastas grandes)
+ITEMS_PER_PAGE = int(os.environ.get('ITEMS_PER_PAGE', 100))
 
 # ===== FEEDBACK NO TERMINAL (apenas informativo, sem dados sensíveis) =====
 if IS_FIRST_RUN:

@@ -1,6 +1,6 @@
 <!--objetivos.html-->
 <!DOCTYPE html>
-<html lang="pt-br" data-theme="light">
+<html lang="pt-br" data-theme="{{ current_user.tema if current_user.is_authenticated else 'light' }}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,15 +8,6 @@
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
     <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
-    <script>
-        (function () {
-            try {
-                const savedTheme = localStorage.getItem('theme') || 'light';
-                document.documentElement.setAttribute('data-theme', savedTheme);
-                window.__initialTheme = savedTheme;
-            } catch (e) {}
-        })();
-    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="page-simple">
@@ -29,16 +20,13 @@
                 <i data-lucide="list-checks" style="width:16px;height:16px;"></i> Objetivos
             </a>
         </nav>
+        {% if current_user.is_authenticated %}
         <div class="header-actions">
-            <button id="theme-toggle" class="theme-btn-simple" aria-label="Alternar tema">
-                <span class="theme-icon"><i data-lucide="sun" id="icon-theme"></i></span>
-            </button>
-            {% if current_user.is_authenticated %}
             <a href="{{ url_for('auth.logout') }}" class="logout-btn-simple" title="Sair">
                 <i data-lucide="log-out" style="width:18px;height:18px;"></i>
             </a>
-            {% endif %}
         </div>
+        {% endif %}
     </header>
 
     <main class="content-centered" style="display: block; padding: 40px 24px;">

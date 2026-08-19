@@ -1,6 +1,6 @@
 <!--explorar.html-->
 <!DOCTYPE html>
-<html lang="pt-br" data-theme="light">
+<html lang="pt-br" data-theme="{{ current_user.tema if current_user.is_authenticated else 'light' }}">
 
 <head>
     <meta charset="UTF-8">
@@ -10,15 +10,6 @@
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
-    <script>
-        (function () {
-            try {
-                const savedTheme = localStorage.getItem('theme') || 'light';
-                document.documentElement.setAttribute('data-theme', savedTheme);
-                window.__initialTheme = savedTheme;
-            } catch (e) {}
-        })();
-    </script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 
@@ -75,24 +66,10 @@
                 </button>
 
                 <div class="search-wrapper">
-                    <span class="search-icon"><i data-lucide="search" style="width:16px;height:16px;"></i></span>
-                    <input type="text" id="pesquisa-input" class="search-input" placeholder="Buscar arquivos..." autocomplete="off">
+                    <span class="search-icon"><i data-lucide="search" style="width:18px;height:18px;"></i></span>
+                    <input type="text" id="pesquisa-input" class="search-input" placeholder="Buscar em Meus arquivos" autocomplete="off">
                     <button id="pesquisa-limpar" class="search-clear" title="Limpar busca">
-                        <i data-lucide="x" style="width:14px;height:14px;"></i>
-                    </button>
-                </div>
-
-                <div class="top-actions">
-                    <div class="view-toggle">
-                        <button id="view-grid" class="view-btn active" title="Visualização em grade">
-                            <i data-lucide="layout-grid"></i> <span class="view-text">Grade</span>
-                        </button>
-                        <button id="view-list" class="view-btn" title="Visualização em lista">
-                            <i data-lucide="layout-list"></i> <span class="view-text">Lista</span>
-                        </button>
-                    </div>
-                    <button id="theme-toggle" class="theme-btn" aria-label="Alternar tema">
-                        <span class="theme-icon"><i data-lucide="sun" id="icon-theme"></i></span>
+                        <i data-lucide="x" style="width:16px;height:16px;"></i>
                     </button>
                 </div>
             </header>
@@ -117,26 +94,81 @@
                     </div>
                 </div>
 
-                <!-- AÇÕES RÁPIDAS -->
-                <div class="actions-bar">
-                    <div class="upload-area">
-                        <label for="arquivo" class="action-btn upload-btn">
-                            <i data-lucide="upload"></i> Upload
+                <!-- BARRA DE CONTROLES COMPACTA -->
+                <div class="controls-bar">
+                    <!-- Upload/Nova Pasta (Desktop apenas - no mobile usa FAB) -->
+                    <div class="upload-actions desktop-only">
+                        <label for="arquivo" class="control-btn upload-btn">
+                            <i data-lucide="upload"></i>
+                            <span>Upload</span>
                         </label>
                         <input type="file" name="arquivo" id="arquivo" class="upload-input" multiple style="display: none;">
-                        <button class="action-btn create-folder-btn" id="create-folder-trigger">
-                            <i data-lucide="folder-plus"></i> Nova pasta
+                        <button class="control-btn" id="create-folder-trigger">
+                            <i data-lucide="folder-plus"></i>
+                            <span>Nova pasta</span>
                         </button>
                     </div>
 
-                    <div class="sort-bar">
-                        <span class="sort-label">Ordenar:</span>
-                        <div class="sort-buttons">
-                            <button id="ordenar-tipo" class="sort-btn active" data-order="asc">Tipo <i data-lucide="chevron-up" class="sort-arrow" style="width:12px;height:12px;"></i></button>
-                            <button id="ordenar-nome" class="sort-btn" data-order="asc">Nome <i data-lucide="chevron-up" class="sort-arrow" style="width:12px;height:12px;"></i></button>
-                            <button id="ordenar-tamanho" class="sort-btn" data-order="asc">Tamanho <i data-lucide="chevron-up" class="sort-arrow" style="width:12px;height:12px;"></i></button>
-                            <button id="ordenar-data" class="sort-btn" data-order="asc">Data <i data-lucide="chevron-up" class="sort-arrow" style="width:12px;height:12px;"></i></button>
+                    <!-- Controles de visualização e ordenação -->
+                    <div class="view-controls">
+                        <!-- View toggle -->
+                        <div class="view-toggle">
+                            <button id="view-grid" class="view-btn active" title="Visualização em grade">
+                                <i data-lucide="layout-grid"></i>
+                            </button>
+                            <button id="view-list" class="view-btn" title="Visualização em lista">
+                                <i data-lucide="layout-list"></i>
+                            </button>
                         </div>
+
+                        <!-- Ordenação Desktop -->
+                        <div class="sort-buttons-desktop">
+                            <button id="ordenar-tipo" class="sort-btn active" data-order="asc">
+                                Tipo <i data-lucide="chevron-up" class="sort-arrow"></i>
+                            </button>
+                            <button id="ordenar-nome" class="sort-btn" data-order="asc">
+                                Nome <i data-lucide="chevron-up" class="sort-arrow"></i>
+                            </button>
+                            <button id="ordenar-tamanho" class="sort-btn" data-order="asc">
+                                Tamanho <i data-lucide="chevron-up" class="sort-arrow"></i>
+                            </button>
+                            <button id="ordenar-data" class="sort-btn" data-order="asc">
+                                Data <i data-lucide="chevron-up" class="sort-arrow"></i>
+                            </button>
+                        </div>
+
+                        <!-- Ordenação Mobile -->
+                        <div class="sort-dropdown-mobile">
+                            <button class="sort-dropdown-btn" id="sort-dropdown-btn">
+                                <i data-lucide="arrow-up-down"></i>
+                                <span id="sort-dropdown-label">Tipo</span>
+                                <i data-lucide="chevron-down"></i>
+                            </button>
+                            <div class="sort-dropdown-menu" id="sort-dropdown-menu">
+                                <button class="sort-dropdown-item active" data-sort="tipo">
+                                    <i data-lucide="file-type"></i>
+                                    <span>Tipo</span>
+                                    <i data-lucide="chevron-up" class="sort-dropdown-arrow"></i>
+                                </button>
+                                <button class="sort-dropdown-item" data-sort="nome">
+                                    <i data-lucide="text"></i>
+                                    <span>Nome</span>
+                                    <i data-lucide="chevron-up" class="sort-dropdown-arrow"></i>
+                                </button>
+                                <button class="sort-dropdown-item" data-sort="tamanho">
+                                    <i data-lucide="hard-drive"></i>
+                                    <span>Tamanho</span>
+                                    <i data-lucide="chevron-up" class="sort-dropdown-arrow"></i>
+                                </button>
+                                <button class="sort-dropdown-item" data-sort="data">
+                                    <i data-lucide="calendar"></i>
+                                    <span>Data</span>
+                                    <i data-lucide="chevron-up" class="sort-dropdown-arrow"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Contador de itens -->
                         <div class="item-count-wrapper">
                             <span class="item-count" id="view-total-itens">0</span>
                             <span class="item-count-label">itens</span>
@@ -154,7 +186,7 @@
                 {% endif %}
 
                 <!-- LISTAGEM -->
-                <div id="file-list-container">
+                <div id="file-list-container" data-total-count="{{ total_count }}" data-items-per-page="{{ items_per_page }}">
                     {% include 'partials/_lista_arquivos.html' %}
                 </div>
             </div>
@@ -301,6 +333,28 @@
             <span id="toast-icon" class="toast-icon"></span>
             <span id="toast-message" class="toast-message">Operação realizada!</span>
         </div>
+    </div>
+
+    <!-- FAB Expansível (Mobile Only) -->
+    <div class="fab-overlay" id="fab-overlay"></div>
+    <div class="fab-container" id="fab-container">
+        <div class="fab-options">
+            <div class="fab-option" id="fab-upload-option">
+                <div class="fab-option-icon">
+                    <i data-lucide="upload"></i>
+                </div>
+                <span class="fab-option-text">Upload</span>
+            </div>
+            <div class="fab-option" id="fab-folder-option">
+                <div class="fab-option-icon">
+                    <i data-lucide="folder-plus"></i>
+                </div>
+                <span class="fab-option-text">Nova pasta</span>
+            </div>
+        </div>
+        <button class="fab-main" id="fab-main">
+            <i data-lucide="plus"></i>
+        </button>
     </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>

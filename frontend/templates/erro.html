@@ -7,16 +7,7 @@
     <title>Erro - Meu Drive Pessoal</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
-<script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
-    <script>
-        (function () {
-            try {
-                const savedTheme = localStorage.getItem('theme') || 'light';
-                document.documentElement.setAttribute('data-theme', savedTheme);
-                window.__initialTheme = savedTheme;
-            } catch (e) {}
-        })();
-    </script>
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body class="page-simple">
@@ -29,11 +20,6 @@
                 <i data-lucide="list-checks" style="width:16px;height:16px;"></i> Objetivos
             </a>
         </nav>
-        <div class="header-actions">
-            <button id="theme-toggle" class="theme-btn-simple" aria-label="Alternar tema">
-                <span class="theme-icon"><i data-lucide="sun" id="icon-theme"></i></span>
-            </button>
-        </div>
     </header>
 
     <main class="content-centered">
@@ -58,21 +44,6 @@
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
         lucide.createIcons();
-        const themeToggle = document.getElementById('theme-toggle');
-        if (themeToggle) {
-            const iconTheme = document.getElementById('icon-theme');
-            const cur = document.documentElement.getAttribute('data-theme') || 'light';
-            iconTheme.setAttribute('data-lucide', cur === 'dark' ? 'moon' : 'sun');
-            lucide.createIcons();
-            themeToggle.addEventListener('click', () => {
-                const c = document.documentElement.getAttribute('data-theme') || 'light';
-                const n = c === 'light' ? 'dark' : 'light';
-                document.documentElement.setAttribute('data-theme', n);
-                localStorage.setItem('theme', n);
-                iconTheme.setAttribute('data-lucide', n === 'dark' ? 'moon' : 'sun');
-                lucide.createIcons();
-            });
-        }
     </script>
 </body>
 </html> 

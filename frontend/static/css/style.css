@@ -68,7 +68,18 @@ body {
     height: 100vh;
     overflow-y: auto;
     flex-shrink: 0;
-    transition: transform 0.3s ease;
+    /* transition: transform 0.3s ease; */ /* Transição apenas no mobile, gerenciada abaixo */
+}
+
+/* Fundo escuro para fechar o menu no mobile */
+.sidebar-overlay {
+    display: none;
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(2px);
+    z-index: 150;
+    animation: fadeIn 0.2s ease;
 }
 
 .logo {
@@ -139,6 +150,7 @@ body {
 
 .sidebar-footer {
     padding: 20px;
+    padding-bottom: 80px; /* Espaço extra para botões de navegação mobile */
     border-top: 1px solid var(--border);
     margin-top: auto;
     display: flex;
@@ -209,35 +221,42 @@ body {
 .topbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    padding: 12px 24px;
+    gap: 16px;
+    padding: 8px 16px;
     background: var(--card);
     border-bottom: 1px solid var(--border);
-    gap: 20px;
-    flex-wrap: wrap;
     position: sticky;
     top: 0;
     z-index: 100;
+    min-height: 56px;
+    max-height: 56px;
 }
 
 .mobile-menu-btn {
     display: none;
     background: none;
     border: none;
-    font-size: 1.5rem;
     cursor: pointer;
     color: var(--text);
     padding: 8px;
-    border-radius: 8px;
+    border-radius: 50%;
+    transition: var(--transition);
+    flex-shrink: 0;
 }
 
 .mobile-menu-btn:hover {
-    background: none;
+    background: var(--bg);
+}
+
+.mobile-menu-btn svg,
+.mobile-menu-btn [data-lucide] {
+    width: 24px;
+    height: 24px;
 }
 
 .search-wrapper {
     flex: 1;
-    max-width: 500px;
+    max-width: 720px;
     position: relative;
     display: flex;
     align-items: center;
@@ -245,17 +264,19 @@ body {
 
 .search-icon {
     position: absolute;
-    left: 14px;
+    left: 12px;
     color: var(--text-secondary);
-    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    pointer-events: none;
 }
 
 .search-input {
     width: 100%;
-    padding: 10px 40px 10px 40px;
-    border: 1px solid var(--border);
-    border-radius: 24px;
-    font-size: 0.95rem;
+    padding: 8px 40px 8px 44px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.875rem;
     background: var(--bg);
     color: var(--text);
     transition: var(--transition);
@@ -263,65 +284,75 @@ body {
 
 .search-input:focus {
     outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+    background: var(--card);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1), 0 0 0 1px var(--border);
+}
+
+.search-input::placeholder {
+    color: var(--text-secondary);
 }
 
 .search-clear {
     position: absolute;
-    right: 12px;
+    right: 8px;
     background: none;
     border: none;
-    font-size: 1rem;
     cursor: pointer;
     color: var(--text-secondary);
-    padding: 4px;
+    padding: 6px;
     border-radius: 50%;
     display: none;
     align-items: center;
     justify-content: center;
+    transition: var(--transition);
 }
 
 .search-clear:hover {
     background: var(--border);
+    color: var(--text);
 }
 
 .search-clear.visible {
     display: flex;
 }
 
-.top-actions {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
 .view-toggle {
     display: flex;
     background: var(--bg);
-    border-radius: 12px;
-    padding: 4px;
-    gap: 4px;
+    border-radius: 8px;
+    padding: 2px;
+    gap: 2px;
+    border: 1px solid var(--border);
 }
 
 .view-btn {
     background: none;
     border: none;
-    padding: 8px 12px;
-    border-radius: 8px;
+    padding: 6px 8px;
+    border-radius: 6px;
     cursor: pointer;
-    font-size: 1.1rem;
     color: var(--text-secondary);
     transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .view-btn:hover {
     background: var(--border);
+    color: var(--text);
 }
 
 .view-btn.active {
-    background: var(--primary);
-    color: white;
+    background: var(--card);
+    color: var(--primary);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+}
+
+.view-btn svg,
+.view-btn [data-lucide] {
+    width: 18px;
+    height: 18px;
 }
 
 .theme-btn {
@@ -354,7 +385,7 @@ body {
 
 /* ===== BREADCRUMB ===== */
 .breadcrumb-wrapper {
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 .breadcrumb {
@@ -362,7 +393,8 @@ body {
     align-items: center;
     flex-wrap: wrap;
     gap: 4px;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
+    padding: 8px 0;
 }
 
 .breadcrumb-link {
@@ -388,7 +420,73 @@ body {
     color: var(--text-secondary);
 }
 
-/* ===== ACTIONS BAR ===== */
+/* ===== CONTROLS BAR (NOVA - ESTILO GOOGLE DRIVE) ===== */
+.controls-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 8px 0;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.upload-actions {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.desktop-only {
+    display: flex;
+}
+
+.control-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--card);
+    color: var(--text);
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: var(--transition);
+    font-family: inherit;
+    white-space: nowrap;
+}
+
+.control-btn:hover {
+    background: var(--bg);
+    border-color: var(--primary);
+}
+
+.control-btn.upload-btn {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+.control-btn.upload-btn:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+}
+
+.control-btn svg,
+.control-btn [data-lucide] {
+    width: 16px;
+    height: 16px;
+}
+
+.view-controls {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+/* ===== ACTIONS BAR (ANTIGA - DEPRECADA) ===== */
 .actions-bar {
     display: flex;
     justify-content: space-between;
@@ -407,7 +505,7 @@ body {
     gap: 12px;
 }
 
-.action-btn {
+.action-btn, .upload-btn {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -419,6 +517,25 @@ body {
     font-size: 0.9rem;
     cursor: pointer;
     transition: var(--transition);
+}
+
+/* Floating Action Button (FAB) no Mobile */
+@media (max-width: 768px) {
+    .upload-btn {
+        position: fixed;
+        bottom: 90px;
+        right: 20px;
+        width: 56px;
+        height: 56px;
+        border-radius: 28px;
+        padding: 0;
+        justify-content: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        z-index: 900;
+    }
+    .upload-btn .nav-text, .upload-btn span {
+        display: none; /* Esconde o texto, deixa só o ícone */
+    }
 }
 
 .action-btn:hover {
@@ -448,6 +565,7 @@ body {
 .sort-label {
     color: var(--text-secondary);
     font-size: 0.85rem;
+    display: none; /* Escondido por padrão, fica melhor sem */
 }
 
 .sort-buttons {
@@ -455,11 +573,16 @@ body {
     gap: 6px;
 }
 
+.sort-buttons-desktop {
+    display: flex;
+    gap: 6px;
+}
+
 .sort-btn {
-    padding: 6px 12px;
-    border: 1px solid var(--border);
-    border-radius: 20px;
-    background: var(--bg);
+    padding: 6px 10px;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
     color: var(--text-secondary);
     font-size: 0.8rem;
     cursor: pointer;
@@ -467,61 +590,169 @@ body {
     display: flex;
     align-items: center;
     gap: 4px;
+    white-space: nowrap;
 }
 
 .sort-btn:hover {
-    border-color: var(--primary);
-    color: var(--primary);
+    background: var(--bg);
+    color: var(--text);
 }
 
 .sort-btn.active {
-    background: var(--primary);
-    border-color: var(--primary);
-    color: white;
+    background: var(--bg);
+    color: var(--primary);
+    font-weight: 500;
 }
 
 .sort-arrow {
-    font-size: 0.7rem;
+    display: inline-flex;
+    align-items: center;
     transition: transform 0.2s ease;
-    display: inline-block;
 }
+
+.sort-arrow svg,
+.sort-arrow [data-lucide] {
+    width: 12px;
+    height: 12px;
+}
+
 .sort-btn[data-order="desc"] .sort-arrow {
     transform: rotate(180deg);
 }
 
+/* ===== SORT DROPDOWN MOBILE ===== */
+.sort-dropdown-mobile {
+    display: none; /* Escondido por padrão, mostrado no mobile */
+    position: relative;
+}
+
+.sort-dropdown-btn {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.sort-dropdown-btn:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.sort-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 4px);
+    right: 0;
+    left: auto;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    min-width: 180px;
+    display: none;
+    flex-direction: column;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.sort-dropdown-menu.open {
+    display: flex;
+    animation: dropdownFadeIn 0.2s ease;
+}
+
+.sort-dropdown-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border: none;
+    background: none;
+    color: var(--text);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: var(--transition);
+    text-align: left;
+}
+
+.sort-dropdown-item:hover {
+    background: var(--bg);
+}
+
+.sort-dropdown-item.active {
+    background: var(--primary-light);
+    color: var(--primary);
+    font-weight: 500;
+}
+
+.sort-dropdown-item span {
+    flex: 1;
+}
+
+.sort-dropdown-arrow {
+    transition: transform 0.2s ease;
+    opacity: 0.6;
+}
+
+.sort-dropdown-item[data-order="desc"] .sort-dropdown-arrow {
+    transform: rotate(180deg);
+}
+
+.item-count-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    padding: 4px 8px;
+    background: var(--bg);
+    border-radius: 6px;
+}
+
 .item-count {
     font-weight: 600;
-    color: var(--primary);
+    color: var(--text);
 }
 
 .item-count-label {
     color: var(--text-secondary);
-    font-size: 0.85rem;
+    font-size: 0.8rem;
 }
 
 /* ===== BACK BUTTON ===== */
 .back-button-wrapper {
-    margin-bottom: 20px;
+    margin-bottom: 12px;
 }
 
 .back-btn {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 8px 16px;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 40px;
-    color: var(--text);
+    gap: 6px;
+    padding: 6px 12px;
+    background: transparent;
+    border: none;
+    border-radius: 8px;
+    color: var(--text-secondary);
     text-decoration: none;
-    font-size: 0.9rem;
+    font-size: 0.875rem;
     transition: var(--transition);
 }
 
 .back-btn:hover {
-    border-color: var(--primary);
+    background: var(--bg);
     color: var(--primary);
     transform: translateX(-2px);
+}
+
+.back-btn svg,
+.back-btn [data-lucide] {
+    width: 18px;
+    height: 18px;
 }
 
 /* ===== SELECTION BAR ===== */
@@ -1731,30 +1962,89 @@ body {
         z-index: 200;
         transition: left 0.3s ease;
     }
-    
+
     .sidebar.active {
         left: 0;
     }
-    
+    .sidebar-overlay.active { display: block; }
+
     .mobile-menu-btn {
         display: flex;
     }
-    
+
+    .topbar {
+        padding: 8px 12px;
+        gap: 12px;
+        min-height: 56px;
+        max-height: 56px;
+    }
+
     .search-wrapper {
+        flex: 1;
         max-width: none;
     }
-    
-    .actions-bar {
-        flex-direction: column;
-        align-items: stretch;
+
+    .search-input {
+        font-size: 14px;
+        padding: 8px 36px 8px 40px;
+        border-radius: 8px;
     }
-    
-    .upload-area {
-        justify-content: center;
+
+    .search-icon {
+        left: 10px;
     }
-    
-    .sort-bar {
-        justify-content: center;
+
+    .search-icon svg,
+    .search-icon [data-lucide] {
+        width: 18px;
+        height: 18px;
+    }
+
+    .search-clear {
+        right: 6px;
+        padding: 4px;
+    }
+
+    .mobile-menu-btn {
+        padding: 6px;
+        margin-right: 4px;
+    }
+
+    .mobile-menu-btn svg,
+    .mobile-menu-btn [data-lucide] {
+        width: 22px;
+        height: 22px;
+    }
+
+    /* CONTROLS BAR - Mobile */
+    .controls-bar {
+        padding: 6px 0;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    .desktop-only {
+        display: none !important; /* Esconde upload/nova pasta no mobile (usa FAB) */
+    }
+
+    .view-controls {
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .breadcrumb-wrapper {
+        margin-bottom: 8px;
+    }
+
+    .breadcrumb {
+        font-size: 0.75rem;
+        padding: 6px 0;
+    }
+
+    .content {
+        padding: 12px;
     }
     
     .listagem-itens {
@@ -1844,25 +2134,59 @@ body {
 
 @media (max-width: 480px) {
     .topbar {
-        flex-direction: column;
-        align-items: stretch;
+        padding: 6px 8px;
+        gap: 8px;
+        min-height: 56px;
+        max-height: 56px;
     }
-    
-    .top-actions {
-        justify-content: center;
+
+    .mobile-menu-btn {
+        padding: 4px;
     }
-    
+
+    .search-input {
+        font-size: 14px;
+        padding: 7px 32px 7px 36px;
+    }
+
+    .search-wrapper {
+        flex: 1;
+        min-width: 0;
+    }
+
     .content {
         padding: 16px;
     }
-    
-    .listagem-itens {
-        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-        gap: 10px;
+
+    /* CONTROLS BAR - Mobile pequeno */
+    .controls-bar {
+        padding: 4px 0;
+        margin-bottom: 8px;
+        gap: 6px;
     }
-    
-    .sort-buttons {
-        flex-wrap: wrap;
+
+    .view-controls {
+        gap: 6px;
+        flex-wrap: nowrap;
+    }
+
+    .view-toggle {
+        flex-shrink: 0;
+    }
+
+    .sort-dropdown-btn {
+        padding: 5px 8px;
+        font-size: 0.75rem;
+    }
+
+    .item-count-wrapper {
+        font-size: 0.7rem;
+        padding: 3px 6px;
+        margin-left: auto;
+    }
+
+    .breadcrumb {
+        font-size: 0.7rem;
     }
     
     /* ===== AJUSTES PARA CARDS EM TELAS MUITO PEQUENAS ===== */
@@ -1954,6 +2278,11 @@ body {
         height: 26px;
         font-size: 0.85rem;
     }
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 /* ========================================
@@ -2480,6 +2809,52 @@ body {
 .form-hint strong {
     color: var(--text);
     font-weight: 600;
+}
+
+/* ===== THEME SELECTOR CARDS ===== */
+.theme-card {
+    border: 2px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    transition: var(--transition);
+    background: var(--card);
+}
+
+.theme-card:hover {
+    border-color: var(--primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.theme-card.selected {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
+}
+
+.theme-preview {
+    width: 100%;
+    height: 80px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid var(--border);
+}
+
+.theme-label {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text);
+}
+
+.theme-card.selected .theme-label {
+    color: var(--primary);
 }
 
 /* Responsividade */
@@ -3139,4 +3514,818 @@ select:focus {
     display: flex !important;
     align-items: center;
     justify-content: center;
+}
+/* ========================================
+   MELHORIAS MOBILE - 2026
+   ======================================== */
+
+/* Ajustes gerais para telas pequenas */
+@media (max-width: 768px) {
+    /* Mostrar dropdown mobile e esconder botões normais */
+    .sort-buttons-desktop {
+        display: none !important;
+    }
+
+    .sort-dropdown-mobile {
+        display: block;
+    }
+
+    /* NOVO: 2 colunas compactas - ESTILO GOOGLE DRIVE */
+    .listagem-itens {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 10px;
+        padding: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .item-card {
+        padding: 10px;
+        min-height: auto;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+
+    /* Ícones otimizados */
+    .item-icone {
+        margin: 8px 0 6px 0;
+        min-height: 50px;
+    }
+
+    .item-icone svg,
+    .item-icone [data-lucide],
+    .file-icon svg,
+    .file-icon [data-lucide] {
+        width: 36px !important;
+        height: 36px !important;
+    }
+
+    .item-nome {
+        font-size: 0.8rem;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        line-height: 1.3;
+        margin-bottom: 4px;
+    }
+
+    .item-info {
+        font-size: 0.65rem;
+        margin-top: 2px;
+    }
+
+    .item-meta {
+        gap: 6px;
+    }
+
+    /* Reduz tamanho da thumbnail de imagem */
+    .item-thumbnail {
+        max-height: 100px;
+        object-fit: cover;
+        border-radius: 6px;
+    }
+
+    /* Checkbox e menu menores */
+    .item-checkbox {
+        width: 20px;
+        height: 20px;
+        top: 6px;
+        left: 6px;
+    }
+
+    .item-checkbox-input {
+        width: 16px;
+        height: 16px;
+    }
+
+    /* Botão de menu (três pontinhos) */
+    .btn-menu-item {
+        width: 30px;
+        height: 30px;
+    }
+
+    /* NOVO: Esconde botões originais - será substituído por FAB */
+    .upload-area {
+        display: none;
+    }
+
+    /* Upload panel mais largo em mobile */
+    .upload-panel {
+        right: 8px;
+        width: calc(100% - 16px);
+        max-width: 380px;
+    }
+
+    /* Modals ocupam mais espaço em mobile */
+    .modal-container {
+        margin: 20px;
+        max-width: calc(100% - 40px);
+        max-height: calc(100vh - 40px);
+    }
+
+    /* Lightbox ajustado para mobile */
+    .lightbox-container {
+        width: 95%;
+        max-width: none;
+        height: auto;
+        max-height: 90vh;
+    }
+
+    .lightbox-image-container {
+        height: 50vh;
+    }
+
+    .lightbox-nav {
+        width: 44px;
+        height: 44px;
+    }
+}
+
+/* Ajustes para telas muito pequenas */
+@media (max-width: 480px) {
+    /* Topbar ainda mais compacta */
+    .topbar {
+        padding: 10px 12px;
+    }
+
+    .mobile-menu-btn {
+        padding: 6px;
+    }
+
+    .top-actions {
+        gap: 6px;
+    }
+
+    .theme-btn {
+        width: 36px;
+        height: 36px;
+    }
+
+    /* Content com menos padding */
+    .content {
+        padding: 10px 6px;
+    }
+
+    /* Breadcrumb menor */
+    .breadcrumb-wrapper {
+        margin-bottom: 10px;
+    }
+
+    .breadcrumb {
+        font-size: 0.75rem;
+    }
+
+    .breadcrumb-link,
+    .breadcrumb-current {
+        max-width: 70px;
+    }
+
+    /* Cards para celulares - 2 COLUNAS COM AUTO-FILL */
+    .listagem-itens {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+        gap: 8px;
+        padding: 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .item-card {
+        padding: 8px;
+        min-height: auto;
+        width: 100%;
+        max-width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+
+    .item-icone {
+        margin: 6px 0 4px 0;
+        min-height: 45px;
+    }
+
+    .item-icone svg,
+    .item-icone [data-lucide],
+    .file-icon svg,
+    .file-icon [data-lucide] {
+        width: 32px !important;
+        height: 32px !important;
+    }
+
+    .item-nome {
+        font-size: 0.75rem;
+        -webkit-line-clamp: 2;
+        line-clamp: 2;
+        line-height: 1.2;
+    }
+
+    .item-info {
+        font-size: 0.6rem;
+    }
+
+    /* Thumbnails ainda menores */
+    .item-thumbnail {
+        max-height: 80px;
+        width: 100%;
+        object-fit: cover;
+        border-radius: 4px;
+    }
+
+    /* Item count menor */
+    .item-count-wrapper {
+        font-size: 0.7rem;
+    }
+
+    .item-count {
+        font-size: 0.8rem;
+    }
+
+    /* Botões de ação menores */
+    .action-btn {
+        padding: 7px 12px;
+        font-size: 0.8rem;
+    }
+
+    /* Back button mais compacto */
+    .back-btn {
+        padding: 6px 12px;
+        font-size: 0.8rem;
+        gap: 6px;
+    }
+
+    /* Checkboxes menores */
+    .item-checkbox {
+        width: 18px;
+        height: 18px;
+    }
+
+    .item-checkbox-input {
+        width: 14px;
+        height: 14px;
+    }
+
+    /* Menu button menor */
+    .btn-menu-item {
+        width: 28px;
+        height: 28px;
+    }
+
+    /* Modals menores */
+    .modal-container {
+        margin: 12px;
+        max-width: calc(100% - 24px);
+    }
+
+    .modal-title {
+        font-size: 0.95rem;
+    }
+
+    .modal-input,
+    .modal-textarea {
+        font-size: 14px;
+    }
+
+    /* Toast menor */
+    .toast {
+        bottom: 80px;
+        left: 10px;
+        right: 10px;
+        max-width: none;
+        font-size: 0.8rem;
+    }
+}
+
+/* Modo lista em mobile - ajustes específicos */
+@media (max-width: 768px) {
+    .listagem-itens.view-list .item-link {
+        padding: 10px 12px;
+    }
+    
+    .listagem-itens.view-list .item-icone svg,
+    .listagem-itens.view-list .item-icone [data-lucide] {
+        width: 32px !important;
+        height: 32px !important;
+    }
+    
+    .listagem-itens.view-list .item-nome {
+        font-size: 0.85rem;
+    }
+    
+    .listagem-itens.view-list .item-tamanho,
+    .listagem-itens.view-list .item-data {
+        font-size: 0.7rem;
+    }
+    
+    /* Esconde data em telas pequenas no modo lista */
+    .listagem-itens.view-list .item-data {
+        display: none;
+    }
+}
+
+/* Ajustes de touch targets (mínimo 44x44px) */
+@media (max-width: 768px) {
+    button,
+    .btn,
+    a.btn,
+    .action-btn,
+    .sort-btn,
+    .view-btn,
+    .selection-btn,
+    .nav-item {
+        min-height: 44px;
+        min-width: 44px;
+    }
+    
+    /* Exceto para ícones pequenos que já são grandes o suficiente */
+    .lightbox-close,
+    .modal-close {
+        min-width: 40px;
+        min-height: 40px;
+    }
+}
+
+/* Landscape em mobile - ajustes */
+@media (max-height: 500px) and (orientation: landscape) {
+    /* Topbar ainda mais compacta em landscape */
+    .topbar {
+        padding: 6px 12px;
+        min-height: 48px;
+        max-height: 48px;
+    }
+
+    .mobile-menu-btn {
+        padding: 4px;
+    }
+
+    .search-input {
+        padding: 6px 36px 6px 40px;
+        font-size: 13px;
+    }
+
+    /* Content com menos padding vertical */
+    .content {
+        padding: 8px 16px;
+    }
+
+    /* Breadcrumb mais compacto */
+    .breadcrumb-wrapper {
+        margin-bottom: 6px;
+    }
+
+    .breadcrumb {
+        font-size: 0.7rem;
+        padding: 4px 0;
+    }
+
+    /* Controls bar compacta */
+    .controls-bar {
+        padding: 4px 0;
+        margin-bottom: 8px;
+    }
+
+    /* Back button menor */
+    .back-button-wrapper {
+        margin-bottom: 6px;
+    }
+
+    .back-btn {
+        padding: 4px 8px;
+        font-size: 0.75rem;
+    }
+
+    /* Grid com mais colunas aproveitando largura */
+    .listagem-itens {
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)) !important;
+        gap: 8px;
+    }
+
+    .item-card {
+        padding: 6px;
+    }
+
+    .item-icone {
+        margin: 4px 0 2px 0;
+        min-height: 40px;
+    }
+
+    .item-icone svg,
+    .item-icone [data-lucide] {
+        width: 28px !important;
+        height: 28px !important;
+    }
+
+    .item-nome {
+        font-size: 0.7rem;
+        line-height: 1.1;
+    }
+
+    .item-info {
+        font-size: 0.55rem;
+    }
+
+    .item-thumbnail {
+        max-height: 60px;
+    }
+
+    /* Lightbox ocupa mais espaço */
+    .lightbox-container {
+        max-height: 90vh;
+        width: 95%;
+    }
+
+    .lightbox-image-container {
+        max-height: 70vh;
+    }
+
+    /* Modais menores */
+    .modal-container {
+        max-height: 85vh;
+    }
+
+    /* FAB menor em landscape */
+    .fab-main {
+        width: 48px;
+        height: 48px;
+    }
+
+    .fab-container {
+        bottom: 16px;
+        right: 16px;
+    }
+}
+
+/* Sidebar mobile - animação suave */
+@media (max-width: 768px) {
+    .sidebar {
+        transform: translateX(-100%);
+        transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    .sidebar.active {
+        transform: translateX(0);
+    }
+    
+    .sidebar-overlay.active {
+        display: block;
+    }
+}
+
+/* Melhoria de contraste para tema escuro em mobile */
+@media (max-width: 768px) {
+    [data-theme="dark"] .item-card {
+        background: #2d2e30;
+        border-color: #3c4043;
+    }
+    
+    [data-theme="dark"] .item-card:hover {
+        background: #35363a;
+    }
+}
+
+/* Botão "Carregar mais" ajustado para mobile */
+@media (max-width: 768px) {
+    #load-more-container {
+        padding: 1.5rem 1rem;
+    }
+    
+    #load-more-btn {
+        width: 100%;
+        max-width: 300px;
+        margin: 0 auto;
+        display: block;
+    }
+}
+
+/* Ajuste de scroll suave em mobile */
+@media (max-width: 768px) {
+    html {
+        scroll-behavior: smooth;
+        -webkit-overflow-scrolling: touch;
+    }
+    
+    body {
+        overscroll-behavior-y: contain;
+    }
+}
+
+/* FAB para "Nova Pasta" em mobile */
+@media (max-width: 768px) {
+    /* Cria um FAB secundário para criar pasta */
+    .create-folder-btn {
+        display: flex !important;
+        position: fixed;
+        bottom: 155px;
+        right: 20px;
+        width: 52px;
+        height: 52px;
+        border-radius: 26px;
+        padding: 0;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        z-index: 900;
+        background: var(--card);
+        border: 1px solid var(--border);
+    }
+    
+    .create-folder-btn span,
+    .create-folder-btn .nav-text {
+        display: none;
+    }
+    
+    .create-folder-btn:hover {
+        background: var(--primary-light);
+    }
+}
+
+@media (max-width: 480px) {
+    .create-folder-btn {
+        width: 48px;
+        height: 48px;
+        bottom: 145px;
+        right: 16px;
+    }
+    
+    .upload-btn {
+        bottom: 85px !important;
+    }
+}
+
+/* ========================================
+   FAB EXPANSÍVEL ESTILO GOOGLE DRIVE
+   ======================================== */
+
+/* Container do FAB com menu expansível */
+.fab-container {
+    display: none; /* Visível apenas em mobile */
+    position: fixed;
+    bottom: 24px;
+    right: 20px;
+    z-index: 1000;
+}
+
+/* FAB principal */
+.fab-main {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: white;
+    border: none;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+}
+
+.fab-main:active {
+    transform: scale(0.95);
+}
+
+.fab-main svg,
+.fab-main [data-lucide] {
+    width: 24px;
+    height: 24px;
+    transition: transform 0.3s ease;
+}
+
+/* Rotação do ícone quando aberto */
+.fab-container.open .fab-main svg,
+.fab-container.open .fab-main [data-lucide] {
+    transform: rotate(45deg);
+}
+
+/* Menu de opções */
+.fab-options {
+    position: absolute;
+    bottom: 70px;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    opacity: 0;
+    pointer-events: none;
+    transform: translateY(20px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.fab-container.open .fab-options {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+/* Cada opção do FAB */
+.fab-option {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 28px;
+    padding: 12px 16px 12px 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    animation: fabSlideIn 0.3s ease forwards;
+}
+
+.fab-option:nth-child(1) {
+    animation-delay: 0.05s;
+}
+
+.fab-option:nth-child(2) {
+    animation-delay: 0.1s;
+}
+
+@keyframes fabSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px) scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.fab-option:hover {
+    transform: translateX(-4px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.fab-option:active {
+    transform: scale(0.95);
+}
+
+.fab-option-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--primary-light);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.fab-option-icon svg,
+.fab-option-icon [data-lucide] {
+    width: 20px;
+    height: 20px;
+    color: var(--primary);
+}
+
+.fab-option-text {
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: var(--text);
+}
+
+/* Overlay quando FAB está aberto */
+.fab-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: 999;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.fab-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Mostra FAB apenas em mobile */
+@media (max-width: 768px) {
+    .fab-container {
+        display: block;
+    }
+}
+
+@media (max-width: 480px) {
+    .fab-container {
+        bottom: 20px;
+        right: 16px;
+    }
+    
+    .fab-main {
+        width: 52px;
+        height: 52px;
+    }
+    
+    .fab-option {
+        padding: 10px 14px 10px 10px;
+    }
+    
+    .fab-option-icon {
+        width: 36px;
+        height: 36px;
+    }
+    
+    .fab-option-text {
+        font-size: 0.85rem;
+    }
+}
+
+/* Tema escuro */
+[data-theme="dark"] .fab-option {
+    background: #2d2e30;
+    border-color: #3c4043;
+}
+
+[data-theme="dark"] .fab-option:hover {
+    background: #35363a;
+}
+
+[data-theme="dark"] .fab-overlay {
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* ========================================
+   FIX: Prevenir overflow horizontal em mobile
+   ======================================== */
+
+@media (max-width: 768px) {
+    /* Garante que nada cause scroll horizontal */
+    body {
+        overflow-x: hidden;
+    }
+    
+    .content {
+        overflow-x: hidden;
+        max-width: 100vw;
+    }
+    
+    .listagem-itens {
+        overflow-x: hidden;
+        max-width: 100%;
+    }
+    
+    .item-card {
+        overflow: hidden;
+        max-width: 100%;
+        box-sizing: border-box;
+    }
+    
+    .item-nome {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-break: break-word;
+    }
+    
+    /* Garante que checkboxes e botões não quebrem layout */
+    .item-checkbox {
+        flex-shrink: 0;
+    }
+    
+    .btn-menu-item {
+        flex-shrink: 0;
+    }
+}
+
+/* Layout modo lista otimizado para mobile */
+@media (max-width: 768px) {
+    .listagem-itens.view-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .listagem-itens.view-list .item-link {
+        display: flex;
+        align-items: center;
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .listagem-itens.view-list .item-icone {
+        flex-shrink: 0;
+    }
+    
+    .listagem-itens.view-list .item-detalhes {
+        flex: 1;
+        min-width: 0;
+        overflow: hidden;
+    }
+    
+    .listagem-itens.view-list .item-nome {
+        font-size: 0.85rem;
+    }
+    
+    .listagem-itens.view-list .item-info {
+        display: flex;
+        gap: 8px;
+        font-size: 0.7rem;
+    }
 }

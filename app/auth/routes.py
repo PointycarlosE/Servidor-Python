@@ -2,9 +2,10 @@
 import os
 import re
 import secrets
+from dotenv import set_key
 from flask import (
     render_template, redirect, url_for, request,
-    flash, Blueprint, session
+    flash, Blueprint, session, current_app
 )
 from flask_login import login_user, logout_user, login_required, current_user
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -14,8 +15,9 @@ from urllib.parse import urlparse
 from app.auth.models import User
 from app.config import (
     ADMIN_USERNAME, IS_FIRST_RUN, CONFIGURADO,
-    ROOT_DIR, PASTA_BASE, IS_PRODUCTION
+    ROOT_DIR, PASTA_BASE, IS_PRODUCTION, RATELIMIT_LOGIN
 )
+from app.extensions import limiter
 from app.utils.audit import (
     log_login_ok, log_login_falhou, log_login_bloqueado,
     log_logout, log_setup_concluido
@@ -51,27 +53,8 @@ def is_safe_redirect(url: str) -> bool:
 def atualizar_env(chave: str, valor: str):
     """Atualiza ou adiciona uma chave no arquivo .env."""
     env_path = os.path.join(ROOT_DIR, 'instance', '.env')
-
-    if os.path.exists(env_path):
-        with open(env_path, 'r', encoding='utf-8') as f:
-            linhas = f.readlines()
-    else:
-        linhas = []
-
-    nova_linha = f'{chave}={valor}\n'
-    encontrou = False
-
-    for i, linha in enumerate(linhas):
-        if linha.startswith(f'{chave}='):
-            linhas[i] = nova_linha
-            encontrou = True
-            break
-
-    if not encontrou:
-        linhas.append(nova_linha)
-
-    with open(env_path, 'w', encoding='utf-8') as f:
-        f.writelines(linhas)
+    os.makedirs(os.path.dirname(env_path), exist_ok=True)
+    set_key(env_path, chave, valor)
 
     # Atualiza o ambiente em memória para a sessão atual
     os.environ[chave] = valor
@@ -79,6 +62,7 @@ def atualizar_env(chave: str, valor: str):
 
 # ===== LOGIN =====
 @auth_bp.route('/login', methods=['GET', 'POST'])
+@limiter.limit(RATELIMIT_LOGIN)
 def login():
     if current_user.is_authenticated:
         return redirect(url_for('file.explorar'))
@@ -175,6 +159,19 @@ def perfil():
             flash('✅ Senha alterada com sucesso!', 'success')
             return redirect(url_for('auth.perfil'))
 
+        # ===== ALTERAR TEMA =====
+        elif acao == 'tema':
+            novo_tema = request.form.get('tema', 'light')
+
+            # Valida o tema
+            if novo_tema not in ['light', 'dark']:
+                flash('Tema inválido.', 'error')
+                return redirect(url_for('auth.perfil'))
+
+            atualizar_env('ADMIN_TEMA', novo_tema)
+            flash('✅ Tema atualizado com sucesso!', 'success')
+            return redirect(url_for('auth.perfil'))
+
     return render_template('perfil.html')
 
 
@@ -233,35 +230,39 @@ def setup():
             env_path = os.path.join(ROOT_DIR, 'instance', '.env')
             firstrun_path = os.path.join(ROOT_DIR, 'instance', '.firstrun')
 
-            env_content = (
-                "# Configuração do Cloud Storage App\n"
-                "# NÃO COMPARTILHE ESTE ARQUIVO!\n"
-                "\n"
-                "# Ambiente: development ou production\n"
-                "FLASK_ENV=development\n"
-                "\n"
-                "# Chave secreta para sessões (gerada automaticamente)\n"
-                f"SECRET_KEY={secret_key}\n"
-                "\n"
-                "# Credenciais do administrador\n"
-                f"ADMIN_USERNAME={username}\n"
-                f"ADMIN_NOME={nome}\n"
-                f"ADMIN_PASSWORD_HASH={password_hash}\n"
-                "\n"
-                "# Pasta base do repositório\n"
-                f"PASTA_BASE={repo_path}\n"
-                "\n"
-                "# Limites (opcional — valores padrão comentados)\n"
-                "# MAX_UPLOAD_MB=500\n"
-                "# MAX_ZIP_FILES=100\n"
-                "# MAX_ZIP_SIZE_MB=1024\n"
-                "# PORT=5000\n"
-            )
-
             os.makedirs(os.path.dirname(env_path), exist_ok=True)
 
             with open(env_path, 'w', encoding='utf-8') as f:
-                f.write(env_content)
+                f.write(
+                    "# Configuração do Cloud Storage App\n"
+                    "# NÃO COMPARTILHE ESTE ARQUIVO!\n"
+                    "\n"
+                    "# Ambiente: development ou production\n"
+                    "\n"
+                    "# Chave secreta para sessões (gerada automaticamente)\n"
+                    "\n"
+                    "# Credenciais do administrador\n"
+                    "\n"
+                    "# Pasta base do repositório\n"
+                    "\n"
+                    "# Limites (opcional — valores padrão comentados)\n"
+                    "# MAX_UPLOAD_MB=500\n"
+                    "# MAX_ZIP_FILES=100\n"
+                    "# MAX_ZIP_SIZE_MB=1024\n"
+                    "# RATELIMIT_DEFAULT=60 per minute\n"
+                    "# RATELIMIT_LOGIN=10 per minute\n"
+                    "# RATELIMIT_UPLOAD=20 per minute\n"
+                    "# RATELIMIT_DELETE=30 per minute\n"
+                    "# RATELIMIT_ZIP=10 per minute\n"
+                    "# PORT=5000\n"
+                )
+
+            set_key(env_path, 'FLASK_ENV', 'development')
+            set_key(env_path, 'SECRET_KEY', secret_key)
+            set_key(env_path, 'ADMIN_USERNAME', username)
+            set_key(env_path, 'ADMIN_NOME', nome)
+            set_key(env_path, 'ADMIN_PASSWORD_HASH', password_hash)
+            set_key(env_path, 'PASTA_BASE', repo_path)
 
             with open(firstrun_path, 'w', encoding='utf-8') as f:
                 f.write("configured")
@@ -276,6 +277,7 @@ def setup():
         except PermissionError:
             flash('Sem permissão para criar a pasta ou o arquivo de configuração', 'error')
         except Exception:
+            current_app.logger.exception("Erro ao salvar configuração inicial")
             flash('Erro ao salvar configuração. Verifique o caminho da pasta.', 'error')
 
     return render_template('setup.html')
