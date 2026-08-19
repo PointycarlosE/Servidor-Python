@@ -105,6 +105,13 @@
                         <i data-lucide="file" style="width:32px;height:32px;color:var(--primary);"></i>
                     {% endif %}
                 </div>
+
+                {% if file_type == 'image' %}
+                <div style="margin-bottom: 16px; border-radius: 12px; overflow: hidden; max-height: 300px; display: flex; align-items: center; justify-content: center; background: var(--bg);">
+                    <img src="/s/{{ token }}/preview" alt="{{ filename }}" style="max-width: 100%; max-height: 300px; object-fit: contain;">
+                </div>
+                {% endif %}
+
                 <h2 class="share-title">{{ filename }}</h2>
                 <p class="share-meta">{{ size }}</p>
             </div>
@@ -219,41 +226,58 @@
             lucide.createIcons();
 
             try {
-                const body = hasPassword ? JSON.stringify({ password: document.getElementById('password')?.value || '' }) : '{}';
+                // Se tem senha, precisa enviar via POST
+                if (hasPassword) {
+                    const password = document.getElementById('password')?.value || '';
+                    const response = await fetch(`/s/${token}/download`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ password })
+                    });
 
-                const response = await fetch(`/s/${token}/download`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: body
-                });
+                    if (response.ok) {
+                        const blob = await response.blob();
+                        const url = window.URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = '{{ filename }}';
+                        document.body.appendChild(a);
+                        a.click();
+                        window.URL.revokeObjectURL(url);
+                        document.body.removeChild(a);
 
-                if (response.ok) {
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = '{{ filename }}';
-                    document.body.appendChild(a);
-                    a.click();
-                    window.URL.revokeObjectURL(url);
-                    document.body.removeChild(a);
+                        btn.innerHTML = '<i data-lucide="check" style="width:20px;height:20px;"></i> Download Concluído!';
+                        lucide.createIcons();
 
-                    btn.innerHTML = '<i data-lucide="check" style="width:20px;height:20px;"></i> Download Concluído!';
-                    lucide.createIcons();
+                        setTimeout(() => {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i data-lucide="download" style="width:20px;height:20px;"></i> Baixar Novamente';
+                            lucide.createIcons();
+                        }, 3000);
+                    } else {
+                        const data = await response.json();
+                        alert(data.error || 'Erro ao baixar arquivo');
+                        btn.disabled = false;
+                        btn.innerHTML = '<i data-lucide="download" style="width:20px;height:20px;"></i> Baixar Arquivo';
+                        lucide.createIcons();
+                    }
+                } else {
+                    // Sem senha: download direto via GET
+                    window.location.href = `/s/${token}/download`;
 
                     setTimeout(() => {
-                        btn.disabled = false;
-                        btn.innerHTML = '<i data-lucide="download" style="width:20px;height:20px;"></i> Baixar Novamente';
+                        btn.innerHTML = '<i data-lucide="check" style="width:20px;height:20px;"></i> Download Iniciado!';
                         lucide.createIcons();
-                    }, 3000);
-                } else {
-                    const data = await response.json();
-                    alert(data.error || 'Erro ao baixar arquivo');
-                    btn.disabled = false;
-                    btn.innerHTML = '<i data-lucide="download" style="width:20px;height:20px;"></i> Baixar Arquivo';
-                    lucide.createIcons();
+
+                        setTimeout(() => {
+                            btn.disabled = false;
+                            btn.innerHTML = '<i data-lucide="download" style="width:20px;height:20px;"></i> Baixar Novamente';
+                            lucide.createIcons();
+                        }, 2000);
+                    }, 500);
                 }
             } catch (error) {
+                console.error('Erro:', error);
                 alert('Erro ao baixar arquivo');
                 btn.disabled = false;
                 btn.innerHTML = '<i data-lucide="download" style="width:20px;height:20px;"></i> Baixar Arquivo';

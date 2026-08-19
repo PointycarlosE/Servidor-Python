@@ -234,7 +234,30 @@ def public_share(token):
     )
 
 
-@share_bp.route('/s/<token>/download', methods=['POST'])
+@share_bp.route('/s/<token>/preview')
+@limiter.limit("30 per minute")
+def preview_shared(token):
+    """Preview de imagem compartilhada (apenas para imagens)"""
+    link = share_models.buscar_por_token(token)
+
+    if not link or not link.esta_valido():
+        abort(404)
+
+    # Verificar se arquivo existe
+    full_path = caminho_seguro(link.file_path)
+    if not full_path or not os.path.isfile(full_path):
+        abort(404)
+
+    # Verificar se é imagem
+    ext = os.path.splitext(link.file_path)[1].lower()
+    if ext not in ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.bmp']:
+        abort(404)
+
+    # Enviar imagem (sem registrar como download)
+    return send_file(full_path, mimetype=f'image/{ext[1:]}')
+
+
+@share_bp.route('/s/<token>/download', methods=['GET', 'POST'])
 @limiter.limit("10 per minute")
 def download_shared(token):
     """Download de arquivo compartilhado"""
@@ -245,6 +268,9 @@ def download_shared(token):
 
     # Verificar senha se necessário
     if link.tem_senha:
+        if request.method == 'GET':
+            return jsonify({'error': 'Senha necessária'}), 401
+
         data = request.get_json()
         password = data.get('password', '')
 
@@ -252,8 +278,8 @@ def download_shared(token):
             return jsonify({'error': 'Senha incorreta'}), 401
 
     # Verificar se arquivo existe
-    full_path = os.path.join(PASTA_BASE, link.file_path)
-    if not os.path.isfile(full_path):
+    full_path = caminho_seguro(link.file_path)
+    if not full_path or not os.path.isfile(full_path):
         return jsonify({'error': 'Arquivo não encontrado'}), 404
 
     # Registrar acesso
