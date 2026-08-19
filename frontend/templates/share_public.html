@@ -1,0 +1,276 @@
+<!--share_public.html - Página pública de download-->
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ filename }} — Compartilhado</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .share-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            padding: 24px;
+        }
+        .share-container {
+            max-width: 500px;
+            width: 100%;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .share-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        .share-icon {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--primary-light);
+            border-radius: 50%;
+        }
+        .share-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+        .share-meta {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .share-info {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 24px;
+        }
+        .share-info-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 0;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+        .share-footer {
+            text-align: center;
+            margin-top: 32px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+    </style>
+</head>
+<body>
+    <div class="share-page">
+        <div class="share-container">
+            <div class="share-header">
+                <div class="share-icon">
+                    <i data-lucide="cloud" style="width:40px;height:40px;color:var(--primary);"></i>
+                </div>
+                <h1 style="font-size: 1.25rem; font-weight: 600; color: var(--text); margin-bottom: 4px;">
+                    Meu Drive
+                </h1>
+                <p style="color: var(--text-secondary); font-size: 0.9rem;">
+                    {{ shared_by }} compartilhou um arquivo
+                </p>
+            </div>
+
+            <div class="share-info">
+                <div class="share-icon" style="width: 64px; height: 64px; margin: 0 auto 12px;">
+                    {% if file_type == 'image' %}
+                        <i data-lucide="image" style="width:32px;height:32px;color:var(--primary);"></i>
+                    {% elif file_type == 'video' %}
+                        <i data-lucide="video" style="width:32px;height:32px;color:var(--primary);"></i>
+                    {% elif file_type == 'audio' %}
+                        <i data-lucide="music" style="width:32px;height:32px;color:var(--primary);"></i>
+                    {% elif file_type == 'pdf' %}
+                        <i data-lucide="file-text" style="width:32px;height:32px;color:var(--primary);"></i>
+                    {% else %}
+                        <i data-lucide="file" style="width:32px;height:32px;color:var(--primary);"></i>
+                    {% endif %}
+                </div>
+                <h2 class="share-title">{{ filename }}</h2>
+                <p class="share-meta">{{ size }}</p>
+            </div>
+
+            {% if has_password %}
+            <div id="password-form">
+                <div class="form-group">
+                    <label class="form-label" for="password">
+                        <i data-lucide="lock" style="width:16px;height:16px;"></i>
+                        Este arquivo está protegido por senha
+                    </label>
+                    <input type="password" id="password" class="form-input"
+                           placeholder="Digite a senha" autocomplete="off">
+                    <div class="form-error" id="password-error" style="display: none;"></div>
+                </div>
+                <button onclick="verificarSenha()" class="btn-primary" style="width: 100%; justify-content: center;" id="verify-btn">
+                    <i data-lucide="unlock" style="width:18px;height:18px;"></i>
+                    Verificar Senha
+                </button>
+            </div>
+
+            <div id="download-section" style="display: none;">
+                <button onclick="baixarArquivo()" class="btn-primary" style="width: 100%; justify-content: center; font-size: 1.05rem; padding: 14px;" id="download-btn">
+                    <i data-lucide="download" style="width:20px;height:20px;"></i>
+                    Baixar Arquivo
+                </button>
+            </div>
+            {% else %}
+            <div id="download-section">
+                <button onclick="baixarArquivo()" class="btn-primary" style="width: 100%; justify-content: center; font-size: 1.05rem; padding: 14px;" id="download-btn">
+                    <i data-lucide="download" style="width:20px;height:20px;"></i>
+                    Baixar Arquivo
+                </button>
+            </div>
+            {% endif %}
+
+            {% if expires_text %}
+            <p style="text-align: center; margin-top: 16px; font-size: 0.85rem; color: var(--text-secondary);">
+                <i data-lucide="clock" style="width:14px;height:14px;"></i>
+                Este link expira {{ expires_text }}
+            </p>
+            {% endif %}
+
+            <div class="share-footer">
+                <p>
+                    <i data-lucide="shield-check" style="width:16px;height:16px;"></i>
+                    Download seguro e protegido
+                </p>
+                <p style="margin-top: 8px; opacity: 0.7;">
+                    Powered by <strong>Meu Drive</strong>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const token = '{{ token }}';
+        const hasPassword = {{ 'true' if has_password else 'false' }};
+        let senhaVerificada = !hasPassword;
+
+        async function verificarSenha() {
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('password-error');
+            const btn = document.getElementById('verify-btn');
+
+            if (!password) {
+                errorDiv.textContent = 'Digite a senha';
+                errorDiv.style.display = 'block';
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" style="width:18px;height:18px;animation:spin 1s linear infinite;"></i> Verificando...';
+            lucide.createIcons();
+
+            try {
+                const response = await fetch(`/s/${token}/verify-password`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ password })
+                });
+
+                if (response.ok) {
+                    senhaVerificada = true;
+                    document.getElementById('password-form').style.display = 'none';
+                    document.getElementById('download-section').style.display = 'block';
+                    errorDiv.style.display = 'none';
+                } else {
+                    errorDiv.textContent = 'Senha incorreta';
+                    errorDiv.style.display = 'block';
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="unlock" style="width:18px;height:18px;"></i> Verificar Senha';
+                    lucide.createIcons();
+                }
+            } catch (error) {
+                errorDiv.textContent = 'Erro ao verificar senha';
+                errorDiv.style.display = 'block';
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="unlock" style="width:18px;height:18px;"></i> Verificar Senha';
+                lucide.createIcons();
+            }
+        }
+
+        async function baixarArquivo() {
+            if (!senhaVerificada) return;
+
+            const btn = document.getElementById('download-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<i data-lucide="loader-2" style="width:20px;height:20px;animation:spin 1s linear infinite;"></i> Baixando...';
+            lucide.createIcons();
+
+            try {
+                const body = hasPassword ? JSON.stringify({ password: document.getElementById('password')?.value || '' }) : '{}';
+
+                const response = await fetch(`/s/${token}/download`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: body
+                });
+
+                if (response.ok) {
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = '{{ filename }}';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                    btn.innerHTML = '<i data-lucide="check" style="width:20px;height:20px;"></i> Download Concluído!';
+                    lucide.createIcons();
+
+                    setTimeout(() => {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i data-lucide="download" style="width:20px;height:20px;"></i> Baixar Novamente';
+                        lucide.createIcons();
+                    }, 3000);
+                } else {
+                    const data = await response.json();
+                    alert(data.error || 'Erro ao baixar arquivo');
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="download" style="width:20px;height:20px;"></i> Baixar Arquivo';
+                    lucide.createIcons();
+                }
+            } catch (error) {
+                alert('Erro ao baixar arquivo');
+                btn.disabled = false;
+                btn.innerHTML = '<i data-lucide="download" style="width:20px;height:20px;"></i> Baixar Arquivo';
+                lucide.createIcons();
+            }
+        }
+
+        // Enter para verificar senha ou baixar
+        document.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                if (!senhaVerificada && hasPassword) {
+                    verificarSenha();
+                } else {
+                    baixarArquivo();
+                }
+            }
+        });
+    </script>
+</body>
+</html>

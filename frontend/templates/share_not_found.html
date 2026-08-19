@@ -1,0 +1,56 @@
+<!--share_not_found.html - Arquivo não encontrado-->
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Arquivo Não Encontrado — Meu Drive</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .error-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            padding: 24px;
+        }
+        .error-container {
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+        .error-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--danger-light);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-page">
+        <div class="error-container">
+            <div class="error-icon">
+                <i data-lucide="file-x" style="width:64px;height:64px;color:var(--danger);"></i>
+            </div>
+            <h1 style="font-size: 2rem; font-weight: 600; color: var(--text); margin-bottom: 12px;">
+                Arquivo Não Encontrado
+            </h1>
+            <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 32px;">
+                O arquivo compartilhado foi removido ou movido pelo proprietário.
+            </p>
+            <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                Entre em contato com quem compartilhou o arquivo para mais informações.
+            </p>
+        </div>
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

@@ -74,6 +74,10 @@
                             class="dropdown-item" onclick="fecharDropdowns()">
                             <i data-lucide="download"></i> Download
                         </a>
+                        <button type="button" class="dropdown-item"
+                            onclick="fecharDropdowns(); abrirModalCompartilhar('{{ caminho + '/' + imagem.nome if caminho else imagem.nome }}', '{{ imagem.nome }}')">
+                            <i data-lucide="share-2"></i> Compartilhar
+                        </button>
                         <div class="dropdown-divider"></div>
                         <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=caminho + '/' + imagem.nome if caminho else imagem.nome) }}"
                             method="post" class="form-excluir"
@@ -120,6 +124,10 @@
                             class="dropdown-item" onclick="fecharDropdowns()">
                             <i data-lucide="download"></i> Download
                         </a>
+                        <button type="button" class="dropdown-item"
+                            onclick="fecharDropdowns(); abrirModalCompartilhar('{{ caminho + '/' + audio.nome if caminho else audio.nome }}', '{{ audio.nome }}')">
+                            <i data-lucide="share-2"></i> Compartilhar
+                        </button>
                         <div class="dropdown-divider"></div>
                         <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=caminho + '/' + audio.nome if caminho else audio.nome) }}"
                             method="post" class="form-excluir"
@@ -170,6 +178,10 @@
                             class="dropdown-item" onclick="fecharDropdowns()">
                             <i data-lucide="download"></i> Download
                         </a>
+                        <button type="button" class="dropdown-item"
+                            onclick="fecharDropdowns(); abrirModalCompartilhar('{{ caminho + '/' + pdf.nome if caminho else pdf.nome }}', '{{ pdf.nome }}')">
+                            <i data-lucide="share-2"></i> Compartilhar
+                        </button>
                         <div class="dropdown-divider"></div>
                         <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=caminho + '/' + pdf.nome if caminho else pdf.nome) }}"
                             method="post" class="form-excluir"
@@ -218,6 +230,10 @@
                             class="dropdown-item" onclick="fecharDropdowns()">
                             <i data-lucide="download"></i> Download
                         </a>
+                        <button type="button" class="dropdown-item"
+                            onclick="fecharDropdowns(); abrirModalCompartilhar('{{ caminho + '/' + arquivo.nome if caminho else arquivo.nome }}', '{{ arquivo.nome }}')">
+                            <i data-lucide="share-2"></i> Compartilhar
+                        </button>
                         <div class="dropdown-divider"></div>
                         <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=caminho + '/' + arquivo.nome if caminho else arquivo.nome) }}"
                             method="post" class="form-excluir"

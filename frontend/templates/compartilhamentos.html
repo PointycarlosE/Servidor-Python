@@ -1,0 +1,294 @@
+<!--compartilhamentos.html-->
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="{{ current_user.tema if current_user.is_authenticated else 'light' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compartilhamentos — Meu Drive</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="app">
+
+        <!-- SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo">
+                <span class="logo-icon"><i data-lucide="cloud" style="width:28px;height:28px;color:var(--primary);"></i></span>
+                <span class="logo-text">Meu Drive</span>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('file.explorar') }}" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="folder"></i></span>
+                    <span class="nav-text">Meus arquivos</span>
+                </a>
+                <a href="{{ url_for('main.objetivos') }}" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="list-checks"></i></span>
+                    <span class="nav-text">Objetivos</span>
+                </a>
+                <a href="{{ url_for('share.compartilhamentos_page') }}" class="nav-item active">
+                    <span class="nav-icon"><i data-lucide="share-2"></i></span>
+                    <span class="nav-text">Compartilhamentos</span>
+                </a>
+                <a href="#" class="nav-item" style="opacity: 0.6; cursor: not-allowed;">
+                    <span class="nav-icon"><i data-lucide="star"></i></span>
+                    <span class="nav-text">Favoritos</span>
+                    <span class="nav-badge">Em breve</span>
+                </a>
+                <a href="#" class="nav-item" style="opacity: 0.6; cursor: not-allowed;">
+                    <span class="nav-icon"><i data-lucide="trash-2"></i></span>
+                    <span class="nav-text">Lixeira</span>
+                    <span class="nav-badge">Em breve</span>
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <a href="{{ url_for('auth.perfil') }}" class="user-info user-info-link">
+                    <span class="user-icon"><i data-lucide="circle-user-round"></i></span>
+                    <span class="user-name">{{ current_user.nome if current_user.is_authenticated else 'Usuário' }}</span>
+                </a>
+                <a href="{{ url_for('auth.logout') }}" class="logout-link">
+                    <span class="logout-icon"><i data-lucide="log-out"></i></span>
+                    <span>Sair</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- MAIN -->
+        <main class="main">
+            <header class="topbar">
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">
+                    <i data-lucide="menu"></i>
+                </button>
+                <h1 style="font-size: 1.5rem; font-weight: 600; color: var(--text);">
+                    <i data-lucide="share-2" style="width:24px;height:24px;"></i> Compartilhamentos
+                </h1>
+            </header>
+
+            <div class="content" style="max-width: 1200px;">
+                <!-- Header com contador -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                    <div>
+                        <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                            <span id="links-count">0</span> links compartilhados
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Loading -->
+                <div id="loading" style="text-align: center; padding: 48px; color: var(--text-secondary);">
+                    <i data-lucide="loader-2" style="width: 32px; height: 32px; animation: spin 1s linear infinite;"></i>
+                    <p style="margin-top: 12px;">Carregando compartilhamentos...</p>
+                </div>
+
+                <!-- Lista de links -->
+                <div id="links-container" style="display: none;">
+                    <!-- Será preenchido via JavaScript -->
+                </div>
+
+                <!-- Empty state -->
+                <div id="empty-state" style="display: none; text-align: center; padding: 64px 24px; color: var(--text-secondary);">
+                    <i data-lucide="share-2" style="width: 64px; height: 64px; margin: 0 auto 16px; opacity: 0.3;"></i>
+                    <h3 style="font-size: 1.25rem; font-weight: 600; color: var(--text); margin-bottom: 8px;">
+                        Nenhum compartilhamento ainda
+                    </h3>
+                    <p style="margin-bottom: 24px;">
+                        Compartilhe arquivos para que outras pessoas possam baixá-los sem precisar fazer login.
+                    </p>
+                    <a href="{{ url_for('file.explorar') }}" class="btn-primary">
+                        <i data-lucide="folder" style="width:18px;height:18px;"></i>
+                        Ir para Meus Arquivos
+                    </a>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script>
+        lucide.createIcons();
+
+        // Mobile menu
+        const mobileBtn = document.getElementById('mobile-menu-btn');
+        const sidebar = document.getElementById('sidebar');
+        if (mobileBtn && sidebar) {
+            mobileBtn.addEventListener('click', () => sidebar.classList.toggle('active'));
+            document.addEventListener('click', (e) => {
+                if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !mobileBtn.contains(e.target))
+                    sidebar.classList.remove('active');
+            });
+        }
+
+        // Carregar links
+        async function carregarLinks() {
+            try {
+                const response = await fetch('/api/share/list');
+                const data = await response.json();
+
+                document.getElementById('loading').style.display = 'none';
+
+                if (!data.success || data.links.length === 0) {
+                    document.getElementById('empty-state').style.display = 'block';
+                    return;
+                }
+
+                const container = document.getElementById('links-container');
+                container.style.display = 'block';
+                container.innerHTML = '';
+
+                document.getElementById('links-count').textContent = data.links.length;
+
+                data.links.forEach(link => {
+                    const card = criarCardLink(link);
+                    container.appendChild(card);
+                });
+
+                lucide.createIcons();
+
+            } catch (error) {
+                console.error('Erro ao carregar links:', error);
+                document.getElementById('loading').innerHTML = `
+                    <i data-lucide="alert-circle" style="width: 32px; height: 32px; color: var(--danger);"></i>
+                    <p style="margin-top: 12px; color: var(--danger);">Erro ao carregar compartilhamentos</p>
+                `;
+                lucide.createIcons();
+            }
+        }
+
+        function criarCardLink(link) {
+            const card = document.createElement('div');
+            card.className = 'share-card';
+            card.style.cssText = `
+                background: var(--card);
+                border: 1px solid var(--border);
+                border-radius: 12px;
+                padding: 20px;
+                margin-bottom: 16px;
+                transition: all 0.2s;
+            `;
+
+            // Status
+            let statusBadge = '';
+            let statusColor = '';
+            if (!link.is_active) {
+                statusBadge = '<span style="background: var(--danger); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Revogado</span>';
+                statusColor = 'opacity: 0.6;';
+            } else if (link.is_expired) {
+                statusBadge = '<span style="background: var(--warning); color: var(--text); padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Expirado</span>';
+                statusColor = 'opacity: 0.6;';
+            } else {
+                statusBadge = '<span style="background: var(--success); color: white; padding: 4px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: 600;">Ativo</span>';
+            }
+
+            // Último acesso
+            let ultimoAcesso = 'Nunca acessado';
+            if (link.last_accessed) {
+                const diffMs = Date.now() - (link.last_accessed * 1000);
+                const diffHrs = Math.floor(diffMs / 3600000);
+                if (diffHrs < 1) {
+                    ultimoAcesso = 'Há menos de 1 hora';
+                } else if (diffHrs < 24) {
+                    ultimoAcesso = `Há ${diffHrs}h`;
+                } else {
+                    const diffDays = Math.floor(diffHrs / 24);
+                    ultimoAcesso = `Há ${diffDays}d`;
+                }
+            }
+
+            const url = window.location.origin + link.url;
+
+            card.innerHTML = `
+                <div style="${statusColor}">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 16px;">
+                        <div style="flex: 1; min-width: 0;">
+                            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                                <i data-lucide="file" style="width: 20px; height: 20px; color: var(--primary); flex-shrink: 0;"></i>
+                                <h3 style="font-size: 1.1rem; font-weight: 600; color: var(--text); margin: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${link.filename}">
+                                    ${link.filename}
+                                </h3>
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; font-size: 0.85rem; color: var(--text-secondary);">
+                                ${link.tempo_restante ? `<span><i data-lucide="clock" style="width:14px;height:14px;"></i> ${link.tempo_restante === 'Expirado' ? 'Expirado' : 'Expira em ' + link.tempo_restante}</span>` : '<span><i data-lucide="infinity" style="width:14px;height:14px;"></i> Sem expiração</span>'}
+                                <span>${link.has_password ? '🔒 Com senha' : '🔓 Sem senha'}</span>
+                            </div>
+                        </div>
+                        <div>
+                            ${statusBadge}
+                        </div>
+                    </div>
+
+                    <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px; margin-bottom: 12px; font-family: 'Courier New', monospace; font-size: 0.9rem; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="link" style="width:16px;height:16px; color: var(--text-secondary); flex-shrink: 0;"></i>
+                        <input type="text" value="${url}" readonly style="flex: 1; background: none; border: none; color: var(--text); outline: none; min-width: 0;">
+                        <button onclick="copiarLink('${url}', this)" class="btn-icon" title="Copiar link" style="flex-shrink: 0;">
+                            <i data-lucide="copy" style="width:18px;height:18px;"></i>
+                        </button>
+                    </div>
+
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 12px; border-top: 1px solid var(--border);">
+                        <div style="display: flex; align-items: center; gap: 16px; font-size: 0.85rem; color: var(--text-secondary);">
+                            <span><i data-lucide="download" style="width:14px;height:14px;"></i> ${link.downloads_count} downloads</span>
+                            <span><i data-lucide="activity" style="width:14px;height:14px;"></i> ${ultimoAcesso}</span>
+                        </div>
+                        ${link.is_active && !link.is_expired ? `
+                        <button onclick="revogarLink('${link.id}')" class="btn-danger" style="padding: 6px 14px;">
+                            <i data-lucide="shield-off" style="width:16px;height:16px;"></i> Revogar
+                        </button>
+                        ` : ''}
+                    </div>
+                </div>
+            `;
+
+            return card;
+        }
+
+        async function copiarLink(url, btn) {
+            try {
+                await navigator.clipboard.writeText(url);
+                const icon = btn.querySelector('i');
+                icon.setAttribute('data-lucide', 'check');
+                lucide.createIcons();
+                mostrarToast('Link copiado!', 'success');
+                setTimeout(() => {
+                    icon.setAttribute('data-lucide', 'copy');
+                    lucide.createIcons();
+                }, 2000);
+            } catch (error) {
+                mostrarToast('Erro ao copiar link', 'error');
+            }
+        }
+
+        async function revogarLink(linkId) {
+            if (!confirm('Tem certeza que deseja revogar este link? Ele não poderá mais ser acessado.')) {
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/share/revoke/${linkId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': '{{ csrf_token() }}'
+                    }
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    mostrarToast('Link revogado com sucesso', 'success');
+                    carregarLinks(); // Recarregar lista
+                } else {
+                    mostrarToast(data.error || 'Erro ao revogar link', 'error');
+                }
+            } catch (error) {
+                console.error('Erro ao revogar link:', error);
+                mostrarToast('Erro ao revogar link', 'error');
+            }
+        }
+
+        // Carregar na inicialização
+        carregarLinks();
+    </script>
+</body>
+</html>

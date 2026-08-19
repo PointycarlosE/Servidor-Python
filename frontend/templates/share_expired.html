@@ -1,0 +1,56 @@
+<!--share_expired.html - Link expirado-->
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Expirado — Meu Drive</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .error-page {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            padding: 24px;
+        }
+        .error-container {
+            max-width: 450px;
+            width: 100%;
+            text-align: center;
+        }
+        .error-icon {
+            width: 120px;
+            height: 120px;
+            margin: 0 auto 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--warning-light);
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body>
+    <div class="error-page">
+        <div class="error-container">
+            <div class="error-icon">
+                <i data-lucide="clock-off" style="width:64px;height:64px;color:var(--warning);"></i>
+            </div>
+            <h1 style="font-size: 2rem; font-weight: 600; color: var(--text); margin-bottom: 12px;">
+                Link Expirado
+            </h1>
+            <p style="font-size: 1.1rem; color: var(--text-secondary); margin-bottom: 32px;">
+                Este link de compartilhamento expirou ou foi revogado pelo proprietário.
+            </p>
+            <p style="font-size: 0.9rem; color: var(--text-secondary);">
+                Entre em contato com quem compartilhou o arquivo para solicitar um novo link.
+            </p>
+        </div>
+    </div>
+    <script>lucide.createIcons();</script>
+</body>
+</html>

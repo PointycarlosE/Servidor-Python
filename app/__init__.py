@@ -16,6 +16,7 @@ from app.auth.models import User
 from app.auth.routes import auth_bp
 from app.routes.main import main_bp
 from app.routes.files import file_bp
+from app.share.routes import share_bp
 
 csrf = CSRFProtect()
 login_manager = LoginManager()
@@ -52,7 +53,7 @@ def create_app():
     limiter.init_app(app)
     mail.init_app(app)
     login_manager.init_app(app)
-    
+
     login_manager.login_view = 'auth.login'
     login_manager.login_message = 'Por favor, faça login para acessar esta página'
     login_manager.login_message_category = 'info'
@@ -64,6 +65,7 @@ def create_app():
     app.register_blueprint(main_bp)
     app.register_blueprint(file_bp)
     app.register_blueprint(auth_bp)
+    app.register_blueprint(share_bp)
 
     registrar_handlers_seguranca(app)
     registrar_handlers_erro(app)
