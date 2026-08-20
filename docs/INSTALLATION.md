@@ -286,8 +286,14 @@ O Cloud Storage App funciona perfeitamente em dispositivos Android usando o Term
 2. **Instalar dependências**
 
    ```bash
+   # Instale Python, Git e ferramentas básicas
    pkg install python git curl -y
+   
+   # Instale bibliotecas necessárias para processamento de imagens (Pillow)
+   pkg install libjpeg-turbo libpng zlib python-pillow -y
    ```
+
+   > **💡 Por que instalar python-pillow?** O Pillow (biblioteca de imagens do Python) precisa compilar código C e requer bibliotecas de sistema (libjpeg, libpng). Instalando via `pkg` primeiro, evitamos erros de compilação.
 
 3. **Clonar e configurar**
 
@@ -296,17 +302,29 @@ O Cloud Storage App funciona perfeitamente em dispositivos Android usando o Term
    git clone https://github.com/PointycarlosE/cloud-storage-app.git
    cd cloud-storage-app
 
+   # ✓ Você deve ver: uma pasta "cloud-storage-app" foi criada
+
    # Crie o ambiente virtual
    python -m venv venv
+
+   # ✓ Você deve ver: uma pasta "venv" foi criada
 
    # Ative o ambiente virtual
    source venv/bin/activate
 
+   # ✓ Você deve ver: (venv) aparece antes do cursor
+
    # Instale as dependências
    pip install -r requirements.txt
 
+   # ✓ Você deve ver: várias linhas "Successfully installed..."
+   # Se aparecer erro com Pillow, veja seção "Problemas Comuns" abaixo
+
    # Baixe a biblioteca de ícones
    curl -o frontend/static/js/lucide.min.js https://unpkg.com/lucide@0.383.0/dist/umd/lucide.min.js
+
+   # ✓ Verifique se baixou:
+   ls -lh frontend/static/js/lucide.min.js
    ```
 
 ### Notas Específicas do Termux
@@ -489,6 +507,21 @@ Para testar acesso de outro dispositivo na sua rede local:
 **6. Porta 5000 já está em uso**
 - Outra aplicação está usando a porta 5000
 - Altere a porta em `instance/.env`: `PORT=5001`
+
+**7. Termux: Erro ao instalar Pillow ("failed building wheel for Pillow")**
+- **Causa:** Faltam bibliotecas de sistema para compilar o Pillow
+- **Solução:**
+  ```bash
+  # Instale as dependências necessárias
+  pkg install libjpeg-turbo libpng zlib python-pillow -y
+  
+  # Tente instalar novamente
+  pip install -r requirements.txt
+  ```
+- Se ainda falhar, instale manualmente:
+  ```bash
+  pip install Flask Werkzeug Flask-Login Flask-Mail Flask-Limiter pyotp qrcode gunicorn
+  ```
 
 Para mais ajuda com solução de problemas, veja [TROUBLESHOOTING.md](TROUBLESHOOTING.md)
 
