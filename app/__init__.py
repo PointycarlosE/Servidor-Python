@@ -2,6 +2,7 @@
 from flask import Flask, jsonify, render_template, request
 from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect, CSRFError
+from werkzeug.middleware.proxy_fix import ProxyFix
 import os
 
 from app.config import (
@@ -28,6 +29,17 @@ def create_app():
         static_folder='../frontend/static'
     )
 
+    # Configurar ProxyFix para funcionar com Cloudflare/proxy reverso
+    # Isso faz o Flask confiar nos headers X-Forwarded-* enviados pelo Cloudflare
+    if IS_PRODUCTION:
+        app.wsgi_app = ProxyFix(
+            app.wsgi_app,
+            x_for=1,      # Confia em 1 proxy para X-Forwarded-For (IP do cliente)
+            x_proto=1,    # Confia em 1 proxy para X-Forwarded-Proto (http/https)
+            x_host=1,     # Confia em 1 proxy para X-Forwarded-Host (domínio)
+            x_prefix=1    # Confia em 1 proxy para X-Forwarded-Prefix (path)
+        )
+
     # Configurações vindas do config.py
     app.config.from_mapping(
         SECRET_KEY=SECRET_KEY,
@@ -38,6 +50,7 @@ def create_app():
         PERMANENT_SESSION_LIFETIME=PERMANENT_SESSION_LIFETIME,
         WTF_CSRF_ENABLED=True,
         WTF_CSRF_TIME_LIMIT=3600,
+        WTF_CSRF_CHECK_DEFAULT=False,  # Não verificar CSRF por padrão, apenas onde explicitamente habilitado
         # Configurações de email
         MAIL_SERVER=os.environ.get('MAIL_SERVER', 'smtp.gmail.com'),
         MAIL_PORT=int(os.environ.get('MAIL_PORT', 587)),
@@ -92,7 +105,8 @@ def registrar_handlers_seguranca(app):
         response.headers['X-Content-Type-Options'] = 'nosniff'
         response.headers['X-XSS-Protection'] = '1; mode=block'
 
-        if IS_PRODUCTION:
+        # HSTS só quando o request atual já é HTTPS (Cloudflare já fez a terminação SSL)
+        if IS_PRODUCTION and request.is_secure:
             response.headers['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
 
         response.headers['Referrer-Policy'] = 'strict-origin-when-cross-origin'
@@ -107,9 +121,9 @@ def registrar_handlers_seguranca(app):
             "connect-src 'self'; "
             "frame-ancestors 'none';"
         )
-        if IS_PRODUCTION:
-            csp += " upgrade-insecure-requests;"
-        
+        # Não forçar upgrade de requests - o Cloudflare já cuida disso
+        # Se forçarmos aqui, causamos loop de redirect ou erro 502
+
         response.headers['Content-Security-Policy'] = csp
         response.headers.pop('Server', None)
         response.headers.pop('X-Powered-By', None)

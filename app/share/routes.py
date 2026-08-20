@@ -264,22 +264,43 @@ def download_shared(token):
     link = share_models.buscar_por_token(token)
 
     if not link or not link.esta_valido():
+        # Se for requisição GET (download direto), retorna página de erro
+        if request.method == 'GET':
+            return render_template('share_expired.html'), 410
         return jsonify({'error': 'Link inválido ou expirado'}), 404
 
     # Verificar senha se necessário
     if link.tem_senha:
+        # Links com senha só aceitam POST
         if request.method == 'GET':
-            return jsonify({'error': 'Senha necessária'}), 401
+            if request.headers.get('Accept', '').startswith('application/json'):
+                return jsonify({'error': 'Senha necessária'}), 401
+            # Se veio direto do navegador, redireciona para página do link
+            return redirect(url_for('share.public_share', token=token))
 
         data = request.get_json()
+        if not data:
+            print(f"[SHARE] Download {token}: Nenhum JSON recebido no POST", flush=True)
+            return jsonify({'error': 'Dados não fornecidos'}), 400
+
         password = data.get('password', '')
+        print(f"[SHARE] Download {token}: Verificando senha (tem hash: {bool(link.password_hash)})", flush=True)
 
         if not link.verificar_senha(password):
+            print(f"[SHARE] Download {token}: Senha incorreta", flush=True)
             return jsonify({'error': 'Senha incorreta'}), 401
 
     # Verificar se arquivo existe
     full_path = caminho_seguro(link.file_path)
+    print(f"[SHARE] Download {token}: file_path='{link.file_path}', full_path='{full_path}'", flush=True)
+
+    if full_path:
+        print(f"[SHARE] Download {token}: Arquivo existe? {os.path.isfile(full_path)}", flush=True)
+
     if not full_path or not os.path.isfile(full_path):
+        print(f"[SHARE] Download {token}: ERRO - Arquivo não encontrado", flush=True)
+        if request.method == 'GET':
+            return render_template('share_not_found.html'), 404
         return jsonify({'error': 'Arquivo não encontrado'}), 404
 
     # Registrar acesso
@@ -295,6 +316,7 @@ def download_shared(token):
 
     # Enviar arquivo
     filename = os.path.basename(link.file_path)
+    print(f"[SHARE] Download {token}: Enviando arquivo '{filename}'", flush=True)
     return send_file(
         full_path,
         as_attachment=True,
@@ -314,7 +336,12 @@ def verify_password(token):
     data = request.get_json()
     password = data.get('password', '')
 
+    # Debug
+    logger.info(f"Verificando senha - Token: {token}, Senha recebida: '{password}', Tem hash: {bool(link.password_hash)}")
+
     if link.verificar_senha(password):
+        logger.info("Senha correta!")
         return jsonify({'success': True})
     else:
+        logger.info("Senha incorreta!")
         return jsonify({'error': 'Senha incorreta'}), 401

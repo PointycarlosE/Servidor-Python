@@ -105,6 +105,24 @@
         </main>
     </div>
 
+    <!-- Modal de Confirmação -->
+    <div id="confirmModal" class="modal-overlay" style="display: none;">
+        <div class="modal-container modal-small">
+            <div class="modal-header">
+                <h3 class="modal-title" id="modalTitle">Confirmar</h3>
+                <button class="modal-close" onclick="fecharModalConfirm()"><i data-lucide="x"></i></button>
+            </div>
+            <div class="modal-body">
+                <p id="modalMessage" style="margin-bottom: 10px; font-weight: 500;"></p>
+                <p id="modalDetail" style="font-size: 0.85rem; color: var(--text-secondary);"></p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-cancel" onclick="fecharModalConfirm()">Cancelar</button>
+                <button class="modal-btn modal-btn-confirm" id="modalConfirm">Confirmar</button>
+            </div>
+        </div>
+    </div>
+
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
         lucide.createIcons();
@@ -243,49 +261,127 @@
             return card;
         }
 
-        async function copiarLink(url, btn) {
+        function copiarLink(url, btn) {
             try {
-                await navigator.clipboard.writeText(url);
-                const icon = btn.querySelector('i');
-                icon.setAttribute('data-lucide', 'check');
-                lucide.createIcons();
-                mostrarToast('Link copiado!', 'success');
-                setTimeout(() => {
-                    icon.setAttribute('data-lucide', 'copy');
+                // Criar input temporário invisível
+                const tempInput = document.createElement('input');
+                tempInput.value = url;
+                tempInput.style.position = 'absolute';
+                tempInput.style.left = '-9999px';
+                document.body.appendChild(tempInput);
+
+                // Selecionar e copiar
+                tempInput.focus();
+                tempInput.select();
+                tempInput.setSelectionRange(0, 99999);
+
+                const sucesso = document.execCommand('copy');
+
+                // Remover input temporário
+                document.body.removeChild(tempInput);
+
+                if (sucesso) {
+                    // Feedback visual
+                    const icon = btn.querySelector('i');
+                    icon.setAttribute('data-lucide', 'check');
                     lucide.createIcons();
-                }, 2000);
+
+                    if (typeof mostrarToast === 'function') {
+                        mostrarToast('Link copiado!', 'success');
+                    }
+
+                    setTimeout(() => {
+                        icon.setAttribute('data-lucide', 'copy');
+                        lucide.createIcons();
+                    }, 2000);
+                } else {
+                    // Tentar clipboard API como fallback
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(url).then(() => {
+                            const icon = btn.querySelector('i');
+                            icon.setAttribute('data-lucide', 'check');
+                            lucide.createIcons();
+                            setTimeout(() => {
+                                icon.setAttribute('data-lucide', 'copy');
+                                lucide.createIcons();
+                            }, 2000);
+                        }).catch(() => {
+                            // Falhar silenciosamente
+                            console.log('Não foi possível copiar');
+                        });
+                    }
+                }
             } catch (error) {
-                mostrarToast('Erro ao copiar link', 'error');
+                console.error('Erro ao copiar:', error);
+                // Falhar silenciosamente - sem popups
             }
         }
 
-        async function revogarLink(linkId) {
-            // Usar o modal de confirmação existente ou criar um simples
-            if (!confirm('⚠️ Tem certeza que deseja revogar este link?\n\nEle não poderá mais ser acessado por ninguém.')) {
-                return;
-            }
+        function revogarLink(linkId) {
+            // Abrir modal de confirmação bonito
+            abrirModalConfirm(
+                'Revogar Compartilhamento',
+                'Tem certeza que deseja revogar este link?',
+                'Ele não poderá mais ser acessado por ninguém.',
+                async () => {
+                    try {
+                        const response = await fetch(`/api/share/revoke/${linkId}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': '{{ csrf_token() }}'
+                            }
+                        });
 
-            try {
-                const response = await fetch(`/api/share/revoke/${linkId}`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRFToken': '{{ csrf_token() }}'
+                        const data = await response.json();
+
+                        if (data.success) {
+                            if (typeof mostrarToast === 'function') {
+                                mostrarToast('Link revogado com sucesso', 'success');
+                            }
+                            carregarLinks(); // Recarregar lista
+                        } else {
+                            if (typeof mostrarToast === 'function') {
+                                mostrarToast(data.error || 'Erro ao revogar link', 'error');
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Erro ao revogar link:', error);
+                        if (typeof mostrarToast === 'function') {
+                            mostrarToast('Erro ao revogar link', 'error');
+                        }
                     }
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    mostrarToast('Link revogado com sucesso', 'success');
-                    carregarLinks(); // Recarregar lista
-                } else {
-                    mostrarToast(data.error || 'Erro ao revogar link', 'error');
                 }
-            } catch (error) {
-                console.error('Erro ao revogar link:', error);
-                mostrarToast('Erro ao revogar link', 'error');
-            }
+            );
+        }
+
+        function abrirModalConfirm(titulo, mensagem, detalhe, onConfirm) {
+            document.getElementById('modalTitle').textContent = titulo;
+            document.getElementById('modalMessage').textContent = mensagem;
+            document.getElementById('modalDetail').textContent = detalhe || '';
+
+            const modal = document.getElementById('confirmModal');
+            const btnConfirm = document.getElementById('modalConfirm');
+
+            // Remover listeners antigos
+            const newBtn = btnConfirm.cloneNode(true);
+            btnConfirm.parentNode.replaceChild(newBtn, btnConfirm);
+
+            // Adicionar novo listener
+            newBtn.addEventListener('click', () => {
+                fecharModalConfirm();
+                if (onConfirm) onConfirm();
+            });
+
+            modal.style.display = 'flex';
+            setTimeout(() => modal.classList.add('active'), 10);
+            lucide.createIcons();
+        }
+
+        function fecharModalConfirm() {
+            const modal = document.getElementById('confirmModal');
+            modal.classList.remove('active');
+            setTimeout(() => modal.style.display = 'none', 200);
         }
 
         // Carregar na inicialização

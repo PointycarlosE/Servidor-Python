@@ -38,9 +38,10 @@ if not SECRET_KEY:
         )
 
 # Cookies de sessão
-# Em produção (HTTPS obrigatório): Secure=True impede envio em HTTP
-# Em desenvolvimento (Local): Secure=False permite login via HTTP (Wi-Fi local)
-SESSION_COOKIE_SECURE = IS_PRODUCTION
+# Em produção com Cloudflare: Secure=False porque a conexão Cloudflare->Servidor é HTTP
+# O Cloudflare faz a terminação SSL, então o Flask recebe HTTP mesmo quando o usuário acessa via HTTPS
+# Mas o ProxyFix garante que request.is_secure seja True quando o cliente usou HTTPS
+SESSION_COOKIE_SECURE = False  # Cloudflare já gerencia SSL
 SESSION_COOKIE_HTTPONLY = True          # Bloqueia acesso via JavaScript
 SESSION_COOKIE_SAMESITE = 'Lax'        # Proteção CSRF básica em nível de cookie
 

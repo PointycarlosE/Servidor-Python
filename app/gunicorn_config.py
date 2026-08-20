@@ -8,9 +8,9 @@ import os
 bind = "0.0.0.0:5000"
 
 # ===== WORKERS =====
-# No Termux (celulares antigos), muitos workers podem travar o sistema.
-# Recomendado para Termux: 2 ou 3 workers no máximo.
-workers = 2
+# Temporariamente usando 1 worker para evitar dessincronização de links compartilhados
+# TODO: Migrar para banco de dados SQLite para suportar múltiplos workers
+workers = 1
 
 # Tipo de worker (sync é o mais estável para Android/Termux)
 worker_class = 'sync'
@@ -29,12 +29,25 @@ limit_request_field_size = 8190
 server = "CloudStorageApp/1.0"
 
 # ===== LOGS =====
-# Logs de acesso e erro (podem ser redirecionados para arquivos no Termux)
-accesslog = "-"  # stdout
-errorlog = "-"   # stderr
+# Logs de acesso e erro
+# Em modo daemon, precisamos escrever em arquivos
+import os
+ROOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+accesslog = os.path.join(ROOT_DIR, "instance", "gunicorn_access.log")
+errorlog = os.path.join(ROOT_DIR, "instance", "gunicorn_error.log")
 loglevel = "info"
 
 # ===== PROXY REVERSO =====
 # Necessário se usar Cloudflare Tunnel ou Nginx na frente
+# Aceita headers X-Forwarded-* de qualquer IP (Cloudflare usa IPs variados)
 forwarded_allow_ips = '*'
 proxy_allow_ips = '*'
+
+# ===== KEEP-ALIVE =====
+# Mantém conexões abertas para melhor performance com o Cloudflare
+keepalive = 5
+
+# ===== DAEMON =====
+# Modo daemon: desabilitar captura de stdout/stderr quando necessário
+capture_output = True  # Captura logs mesmo em daemon mode
+daemon = False  # Não daemoniza por padrão - o script start.sh controla isso

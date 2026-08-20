@@ -3,6 +3,8 @@ Modelo de links compartilhados
 """
 import secrets
 import time
+import json
+import os
 from typing import Optional, Dict, Any
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -60,6 +62,8 @@ class SharedLink:
         """Registra um acesso ao link"""
         self.downloads_count += 1
         self.last_accessed = time.time()
+        # Salvar após registrar acesso
+        _salvar_links()
 
     def revogar(self) -> None:
         """Revoga o link (torna inativo)"""
@@ -103,10 +107,72 @@ class SharedLink:
         return link
 
 
-# Armazenamento em memória (simples e funcional)
-# No futuro pode migrar para banco de dados SQLite
+# Armazenamento em memória com persistência em arquivo JSON
+# Os links são salvos em instance/shared_links.json
 _shared_links: Dict[str, SharedLink] = {}
 _token_to_id: Dict[str, str] = {}
+
+# Caminho do arquivo de persistência
+from app.config import ROOT_DIR
+STORAGE_FILE = os.path.join(ROOT_DIR, 'instance', 'shared_links.json')
+
+
+def _salvar_links() -> None:
+    """Salva os links no arquivo JSON"""
+    try:
+        os.makedirs(os.path.dirname(STORAGE_FILE), exist_ok=True)
+        data = {
+            'links': {link_id: link.to_dict() for link_id, link in _shared_links.items()},
+            'token_map': _token_to_id
+        }
+        with open(STORAGE_FILE, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2)
+    except Exception as e:
+        print(f"Erro ao salvar links: {e}")
+
+
+def _carregar_links() -> None:
+    """Carrega os links do arquivo JSON"""
+    global _shared_links, _token_to_id
+
+    if not os.path.exists(STORAGE_FILE):
+        return
+
+    try:
+        with open(STORAGE_FILE, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+
+        _shared_links = {
+            link_id: SharedLink.from_dict(link_data)
+            for link_id, link_data in data.get('links', {}).items()
+        }
+        _token_to_id = data.get('token_map', {})
+
+    except Exception as e:
+        # Se falhar ao carregar, mantém o estado atual em vez de zerar
+        print(f"Erro ao carregar links: {e}", flush=True)
+
+
+def limpar_links_expirados() -> int:
+    """Remove links expirados da memória (limpeza periódica)"""
+    removidos = 0
+    for link_id in list(_shared_links.keys()):
+        link = _shared_links[link_id]
+        if link.esta_expirado() and not link.is_active:
+            del _shared_links[link_id]
+            del _token_to_id[link.token]
+            removidos += 1
+
+    # Salvar se houve remoções
+    if removidos > 0:
+        _salvar_links()
+
+    return removidos
+
+
+# Carregar links ao importar o módulo
+_carregar_links()
+print(f"✓ {len(_shared_links)} link(s) de compartilhamento carregado(s)", flush=True)
 
 
 def criar_link(
@@ -139,11 +205,17 @@ def criar_link(
     _shared_links[link.id] = link
     _token_to_id[token] = link.id
 
+    # Salvar no arquivo
+    _salvar_links()
+
     return link
 
 
 def buscar_por_token(token: str) -> Optional[SharedLink]:
     """Busca link por token"""
+    # Recarregar links do arquivo para garantir sincronização entre workers
+    _carregar_links()
+
     link_id = _token_to_id.get(token)
     if not link_id:
         return None
@@ -152,6 +224,9 @@ def buscar_por_token(token: str) -> Optional[SharedLink]:
 
 def buscar_por_id(link_id: str) -> Optional[SharedLink]:
     """Busca link por ID"""
+    # Recarregar links do arquivo para garantir sincronização entre workers
+    _carregar_links()
+
     return _shared_links.get(link_id)
 
 
@@ -170,16 +245,9 @@ def revogar_link(link_id: str, username: str) -> bool:
         return False
 
     link.revogar()
+
+    # Salvar no arquivo
+    _salvar_links()
+
     return True
 
-
-def limpar_links_expirados() -> int:
-    """Remove links expirados da memória (limpeza periódica)"""
-    removidos = 0
-    for link_id in list(_shared_links.keys()):
-        link = _shared_links[link_id]
-        if link.esta_expirado() and not link.is_active:
-            del _shared_links[link_id]
-            del _token_to_id[link.token]
-            removidos += 1
-    return removidos

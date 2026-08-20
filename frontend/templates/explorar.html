@@ -380,10 +380,10 @@
                             <i data-lucide="link" style="width:16px;height:16px;"></i>
                             Link de compartilhamento
                         </label>
-                        <div style="display: flex; gap: 8px; align-items: center;">
-                            <input type="text" id="share-link-url" class="form-input" readonly style="flex: 1; font-family: 'Courier New', monospace; font-size: 0.9rem;">
-                            <button onclick="copiarLinkCompartilhamento()" class="btn-primary" style="padding: 10px 16px; flex-shrink: 0;" id="copy-share-btn" title="Copiar link">
-                                <i data-lucide="copy" style="width:18px;height:18px;"></i>
+                        <div style="display: flex; gap: 8px; align-items: stretch;">
+                            <input type="text" id="share-link-url" class="form-input" readonly style="flex: 1; min-width: 0; font-family: 'Courier New', monospace; font-size: 0.85rem;">
+                            <button onclick="copiarLinkCompartilhamento()" class="btn-primary" style="padding: 8px; min-width: 40px; width: 40px; display: flex; align-items: center; justify-content: center;" id="copy-share-btn" title="Copiar link">
+                                <i data-lucide="copy" style="width:16px;height:16px;"></i>
                             </button>
                         </div>
                     </div>
@@ -470,6 +470,23 @@
             const modal = document.getElementById('shareModal');
             modal.classList.remove('active');
             setTimeout(() => modal.style.display = 'none', 200);
+
+            // Resetar o estado do modal
+            const btn = document.getElementById('share-generate-btn');
+            btn.disabled = false;
+            btn.innerHTML = '<i data-lucide="share-2" style="width:16px;height:16px;"></i> Gerar Link';
+
+            // Esconder o container do link
+            document.getElementById('share-link-container').style.display = 'none';
+
+            // Limpar o input de senha
+            document.getElementById('share-password').value = '';
+
+            // Resetar o radio button para 1 hora
+            document.querySelectorAll('input[name="expires"]')[0].checked = true;
+
+            // Recriar os ícones
+            lucide.createIcons();
         }
 
         async function gerarLinkCompartilhamento() {
@@ -529,23 +546,53 @@
             }
         }
 
-        async function copiarLinkCompartilhamento() {
+        function copiarLinkCompartilhamento() {
             const linkInput = document.getElementById('share-link-url');
             const btn = document.getElementById('copy-share-btn');
+            const icon = btn.querySelector('i');
 
             try {
-                await navigator.clipboard.writeText(linkInput.value);
-                const icon = btn.querySelector('i');
-                icon.setAttribute('data-lucide', 'check');
-                lucide.createIcons();
-                mostrarToast('Link copiado!', 'success');
+                // Método 1: Selecionar e copiar (mais confiável)
+                linkInput.focus();
+                linkInput.select();
+                linkInput.setSelectionRange(0, 99999);
 
-                setTimeout(() => {
-                    icon.setAttribute('data-lucide', 'copy');
+                const sucesso = document.execCommand('copy');
+
+                if (sucesso) {
+                    // Feedback visual
+                    icon.setAttribute('data-lucide', 'check');
                     lucide.createIcons();
-                }, 2000);
+
+                    // Toast se existir
+                    if (typeof mostrarToast === 'function') {
+                        mostrarToast('Link copiado!', 'success');
+                    }
+
+                    setTimeout(() => {
+                        icon.setAttribute('data-lucide', 'copy');
+                        lucide.createIcons();
+                    }, 2000);
+                } else {
+                    // Tentar clipboard API
+                    if (navigator.clipboard) {
+                        navigator.clipboard.writeText(linkInput.value).then(() => {
+                            icon.setAttribute('data-lucide', 'check');
+                            lucide.createIcons();
+                            setTimeout(() => {
+                                icon.setAttribute('data-lucide', 'copy');
+                                lucide.createIcons();
+                            }, 2000);
+                        });
+                    }
+                }
+
+                // Remover seleção visual
+                window.getSelection().removeAllRanges();
+
             } catch (error) {
-                mostrarToast('Erro ao copiar link', 'error');
+                console.error('Erro ao copiar:', error);
+                // Silenciosamente falhar - não mostrar popup
             }
         }
 

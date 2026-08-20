@@ -28,10 +28,25 @@ fi
 if [ -f "instance/gunicorn.pid" ] && kill -0 "$(cat instance/gunicorn.pid)" 2>/dev/null; then
   echo "Gunicorn já está rodando com PID $(cat instance/gunicorn.pid)."
 else
-  "$GUNICORN_CMD" -c app/gunicorn_config.py "app:app" \
-    --pid instance/gunicorn.pid \
-    --daemon
-  echo "Gunicorn iniciado."
+  # Inicia Gunicorn com nohup em vez de --daemon para melhor confiabilidade
+  nohup "$GUNICORN_CMD" -c app/gunicorn_config.py "run:app" \
+    > instance/gunicorn.stdout.log 2>&1 &
+  echo "$!" > instance/gunicorn.pid
+  echo "Gunicorn iniciado com PID $!."
+
+  # Verifica se iniciou corretamente
+  sleep 2
+  if ! kill -0 "$(cat instance/gunicorn.pid)" 2>/dev/null; then
+    echo "ERRO: Gunicorn falhou ao iniciar. Verifique instance/gunicorn.stdout.log"
+    exit 1
+  fi
+
+  # Testa se está aceitando conexões
+  if ! curl -s http://localhost:5000/ >/dev/null 2>&1; then
+    echo "AVISO: Gunicorn iniciou mas não está respondendo na porta 5000"
+  else
+    echo "Gunicorn está respondendo corretamente na porta 5000."
+  fi
 fi
 
 if [ -f "instance/cloudflared.pid" ] && kill -0 "$(cat instance/cloudflared.pid)" 2>/dev/null; then

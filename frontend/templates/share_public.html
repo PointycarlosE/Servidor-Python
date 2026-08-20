@@ -175,7 +175,7 @@
         let senhaVerificada = !hasPassword;
 
         async function verificarSenha() {
-            const password = document.getElementById('password').value;
+            const password = document.getElementById('password').value.trim();
             const errorDiv = document.getElementById('password-error');
             const btn = document.getElementById('verify-btn');
 
@@ -190,11 +190,14 @@
             lucide.createIcons();
 
             try {
+                console.log('Enviando senha:', password); // Debug
                 const response = await fetch(`/s/${token}/verify-password`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ password })
+                    body: JSON.stringify({ password: password })
                 });
+
+                console.log('Status:', response.status); // Debug
 
                 if (response.ok) {
                     senhaVerificada = true;
@@ -202,6 +205,8 @@
                     document.getElementById('download-section').style.display = 'block';
                     errorDiv.style.display = 'none';
                 } else {
+                    const data = await response.json();
+                    console.error('Erro:', data); // Debug
                     errorDiv.textContent = 'Senha incorreta';
                     errorDiv.style.display = 'block';
                     btn.disabled = false;
@@ -209,6 +214,7 @@
                     lucide.createIcons();
                 }
             } catch (error) {
+                console.error('Erro na requisição:', error); // Debug
                 errorDiv.textContent = 'Erro ao verificar senha';
                 errorDiv.style.display = 'block';
                 btn.disabled = false;
