@@ -19,8 +19,11 @@ from app.utils.helpers import get_info_arquivo
 from app.auth.decorators import login_required_optional
 from app.utils.audit import (
     log_upload, log_upload_bloqueado, log_download,
-    log_delete, log_acesso_negado, log_path_traversal, log_zip_bloqueado
+    log_delete, log_acesso_negado, log_path_traversal, log_zip_bloqueado,
+    log_moved_to_trash
 )
+from app.trash import mover_para_lixeira
+from app.share.models import revogar_links_por_caminho
 
 file_bp = Blueprint('file', __name__)
 
@@ -383,13 +386,28 @@ def deletar_arquivo(caminho_arquivo):
         return "Arquivo não encontrado", 404
 
     try:
-        os.remove(caminho_completo)
-        log_delete(current_user.username, caminho_arquivo)
+        # Mover para lixeira em vez de remover permanentemente
+        item_id = mover_para_lixeira(
+            caminho_relativo=caminho_arquivo,
+            caminho_absoluto=caminho_completo,
+            usuario=current_user.username
+        )
+
+        if item_id is None:
+            return "Erro ao mover arquivo para a lixeira", 500
+
+        # Revogar links de compartilhamento ativos desse arquivo
+        revogados = revogar_links_por_caminho(caminho_arquivo, current_user.username)
+
+        log_moved_to_trash(current_user.username, caminho_arquivo)
     except PermissionError:
         return "Sem permissão", 403
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
-        return {'sucesso': True, 'mensagem': 'Arquivo excluído com sucesso'}
+        msg = 'Arquivo movido para a lixeira'
+        if revogados > 0:
+            msg += f' ({revogados} link(s) de compartilhamento revogado(s))'
+        return {'sucesso': True, 'mensagem': msg}
 
     pasta_relativa = os.path.dirname(caminho_arquivo)
     return redirect(url_for('file.explorar', caminho=pasta_relativa))
@@ -410,13 +428,28 @@ def deletar_pasta(caminho_pasta):
         return "Pasta não encontrada", 404
 
     try:
-        shutil.rmtree(pasta_completa)
-        log_delete(current_user.username, caminho_pasta)
+        # Mover pasta para lixeira em vez de remover permanentemente
+        item_id = mover_para_lixeira(
+            caminho_relativo=caminho_pasta,
+            caminho_absoluto=pasta_completa,
+            usuario=current_user.username
+        )
+
+        if item_id is None:
+            return "Erro ao mover pasta para a lixeira", 500
+
+        # Revogar links de compartilhamento de arquivos dentro da pasta
+        revogados = revogar_links_por_caminho(caminho_pasta, current_user.username)
+
+        log_moved_to_trash(current_user.username, caminho_pasta)
     except PermissionError:
         return "Sem permissão", 403
 
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
-        return {'sucesso': True, 'mensagem': 'Pasta excluída com sucesso'}
+        msg = 'Pasta movida para a lixeira'
+        if revogados > 0:
+            msg += f' ({revogados} link(s) de compartilhamento revogado(s))'
+        return {'sucesso': True, 'mensagem': msg}
 
     pasta_pai = os.path.dirname(caminho_pasta)
     return redirect(url_for('file.explorar', caminho=pasta_pai))
@@ -458,11 +491,21 @@ def deletar_multiplos():
                 continue
 
             try:
-                if os.path.isfile(caminho_completo):
-                    os.remove(caminho_completo)
-                elif os.path.isdir(caminho_completo):
-                    shutil.rmtree(caminho_completo)
-                log_delete(usuario, caminho_relativo)
+                # Mover para lixeira em vez de remover permanentemente
+                item_id = mover_para_lixeira(
+                    caminho_relativo=caminho_relativo,
+                    caminho_absoluto=caminho_completo,
+                    usuario=usuario
+                )
+
+                if item_id is None:
+                    erros.append(f"{caminho_relativo}: Erro ao mover para a lixeira")
+                    continue
+
+                # Revogar links de compartilhamento ativos
+                revogar_links_por_caminho(caminho_relativo, usuario)
+
+                log_moved_to_trash(usuario, caminho_relativo)
                 sucessos.append(caminho_relativo)
             except Exception as ex:
                 current_app.logger.exception(

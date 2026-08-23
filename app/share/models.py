@@ -251,3 +251,37 @@ def revogar_link(link_id: str, username: str) -> bool:
 
     return True
 
+
+def revogar_links_por_caminho(file_path: str, username: str) -> int:
+    """
+    Revoga todos os links ativos de um arquivo/pasta.
+    Usado quando um arquivo é movido para a lixeira.
+
+    Args:
+        file_path: Caminho do arquivo/pasta
+        username: Nome do usuário dono dos links
+
+    Returns:
+        Quantidade de links revogados
+    """
+    revogados = 0
+
+    for link_id in list(_shared_links.keys()):
+        link = _shared_links[link_id]
+
+        # Verificar se é do usuário e se o caminho corresponde
+        if link.created_by != username:
+            continue
+
+        # Verificar se o caminho do link corresponde ao arquivo deletado
+        # Pode ser o próprio arquivo ou um arquivo dentro de uma pasta deletada
+        if link.file_path == file_path or link.file_path.startswith(file_path + '/'):
+            if link.is_active:
+                link.revogar()
+                revogados += 1
+
+    # Salvar se houve alterações
+    if revogados > 0:
+        _salvar_links()
+
+    return revogados

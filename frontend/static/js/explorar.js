@@ -13,6 +13,18 @@ document.addEventListener('DOMContentLoaded', function () {
     const lightboxPrev = document.getElementById('lightbox-prev');
     const lightboxNext = document.getElementById('lightbox-next');
 
+    // Debug: verificar se os elementos existem
+    console.log('Lightbox elementos:', {
+        lightbox: !!lightbox,
+        lightboxImage: !!lightboxImage,
+        lightboxTitle: !!lightboxTitle
+    });
+
+    if (!lightbox || !lightboxImage) {
+        console.error('Elementos do lightbox não encontrados!');
+        return;
+    }
+
     let currentImageIndex = 0;
     let images = [];
 
@@ -64,7 +76,10 @@ document.addEventListener('DOMContentLoaded', function () {
         };
 
         lightbox.classList.add('active');
-        document.body.style.overflow = 'hidden';
+        lightbox.style.display = 'flex'; // Forçar exibição do modal
+        console.log('Lightbox aberto! Classes:', lightbox.className, 'Display:', lightbox.style.display);
+
+        // Não bloquear o scroll do body - removido: document.body.style.overflow = 'hidden';
 
         // Empurra um estado falso no histórico para capturar o botão voltar do celular
         if (!history.state?.lightboxOpen) {
@@ -74,8 +89,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function closeLightbox() {
         lightbox.classList.remove('active');
+        lightbox.style.display = 'none'; // Esconder o modal
         lightboxImage.src = '';
-        document.body.style.overflow = '';
+        console.log('Lightbox fechado!');
+        // Não é necessário restaurar overflow - removido: document.body.style.overflow = '';
 
         // Descarta o estado falso que empurramos ao abrir
         if (history.state?.lightboxOpen) {
@@ -87,8 +104,9 @@ document.addEventListener('DOMContentLoaded', function () {
     window.addEventListener('popstate', function (e) {
         if (lightbox.classList.contains('active')) {
             lightbox.classList.remove('active');
+            lightbox.style.display = 'none'; // Esconder o modal
             lightboxImage.src = '';
-            document.body.style.overflow = '';
+            // Não é necessário restaurar overflow
         }
     });
 
@@ -106,16 +124,23 @@ document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('click', function (e) {
         const link = e.target.closest('.item-link');
         if (link && link.querySelector('.item-imagem')) {
+            console.log('Clique em imagem detectado!', link);
+
             if (e.ctrlKey) return; // Ctrl+Clique é para seleção, não para abrir lightbox
             if (e.target.closest('.botao-download') || e.target.closest('.botao-excluir') ||
                 e.target.closest('form') || e.target.closest('button') ||
-                e.target.closest('.item-checkbox') || e.target.closest('.item-checkbox-input')) return;
-            
+                e.target.closest('.item-checkbox') || e.target.closest('.item-checkbox-input')) {
+                console.log('Clique em botão/checkbox detectado, ignorando');
+                return;
+            }
+
+            console.log('Abrindo lightbox...');
             e.preventDefault();
             e.stopPropagation();
             updateImageList();
             const currentCard = link.querySelector('.item-imagem');
             const newIndex = Array.from(document.querySelectorAll('.item-imagem')).indexOf(currentCard);
+            console.log('Index da imagem:', newIndex, 'Total de imagens:', images.length);
             if (newIndex !== -1) openLightbox(newIndex);
         }
     });
@@ -261,12 +286,33 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function parseData(d) {
         if (!d) return 0;
+
+        // Formato: "Hoje às HH:MM"
         if (d.includes('Hoje')) {
             const h = d.match(/(\d{2}):(\d{2})/);
-            if (h) { const hoje = new Date(); hoje.setHours(parseInt(h[1]), parseInt(h[2]), 0, 0); return hoje.getTime(); }
+            if (h) {
+                const hoje = new Date();
+                hoje.setHours(parseInt(h[1]), parseInt(h[2]), 0, 0);
+                return hoje.getTime();
+            }
+            return new Date().getTime(); // Se não conseguir extrair hora, usar agora
         }
-        const p = d.split('/');
-        if (p.length === 3) return new Date(p[2], p[1] - 1, p[0]).getTime();
+
+        // Formato: "DD/MM/YYYY" ou "DD/MM/YYYY HH:MM"
+        const partes = d.split(' ')[0].split('/'); // Pega só a parte da data antes do espaço
+        if (partes.length === 3) {
+            const [dia, mes, ano] = partes;
+            const dataObj = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia));
+
+            // Se tiver horário também, adiciona
+            const horario = d.match(/(\d{2}):(\d{2})/);
+            if (horario) {
+                dataObj.setHours(parseInt(horario[1]), parseInt(horario[2]), 0, 0);
+            }
+
+            return dataObj.getTime();
+        }
+
         return 0;
     }
 
@@ -337,7 +383,9 @@ document.addEventListener('DOMContentLoaded', function () {
         if (tipo === 'pasta') {
             if (caminho) window.location.href = `/explorar/${caminho}`;
         } else if (tipo === 'imagem') {
-            // O clique na imagem já é tratado pela delegação do Lightbox acima
+            // NÃO fazer nada aqui - o lightbox é tratado por outro listener
+            // Retornar para não bloquear o evento
+            return;
         } else if (tipo === 'audio') {
             if (e.target.closest('audio')) return;
             e.preventDefault(); e.stopPropagation();
@@ -670,16 +718,19 @@ document.addEventListener('DOMContentLoaded', function () {
         function closeAudioModalAndReload() {
             audioPlayer?.pause();
             if (audioPlayer) audioPlayer.currentTime = 0;
-            audioModal.style.display = 'none';
+            audioModal.classList.remove('active');
             document.body.style.overflow = '';
-            if (typeof atualizarLista === 'function') atualizarLista();
+            // Recarregar a página para resetar o estado
+            window.location.reload();
         }
 
         function closeAudioModalOnly() {
-            audioModal.style.display = 'none';
+            audioModal.classList.remove('active');
             document.body.style.overflow = '';
             audioPlayer?.pause();
             if (audioPlayer) audioPlayer.currentTime = 0;
+            // Recarregar a página para resetar o estado
+            window.location.reload();
         }
 
         window.openAudioModal = function (audioUrl, audioName, downloadUrl, deleteForm) {
@@ -727,14 +778,183 @@ document.addEventListener('DOMContentLoaded', function () {
                 audioPlayer.addEventListener('loadedmetadata', updateDuration);
             }
 
-            audioModal.style.display = 'flex';
+            audioModal.classList.add('active');
             document.body.style.overflow = 'hidden';
             audioPlayer?.play().catch(() => {});
         };
 
         if (audioModalClose) audioModalClose.onclick = closeAudioModalAndReload;
         if (audioModal) audioModal.onclick = (e) => { if (e.target === audioModal) closeAudioModalAndReload(); };
-        document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && audioModal.style.display === 'flex') closeAudioModalAndReload(); });
+
+        // Listener de Escape para fechar o modal
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && audioModal && audioModal.classList.contains('active')) {
+                e.preventDefault();
+                closeAudioModalAndReload();
+            }
+        });
+
+        // ===== CONTROLES CUSTOMIZADOS DO PLAYER =====
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const playPauseIcon = document.getElementById('playPauseIcon');
+        const progressBar = document.getElementById('progressBar');
+        const progressFill = document.getElementById('progressFill');
+        const progressHandle = document.getElementById('progressHandle');
+        const currentTimeEl = document.getElementById('currentTime');
+        const totalTimeEl = document.getElementById('totalTime');
+        const volumeBtn = document.getElementById('volumeBtn');
+        const volumeIcon = document.getElementById('volumeIcon');
+        const volumeSlider = document.getElementById('volumeSlider');
+
+        let isDragging = false;
+
+        // Formatar tempo (segundos para MM:SS)
+        function formatTime(seconds) {
+            if (!seconds || isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+
+        // Play/Pause
+        if (playPauseBtn && audioPlayer) {
+            playPauseBtn.addEventListener('click', () => {
+                if (audioPlayer.paused) {
+                    audioPlayer.play();
+                } else {
+                    audioPlayer.pause();
+                }
+            });
+
+            audioPlayer.addEventListener('play', () => {
+                const oldIcon = document.getElementById('playPauseIcon');
+                if (oldIcon) oldIcon.remove();
+
+                const newIcon = document.createElement('i');
+                newIcon.id = 'playPauseIcon';
+                newIcon.setAttribute('data-lucide', 'pause');
+                playPauseBtn.appendChild(newIcon);
+                lucide.createIcons();
+            });
+
+            audioPlayer.addEventListener('pause', () => {
+                const oldIcon = document.getElementById('playPauseIcon');
+                if (oldIcon) oldIcon.remove();
+
+                const newIcon = document.createElement('i');
+                newIcon.id = 'playPauseIcon';
+                newIcon.setAttribute('data-lucide', 'play');
+                playPauseBtn.appendChild(newIcon);
+                lucide.createIcons();
+            });
+        }
+
+        // Atualizar progresso e tempo
+        if (audioPlayer) {
+            audioPlayer.addEventListener('loadedmetadata', () => {
+                if (totalTimeEl) totalTimeEl.textContent = formatTime(audioPlayer.duration);
+            });
+
+            audioPlayer.addEventListener('timeupdate', () => {
+                if (!isDragging && audioPlayer.duration) {
+                    const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                    if (progressFill) progressFill.style.width = percent + '%';
+                    if (progressHandle) progressHandle.style.left = percent + '%';
+                    if (currentTimeEl) currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+                }
+            });
+
+            audioPlayer.addEventListener('ended', () => {
+                playPauseIcon.setAttribute('data-lucide', 'play');
+                lucide.createIcons();
+                if (progressFill) progressFill.style.width = '0%';
+                if (progressHandle) progressHandle.style.left = '0%';
+            });
+        }
+
+        // Clicar na barra de progresso
+        if (progressBar && audioPlayer) {
+            progressBar.addEventListener('click', (e) => {
+                const rect = progressBar.getBoundingClientRect();
+                const percent = (e.clientX - rect.left) / rect.width;
+                audioPlayer.currentTime = percent * audioPlayer.duration;
+            });
+
+            // Arrastar o handle
+            progressHandle.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                e.preventDefault();
+            });
+
+            document.addEventListener('mousemove', (e) => {
+                if (isDragging && audioPlayer.duration) {
+                    const rect = progressBar.getBoundingClientRect();
+                    let percent = (e.clientX - rect.left) / rect.width;
+                    percent = Math.max(0, Math.min(1, percent));
+
+                    progressFill.style.width = (percent * 100) + '%';
+                    progressHandle.style.left = (percent * 100) + '%';
+                    audioPlayer.currentTime = percent * audioPlayer.duration;
+                }
+            });
+
+            document.addEventListener('mouseup', () => {
+                isDragging = false;
+            });
+        }
+
+        // Controle de volume
+        if (volumeSlider && audioPlayer) {
+            volumeSlider.addEventListener('input', (e) => {
+                const volume = e.target.value / 100;
+                audioPlayer.volume = volume;
+
+                // Atualizar ícone
+                const oldIcon = document.getElementById('volumeIcon');
+                if (oldIcon) oldIcon.remove();
+
+                const newIcon = document.createElement('i');
+                newIcon.id = 'volumeIcon';
+                if (volume === 0) {
+                    newIcon.setAttribute('data-lucide', 'volume-x');
+                } else if (volume < 0.5) {
+                    newIcon.setAttribute('data-lucide', 'volume-1');
+                } else {
+                    newIcon.setAttribute('data-lucide', 'volume-2');
+                }
+                volumeBtn.appendChild(newIcon);
+                lucide.createIcons();
+            });
+        }
+
+        // Botão de mute/unmute
+        if (volumeBtn && audioPlayer) {
+            let lastVolume = 1;
+            volumeBtn.addEventListener('click', () => {
+                const oldIcon = document.getElementById('volumeIcon');
+                if (oldIcon) oldIcon.remove();
+
+                const newIcon = document.createElement('i');
+                newIcon.id = 'volumeIcon';
+
+                if (audioPlayer.volume > 0) {
+                    lastVolume = audioPlayer.volume;
+                    audioPlayer.volume = 0;
+                    volumeSlider.value = 0;
+                    newIcon.setAttribute('data-lucide', 'volume-x');
+                } else {
+                    audioPlayer.volume = lastVolume;
+                    volumeSlider.value = lastVolume * 100;
+                    if (lastVolume < 0.5) {
+                        newIcon.setAttribute('data-lucide', 'volume-1');
+                    } else {
+                        newIcon.setAttribute('data-lucide', 'volume-2');
+                    }
+                }
+                volumeBtn.appendChild(newIcon);
+                lucide.createIcons();
+            });
+        }
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAudioModal);

@@ -10,126 +10,509 @@
     <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <style>
-        .password-wrapper { position: relative; }
-        .password-wrapper .form-input { padding-right: 44px; }
-        .btn-toggle-senha {
-            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-            background: none; border: none; cursor: pointer;
-            color: var(--text-secondary); padding: 4px; line-height: 1;
-            display: flex; align-items: center; transition: color 0.2s;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
-        .btn-toggle-senha:hover { color: var(--text); }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            color: #1f2937;
+        }
+
+        .auth-container {
+            width: 100%;
+            max-width: 480px;
+        }
+
+        .auth-card {
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .auth-header {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            padding: 40px 32px;
+            text-align: center;
+            color: white;
+        }
+
+        .auth-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .auth-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+            letter-spacing: -0.025em;
+        }
+
+        .auth-subtitle {
+            font-size: 0.9375rem;
+            opacity: 0.95;
+            font-weight: 400;
+        }
+
+        .auth-body {
+            padding: 32px;
+        }
+
+        .alert {
+            padding: 14px 16px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            font-size: 0.9375rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #a7f3d0;
+        }
+
+        .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fecaca;
+        }
+
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fde68a;
+        }
+
+        .form-group {
+            margin-bottom: 24px;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 13px 44px 13px 16px;
+            border: 2px solid #e5e7eb;
+            border-radius: 12px;
+            font-size: 0.9375rem;
+            transition: all 0.2s;
+            background: #f9fafb;
+            color: #1f2937;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: #10b981;
+            background: white;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.1);
+        }
+
+        .form-input.error {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .btn-toggle-senha {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #9ca3af;
+            padding: 6px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+        }
+
+        .btn-toggle-senha:hover {
+            background: #f3f4f6;
+            color: #10b981;
+        }
+
+        .form-error {
+            display: none;
+            color: #ef4444;
+            font-size: 0.8125rem;
+            margin-top: 6px;
+            font-weight: 500;
+        }
+
+        /* Indicador de força da senha */
+        #password-strength {
+            margin-top: 12px;
+            padding: 14px;
+            background: #f9fafb;
+            border-radius: 10px;
+            border: 1px solid #e5e7eb;
+        }
+
+        .strength-bars {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 10px;
+        }
+
+        .strength-bar {
+            height: 4px;
+            flex: 1;
+            border-radius: 2px;
+            background: #e5e7eb;
+            transition: background 0.3s;
+        }
+
+        #password-rules {
+            font-size: 0.8125rem;
+            color: #6b7280;
+            padding-left: 18px;
+            margin: 0;
+            line-height: 1.6;
+        }
+
+        #password-rules li {
+            transition: color 0.2s;
+        }
+
+        #password-rules li.valid {
+            color: #10b981;
+            font-weight: 500;
+        }
+
+        .btn-primary {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .auth-footer {
+            text-align: center;
+            padding: 24px 32px;
+            border-top: 1px solid #f3f4f6;
+        }
+
+        .auth-link {
+            color: #10b981;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .auth-link:hover {
+            color: #059669;
+            gap: 8px;
+        }
+
+        /* Responsividade */
+        @media (max-width: 640px) {
+            body {
+                padding: 16px;
+            }
+
+            .auth-header {
+                padding: 32px 24px;
+            }
+
+            .auth-icon {
+                width: 56px;
+                height: 56px;
+            }
+
+            .auth-title {
+                font-size: 1.5rem;
+            }
+
+            .auth-subtitle {
+                font-size: 0.875rem;
+            }
+
+            .auth-body {
+                padding: 24px;
+            }
+
+            .auth-footer {
+                padding: 20px 24px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .auth-header {
+                padding: 28px 20px;
+            }
+
+            .auth-icon {
+                width: 52px;
+                height: 52px;
+            }
+
+            .auth-title {
+                font-size: 1.375rem;
+            }
+
+            .auth-body {
+                padding: 20px;
+            }
+
+            .form-input {
+                padding: 12px 42px 12px 14px;
+                font-size: 0.875rem;
+            }
+
+            .btn-primary {
+                padding: 13px 20px;
+                font-size: 0.9375rem;
+            }
+        }
+
+        /* Dark mode */
+        [data-theme="dark"] body {
+            background: linear-gradient(135deg, #064e3b 0%, #065f46 100%);
+        }
+
+        [data-theme="dark"] .auth-card {
+            background: #1f2937;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        [data-theme="dark"] .form-label {
+            color: #e5e7eb;
+        }
+
+        [data-theme="dark"] .form-input {
+            background: #111827;
+            border-color: #374151;
+            color: #f9fafb;
+        }
+
+        [data-theme="dark"] .form-input:focus {
+            background: #1f2937;
+            border-color: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+        }
+
+        [data-theme="dark"] .form-input.error {
+            background: #1f1416;
+            border-color: #ef4444;
+        }
+
+        [data-theme="dark"] .btn-toggle-senha {
+            color: #9ca3af;
+        }
+
+        [data-theme="dark"] .btn-toggle-senha:hover {
+            background: #374151;
+            color: #10b981;
+        }
+
+        [data-theme="dark"] #password-strength {
+            background: #111827;
+            border-color: #374151;
+        }
+
+        [data-theme="dark"] #password-rules {
+            color: #9ca3af;
+        }
+
+        [data-theme="dark"] .auth-footer {
+            border-top-color: #374151;
+        }
     </style>
 </head>
-<body class="page-simple">
-    <header class="header-simple">
-        <nav class="header-nav">
-            <a href="{{ url_for('auth.login') }}">
-                <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Voltar ao login
-            </a>
-        </nav>
-    </header>
-
-    <main class="content-centered">
-        <div class="form-card">
-            <div class="form-card-header">
-                <h1 class="form-card-title">
-                    <i data-lucide="shield-check" style="width:32px;height:32px;color:var(--primary);"></i>
-                    Redefinir Senha
-                </h1>
-                <p class="form-card-subtitle">Crie uma nova senha forte e segura</p>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-header">
+                <div class="auth-icon">
+                    <i data-lucide="shield-check" style="width:36px;height:36px;"></i>
+                </div>
+                <h1 class="auth-title">Redefinir Senha</h1>
+                <p class="auth-subtitle">Crie uma nova senha forte e segura</p>
             </div>
 
-            {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
-            {% endif %}
-            {% endwith %}
+            <div class="auth-body">
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                {% for category, message in messages %}
+                <div class="alert alert-{{ category }}">
+                    <i data-lucide="{% if category == 'success' %}check-circle{% elif category == 'danger' %}alert-circle{% else %}alert-triangle{% endif %}" style="width:18px;height:18px;"></i>
+                    {{ message }}
+                </div>
+                {% endfor %}
+                {% endif %}
+                {% endwith %}
 
-            <form method="POST" class="login-form" id="reset-form">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                <form method="POST" id="reset-form">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-                <div class="form-group">
-                    <label for="nova_senha" class="form-label">
-                        <i data-lucide="lock" style="width:15px;height:15px;"></i> Nova Senha
-                    </label>
-                    <div class="password-wrapper">
-                        <input type="password" name="nova_senha" id="nova_senha" class="form-input"
-                            placeholder="Digite sua nova senha" autofocus autocomplete="new-password">
-                        <button type="button" class="btn-toggle-senha" id="btn-toggle-nova" title="Mostrar/ocultar senha">
-                            <i data-lucide="eye" id="icon-toggle-nova" style="width:18px;height:18px;"></i>
-                        </button>
-                    </div>
-                    <div class="form-error" id="nova-senha-error"></div>
-                    <div id="password-strength" style="margin-top: 8px; display: none;">
-                        <div style="display: flex; gap: 4px; margin-bottom: 6px;">
-                            <div class="strength-bar" id="bar-1" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
-                            <div class="strength-bar" id="bar-2" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
-                            <div class="strength-bar" id="bar-3" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
-                            <div class="strength-bar" id="bar-4" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
+                    <div class="form-group">
+                        <label for="nova_senha" class="form-label">
+                            <i data-lucide="lock" style="width:16px;height:16px;"></i>
+                            Nova Senha
+                        </label>
+                        <div class="password-wrapper">
+                            <input type="password" name="nova_senha" id="nova_senha" class="form-input"
+                                placeholder="Digite sua nova senha" autofocus autocomplete="new-password" required>
+                            <button type="button" class="btn-toggle-senha" id="btn-toggle-nova" title="Mostrar/ocultar senha">
+                                <i data-lucide="eye" id="icon-toggle-nova" style="width:18px;height:18px;"></i>
+                            </button>
                         </div>
-                        <ul id="password-rules" style="font-size:0.75rem; color: var(--text-secondary); padding-left: 16px; margin: 0;">
-                            <li id="rule-len">Mínimo 12 caracteres</li>
-                            <li id="rule-upper">Uma letra maiúscula</li>
-                            <li id="rule-lower">Uma letra minúscula</li>
-                            <li id="rule-num">Um número</li>
-                            <li id="rule-special">Um caractere especial (!@#$%...)</li>
-                        </ul>
-                    </div>
-                </div>
+                        <div class="form-error" id="nova-senha-error"></div>
 
-                <div class="form-group">
-                    <label for="confirmar_senha" class="form-label">
-                        <i data-lucide="check-circle" style="width:15px;height:15px;"></i> Confirmar Nova Senha
-                    </label>
-                    <div class="password-wrapper">
-                        <input type="password" name="confirmar_senha" id="confirmar_senha" class="form-input"
-                            placeholder="Digite a senha novamente" autocomplete="new-password">
-                        <button type="button" class="btn-toggle-senha" id="btn-toggle-confirmar" title="Mostrar/ocultar senha">
-                            <i data-lucide="eye" id="icon-toggle-confirmar" style="width:18px;height:18px;"></i>
-                        </button>
+                        <div id="password-strength" style="display: none;">
+                            <div class="strength-bars">
+                                <div class="strength-bar" id="bar-1"></div>
+                                <div class="strength-bar" id="bar-2"></div>
+                                <div class="strength-bar" id="bar-3"></div>
+                                <div class="strength-bar" id="bar-4"></div>
+                            </div>
+                            <ul id="password-rules">
+                                <li id="rule-len">Mínimo 12 caracteres</li>
+                                <li id="rule-upper">Uma letra maiúscula</li>
+                                <li id="rule-lower">Uma letra minúscula</li>
+                                <li id="rule-num">Um número</li>
+                                <li id="rule-special">Um caractere especial (!@#$%...)</li>
+                            </ul>
+                        </div>
                     </div>
-                    <div class="form-error" id="confirmar-senha-error"></div>
-                </div>
 
-                <button type="submit" class="btn-primary">
-                    <i data-lucide="shield-check" style="width:18px;height:18px;"></i> Redefinir Senha
-                </button>
-            </form>
+                    <div class="form-group">
+                        <label for="confirmar_senha" class="form-label">
+                            <i data-lucide="check-circle" style="width:16px;height:16px;"></i>
+                            Confirmar Nova Senha
+                        </label>
+                        <div class="password-wrapper">
+                            <input type="password" name="confirmar_senha" id="confirmar_senha" class="form-input"
+                                placeholder="Digite a senha novamente" autocomplete="new-password" required>
+                            <button type="button" class="btn-toggle-senha" id="btn-toggle-confirmar" title="Mostrar/ocultar senha">
+                                <i data-lucide="eye" id="icon-toggle-confirmar" style="width:18px;height:18px;"></i>
+                            </button>
+                        </div>
+                        <div class="form-error" id="confirmar-senha-error"></div>
+                    </div>
+
+                    <button type="submit" class="btn-primary">
+                        <i data-lucide="shield-check" style="width:20px;height:20px;"></i>
+                        Redefinir Senha
+                    </button>
+                </form>
+            </div>
+
+            <div class="auth-footer">
+                <a href="{{ url_for('auth.login') }}" class="auth-link">
+                    <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
+                    Voltar ao login
+                </a>
+            </div>
         </div>
-    </main>
-
-    <footer class="footer-simple">
-        <p>Meu Drive Pessoal - Seu repositório de arquivos pessoal</p>
-    </footer>
+    </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
         lucide.createIcons();
 
-        // Toggle senhas
+        // Toggle senha com correção de ícones
         function setupToggle(btnId, inputId, iconId) {
             const btn = document.getElementById(btnId);
             const input = document.getElementById(inputId);
-            const icon = document.getElementById(iconId);
-            if (!btn) return;
-            btn.addEventListener('click', () => {
-                if (input.type === 'password') {
-                    input.type = 'text';
-                    icon.setAttribute('data-lucide', 'eye-off');
-                } else {
-                    input.type = 'password';
-                    icon.setAttribute('data-lucide', 'eye');
-                }
+            if (!btn || !input) return;
+
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const isPassword = input.type === 'password';
+                input.type = isPassword ? 'text' : 'password';
+
+                // Remove ícone antigo e cria novo
+                const oldIcon = document.getElementById(iconId);
+                if (oldIcon) oldIcon.remove();
+
+                const newIcon = document.createElement('i');
+                newIcon.id = iconId;
+                newIcon.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+                newIcon.style.width = '18px';
+                newIcon.style.height = '18px';
+                btn.appendChild(newIcon);
+
                 lucide.createIcons();
             });
         }
+
         setupToggle('btn-toggle-nova', 'nova_senha', 'icon-toggle-nova');
         setupToggle('btn-toggle-confirmar', 'confirmar_senha', 'icon-toggle-confirmar');
 
-        // Validação
+        // Validação de senha
         const resetForm = document.getElementById('reset-form');
         const novaSenhaInput = document.getElementById('nova_senha');
         const confirmarSenhaInput = document.getElementById('confirmar_senha');
@@ -164,8 +547,11 @@
                 el.style.display = 'none';
                 return;
             }
+
             el.style.display = 'block';
             const r = checkPassword(senha);
+
+            // Atualizar regras
             const rules = {
                 'rule-len': r.len,
                 'rule-upper': r.upper,
@@ -173,14 +559,23 @@
                 'rule-num': r.num,
                 'rule-special': r.special
             };
-            Object.entries(rules).forEach(([id, ok]) => {
-                document.getElementById(id).style.color = ok ? '#22c55e' : 'var(--text-secondary)';
+
+            Object.entries(rules).forEach(([id, valid]) => {
+                const ruleEl = document.getElementById(id);
+                if (valid) {
+                    ruleEl.classList.add('valid');
+                } else {
+                    ruleEl.classList.remove('valid');
+                }
             });
+
+            // Atualizar barras de força
             const score = Object.values(r).filter(Boolean).length;
-            const colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e'];
+            const colors = ['', '#ef4444', '#f97316', '#eab308', '#10b981'];
+
             for (let i = 1; i <= 4; i++) {
-                document.getElementById('bar-' + i).style.background =
-                    i <= score ? colors[score] : 'var(--border)';
+                const bar = document.getElementById('bar-' + i);
+                bar.style.background = i <= score ? colors[score] : '#e5e7eb';
             }
         }
 
@@ -190,55 +585,67 @@
                 showError(novaSenhaInput, novaSenhaError, 'Digite uma senha');
                 return false;
             }
+
             const r = checkPassword(senha);
             if (!r.len) {
-                showError(novaSenhaInput, novaSenhaError, 'Mínimo 12 caracteres');
+                showError(novaSenhaInput, novaSenhaError, 'A senha deve ter no mínimo 12 caracteres');
                 return false;
             }
             if (!r.upper) {
-                showError(novaSenhaInput, novaSenhaError, 'Adicione uma letra maiúscula');
+                showError(novaSenhaInput, novaSenhaError, 'Adicione pelo menos uma letra maiúscula');
                 return false;
             }
             if (!r.lower) {
-                showError(novaSenhaInput, novaSenhaError, 'Adicione uma letra minúscula');
+                showError(novaSenhaInput, novaSenhaError, 'Adicione pelo menos uma letra minúscula');
                 return false;
             }
             if (!r.num) {
-                showError(novaSenhaInput, novaSenhaError, 'Adicione um número');
+                showError(novaSenhaInput, novaSenhaError, 'Adicione pelo menos um número');
                 return false;
             }
             if (!r.special) {
-                showError(novaSenhaInput, novaSenhaError, 'Adicione um caractere especial');
+                showError(novaSenhaInput, novaSenhaError, 'Adicione pelo menos um caractere especial');
                 return false;
             }
+
             clearError(novaSenhaInput, novaSenhaError);
             return true;
         }
 
         function validateConfirmar() {
-            if (!confirmarSenhaInput.value) {
-                showError(confirmarSenhaInput, confirmarSenhaError, 'Confirme a senha');
+            const senha = confirmarSenhaInput.value;
+            if (!senha) {
+                showError(confirmarSenhaInput, confirmarSenhaError, 'Confirme sua senha');
                 return false;
             }
-            if (confirmarSenhaInput.value !== novaSenhaInput.value) {
+            if (senha !== novaSenhaInput.value) {
                 showError(confirmarSenhaInput, confirmarSenhaError, 'As senhas não coincidem');
                 return false;
             }
+
             clearError(confirmarSenhaInput, confirmarSenhaError);
             return true;
         }
 
+        // Event listeners
         novaSenhaInput.addEventListener('input', () => {
             updateStrengthUI(novaSenhaInput.value);
-            validateNovaSenha();
+            if (novaSenhaInput.value) validateNovaSenha();
             if (confirmarSenhaInput.value) validateConfirmar();
         });
 
-        confirmarSenhaInput.addEventListener('input', validateConfirmar);
+        confirmarSenhaInput.addEventListener('input', () => {
+            if (confirmarSenhaInput.value) validateConfirmar();
+        });
+
+        novaSenhaInput.addEventListener('blur', validateNovaSenha);
+        confirmarSenhaInput.addEventListener('blur', validateConfirmar);
 
         resetForm.addEventListener('submit', function (e) {
-            const ok = validateNovaSenha() && validateConfirmar();
-            if (!ok) e.preventDefault();
+            const valid = validateNovaSenha() && validateConfirmar();
+            if (!valid) {
+                e.preventDefault();
+            }
         });
     </script>
 </body>

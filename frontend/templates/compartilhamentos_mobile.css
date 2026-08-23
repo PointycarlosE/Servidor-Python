@@ -1,0 +1,76 @@
+/* Responsividade Mobile Corrigida */
+@media (max-width: 768px) {
+    /* Grid 1 coluna */
+    #links-container {
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    /* Header compacto */
+    .content > div:first-child {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+        gap: 16px !important;
+    }
+
+    #stats-container {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    /* Cards */
+    .share-item .card-body {
+        padding: 14px !important;
+    }
+
+    /* Remover alturas fixas no mobile */
+    .share-item .card-body > div:first-child {
+        min-height: auto !important;
+    }
+
+    .share-item .card-body > div:first-child > div:last-child > div:first-child {
+        height: auto !important;
+    }
+
+    .share-item .card-body > div:nth-child(2) {
+        min-height: auto !important;
+    }
+
+    .share-item .card-body > div:nth-child(2) > div {
+        height: auto !important;
+    }
+
+    .share-item .card-body > div:nth-child(3) {
+        height: auto !important;
+        padding: 8px 10px !important;
+    }
+
+    .share-item .card-body > div:nth-child(3) button {
+        height: auto !important;
+        padding: 6px !important;
+        width: 12% !important;
+    }
+
+    .share-item .card-body > div:last-child button,
+    .share-item .card-body > div:last-child > div {
+        height: auto !important;
+    }
+}
+
+@media (max-width: 480px) {
+    .content {
+        padding: 16px 12px !important;
+    }
+
+    .share-item .card-body {
+        padding: 12px !important;
+    }
+
+    .share-item .card-body > div:nth-child(3) input {
+        font-size: 0.65rem !important;
+    }
+
+    .share-item .card-body > div:nth-child(3) button {
+        width: 15% !important;
+    }
+}

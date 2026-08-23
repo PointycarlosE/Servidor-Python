@@ -18,6 +18,7 @@ from app.auth.routes import auth_bp
 from app.routes.main import main_bp
 from app.routes.files import file_bp
 from app.share.routes import share_bp
+from app.trash.routes import trash_bp
 
 csrf = CSRFProtect()
 login_manager = LoginManager()
@@ -79,6 +80,7 @@ def create_app():
     app.register_blueprint(file_bp)
     app.register_blueprint(auth_bp)
     app.register_blueprint(share_bp)
+    app.register_blueprint(trash_bp)
 
     registrar_handlers_seguranca(app)
     registrar_handlers_erro(app)

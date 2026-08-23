@@ -107,3 +107,22 @@ def log_csrf_falhou(rota: str):
 
 def log_zip_bloqueado(usuario: str, motivo: str):
     _registrar('WARN', 'ZIP_BLOQUEADO', usuario, motivo)
+
+
+# ===== EVENTOS DA LIXEIRA =====
+
+def log_moved_to_trash(usuario: str, caminho: str):
+    """Arquivo/pasta movido para lixeira."""
+    _registrar('INFO', 'MOVED_TO_TRASH', usuario, caminho)
+
+def log_restored(usuario: str, caminho_original: str):
+    """Arquivo/pasta restaurado da lixeira."""
+    _registrar('INFO', 'RESTORED', usuario, caminho_original)
+
+def log_permanently_deleted(usuario: str, caminho: str):
+    """Arquivo/pasta removido permanentemente da lixeira."""
+    _registrar('WARN', 'PERMANENTLY_DELETED', usuario, caminho)
+
+def log_trash_emptied(usuario: str, quantidade: int):
+    """Lixeira esvaziada."""
+    _registrar('INFO', 'TRASH_EMPTIED', usuario, f"{quantidade} itens removidos")

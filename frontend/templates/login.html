@@ -4,144 +4,663 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Meu Drive Pessoal</title>
+    <title>Login — Meu Drive</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
-<script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <style>
-        .password-wrapper { position: relative; }
-        .password-wrapper .form-input { padding-right: 44px; }
-        .btn-toggle-senha {
-            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-            background: none; border: none; cursor: pointer;
-            color: var(--text-secondary); padding: 4px; line-height: 1;
-            display: flex; align-items: center; transition: color 0.2s;
+        /* ===== LOGIN PAGE STYLES ===== */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
         }
-        .btn-toggle-senha:hover { color: var(--text); }
+
+        /* Fundo decorativo com gradiente sutil */
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 50% 50%, rgba(26, 115, 232, 0.08) 0%, transparent 50%);
+            animation: bgPulse 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
+        }
+
+        .login-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            max-width: 440px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .login-header {
+            text-align: center;
+            padding: 40px 32px 32px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .login-logo {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #1a73e8 0%, #8b5cf6 100%);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 24px rgba(26, 115, 232, 0.25);
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .login-logo i {
+            color: white;
+        }
+
+        .login-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0 0 8px;
+            background: linear-gradient(135deg, var(--primary), #8b5cf6);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .login-subtitle {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .login-body {
+            padding: 32px;
+        }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .password-wrapper .form-input {
+            padding-right: 44px;
+        }
+
+        .btn-toggle-senha {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            outline: none;
+            cursor: pointer;
+            color: var(--text-secondary);
+            padding: 4px;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            transition: all 0.2s;
+            border-radius: 6px;
+        }
+
+        .btn-toggle-senha:hover {
+            color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .btn-toggle-senha:focus {
+            outline: none;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.9375rem;
+            color: var(--text);
+            background: var(--bg);
+            transition: all 0.2s;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--card);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .form-input.error {
+            border-color: #dc3545;
+            background: rgba(220, 53, 69, 0.05);
+        }
+
+        .form-error {
+            font-size: 0.8125rem;
+            color: #dc3545;
+            margin-top: 6px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .forgot-password {
+            text-align: right;
+            margin-top: 8px;
+        }
+
+        .forgot-password a {
+            color: var(--primary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .forgot-password a:hover {
+            text-decoration: underline;
+            color: var(--primary-hover);
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            width: 0;
+            height: 0;
+        }
+
+        .checkbox-custom {
+            width: 20px;
+            height: 20px;
+            border: 2px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        .checkbox-wrapper:hover .checkbox-custom {
+            border-color: var(--primary);
+            background: var(--primary-light);
+        }
+
+        .checkbox-wrapper input[type="checkbox"]:checked + .checkbox-custom {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .checkbox-wrapper input[type="checkbox"]:checked + .checkbox-custom::after {
+            content: '';
+            width: 5px;
+            height: 10px;
+            border: solid white;
+            border-width: 0 2px 2px 0;
+            transform: rotate(45deg);
+            display: block;
+        }
+
+        .checkbox-wrapper label {
+            font-size: 0.9rem;
+            color: var(--text);
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .login-footer {
+            padding: 24px 32px 32px;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
+        }
+
+        .btn-login:hover {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(26, 115, 232, 0.4);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .login-extra {
+            text-align: center;
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border-light);
+        }
+
+        .login-extra p {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .login-extra a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .login-extra a:hover {
+            text-decoration: underline;
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        /* Responsividade Mobile */
+        @media (max-width: 768px) {
+            .login-container {
+                padding: 16px;
+            }
+
+            .login-card {
+                border-radius: 16px;
+            }
+
+            .login-header {
+                padding: 32px 24px 24px;
+            }
+
+            .login-logo {
+                width: 64px;
+                height: 64px;
+                border-radius: 16px;
+                margin-bottom: 16px;
+            }
+
+            .login-logo i {
+                width: 36px !important;
+                height: 36px !important;
+            }
+
+            .login-title {
+                font-size: 1.5rem;
+            }
+
+            .login-subtitle {
+                font-size: 0.875rem;
+            }
+
+            .login-body {
+                padding: 24px;
+            }
+
+            .login-footer {
+                padding: 20px 24px 24px;
+            }
+
+            .theme-toggle {
+                top: 16px;
+                right: 16px;
+                width: 40px;
+                height: 40px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .login-container {
+                padding: 12px;
+            }
+
+            .login-header {
+                padding: 28px 20px 20px;
+            }
+
+            .login-logo {
+                width: 56px;
+                height: 56px;
+                border-radius: 14px;
+            }
+
+            .login-logo i {
+                width: 32px !important;
+                height: 32px !important;
+            }
+
+            .login-title {
+                font-size: 1.35rem;
+            }
+
+            .login-body {
+                padding: 20px;
+            }
+
+            .form-input {
+                padding: 11px 14px;
+                font-size: 0.9rem;
+            }
+
+            .btn-login {
+                padding: 13px;
+                font-size: 0.95rem;
+            }
+
+            .login-footer {
+                padding: 18px 20px 20px;
+            }
+
+            .theme-toggle {
+                width: 36px;
+                height: 36px;
+            }
+
+            .theme-toggle i {
+                width: 18px !important;
+                height: 18px !important;
+            }
+        }
     </style>
 </head>
-<body class="page-simple">
-    <header class="header-simple">
-        <nav class="header-nav">
-            <a href="{{ url_for('main.objetivos') }}">
-                <i data-lucide="list-checks" style="width:16px;height:16px;"></i> Objetivos
-            </a>
-        </nav>
-    </header>
+<body>
+    <div class="login-container">
+        <!-- Theme Toggle -->
+        <button class="theme-toggle" id="theme-toggle" title="Alternar tema">
+            <i data-lucide="sun" id="theme-icon" style="width:20px;height:20px;color:var(--text);"></i>
+        </button>
 
-    <main class="content-centered">
-        <div class="form-card">
-            <div class="form-card-header">
-                <h1 class="form-card-title">
-                    <i data-lucide="cloud" style="width:32px;height:32px;color:var(--primary);"></i>
-                    Meu Drive Pessoal
-                </h1>
-                <p class="form-card-subtitle">Faça login para acessar seus arquivos</p>
+        <div class="login-card">
+            <!-- Header -->
+            <div class="login-header">
+                <div class="login-logo">
+                    <i data-lucide="cloud" style="width:40px;height:40px;"></i>
+                </div>
+                <h1 class="login-title">Meu Drive</h1>
+                <p class="login-subtitle">Faça login para acessar seus arquivos</p>
             </div>
 
+            <!-- Alertas -->
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
+            <div style="padding: 0 32px; padding-top: 24px;">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }}" style="margin-bottom: 16px;">
+                    <i data-lucide="{{ 'check-circle' if category == 'success' else 'alert-circle' if category == 'error' else 'info' }}" style="width: 18px; height: 18px;"></i>
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
             {% endif %}
             {% endwith %}
 
-            <form method="POST" class="login-form" id="login-form">
+            <!-- Form -->
+            <form method="POST" id="login-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-                <div class="form-group">
-                    <label for="username" class="form-label">
-                        <i data-lucide="user" style="width:15px;height:15px;"></i> Usuário
-                    </label>
-                    <input type="text" name="username" id="username" class="form-input"
-                        placeholder="Digite seu usuário" autofocus autocomplete="username">
-                    <div class="form-error" id="username-error"></div>
-                </div>
-
-                <div class="form-group">
-                    <label for="password" class="form-label">
-                        <i data-lucide="lock" style="width:15px;height:15px;"></i> Senha
-                    </label>
-                    <div class="password-wrapper">
-                        <input type="password" name="password" id="password" class="form-input"
-                            placeholder="Digite sua senha" autocomplete="current-password">
-                        <button type="button" class="btn-toggle-senha" id="btn-toggle-password" title="Mostrar/ocultar senha">
-                            <i data-lucide="eye" id="icon-toggle-password" style="width:18px;height:18px;"></i>
-                        </button>
+                <div class="login-body">
+                    <!-- Usuário -->
+                    <div class="form-group">
+                        <label for="username" class="form-label">
+                            <i data-lucide="user" style="width:16px;height:16px;"></i>
+                            Usuário
+                        </label>
+                        <input
+                            type="text"
+                            name="username"
+                            id="username"
+                            class="form-input"
+                            placeholder="Digite seu usuário"
+                            autofocus
+                            autocomplete="username"
+                        >
+                        <div class="form-error" id="username-error"></div>
                     </div>
-                    <div class="form-error" id="password-error"></div>
-                    <div style="text-align: right; margin-top: 8px;">
-                        <a href="{{ url_for('auth.esqueceu_senha') }}" style="color: var(--primary); text-decoration: none; font-size: 0.85rem; font-weight: 500;">
-                            Esqueceu a senha?
-                        </a>
+
+                    <!-- Senha -->
+                    <div class="form-group">
+                        <label for="password" class="form-label">
+                            <i data-lucide="lock" style="width:16px;height:16px;"></i>
+                            Senha
+                        </label>
+                        <div class="password-wrapper">
+                            <input
+                                type="password"
+                                name="password"
+                                id="password"
+                                class="form-input"
+                                placeholder="Digite sua senha"
+                                autocomplete="current-password"
+                            >
+                            <button type="button" class="btn-toggle-senha" id="btn-toggle-password" title="Mostrar/ocultar senha">
+                                <i data-lucide="eye" id="icon-toggle-password" style="width:18px;height:18px;"></i>
+                            </button>
+                        </div>
+                        <div class="form-error" id="password-error"></div>
+                        <div class="forgot-password">
+                            <a href="{{ url_for('auth.esqueceu_senha') }}">Esqueceu a senha?</a>
+                        </div>
+                    </div>
+
+                    <!-- Lembrar de mim -->
+                    <div class="form-group">
+                        <label class="checkbox-wrapper" for="remember">
+                            <input type="checkbox" name="remember" id="remember">
+                            <span class="checkbox-custom"></span>
+                            <span>Lembrar de mim</span>
+                        </label>
                     </div>
                 </div>
 
-                <div class="form-group form-checkbox">
-                    <label class="checkbox-label">
-                        <input type="checkbox" name="remember" id="remember">
-                        <span class="checkbox-custom"></span>
-                        <span class="checkbox-text">Lembrar de mim</span>
-                    </label>
-                </div>
+                <!-- Footer com botão -->
+                <div class="login-footer">
+                    <button type="submit" class="btn-login">
+                        <i data-lucide="log-in" style="width:20px;height:20px;"></i>
+                        Entrar
+                    </button>
 
-                <button type="submit" class="btn-primary">
-                    <i data-lucide="log-in" style="width:18px;height:18px;"></i> Entrar
-                </button>
+
+                </div>
             </form>
-
-            <div class="form-card-footer" style="text-align: center; margin-top: 24px; font-size: 0.75rem; color: var(--text-secondary);">
-                <p>Meu Drive Pessoal © 2024</p>
-            </div>
         </div>
-    </main>
-
-    <footer class="footer-simple">
-        <p>Meu Drive Pessoal - Seu repositório de arquivos pessoal</p>
-    </footer>
+    </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
         lucide.createIcons();
+
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const html = document.documentElement;
+
+        // Carregar tema salvo
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            themeIcon.setAttribute('data-lucide', theme === 'light' ? 'sun' : 'moon');
+            lucide.createIcons();
+        }
+
         // Toggle senha
         const btnToggle = document.getElementById('btn-toggle-password');
         const passwordInput = document.getElementById('password');
-        const iconToggle = document.getElementById('icon-toggle-password');
+
         if (btnToggle) {
-            btnToggle.addEventListener('click', () => {
-                if (passwordInput.type === 'password') {
-                    passwordInput.type = 'text';
-                    iconToggle.setAttribute('data-lucide', 'eye-off');
-                } else {
-                    passwordInput.type = 'password';
-                    iconToggle.setAttribute('data-lucide', 'eye');
-                }
+            btnToggle.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const isPassword = passwordInput.type === 'password';
+                passwordInput.type = isPassword ? 'text' : 'password';
+
+                // Limpa TODO o conteúdo do botão
+                btnToggle.innerHTML = '';
+
+                // Cria um novo ícone
+                const newIcon = document.createElement('i');
+                newIcon.id = 'icon-toggle-password';
+                newIcon.setAttribute('data-lucide', isPassword ? 'eye-off' : 'eye');
+                newIcon.style.width = '18px';
+                newIcon.style.height = '18px';
+                btnToggle.appendChild(newIcon);
+
+                // Renderiza o novo ícone
                 lucide.createIcons();
             });
         }
 
-        // Validação
+        // Validação do formulário
         const loginForm = document.getElementById('login-form');
         const usernameInput = document.getElementById('username');
         const usernameError = document.getElementById('username-error');
         const passwordError = document.getElementById('password-error');
 
-        function showError(el, div, msg) { el.classList.add('error'); div.textContent = msg; div.style.display = 'block'; }
-        function clearError(el, div) { el.classList.remove('error'); div.textContent = ''; div.style.display = 'none'; }
+        function showError(el, div, msg) {
+            el.classList.add('error');
+            div.textContent = msg;
+            div.style.display = 'block';
+        }
+
+        function clearError(el, div) {
+            el.classList.remove('error');
+            div.textContent = '';
+            div.style.display = 'none';
+        }
 
         loginForm.addEventListener('submit', function (e) {
-            let ok = true;
-            if (!usernameInput.value.trim()) { showError(usernameInput, usernameError, 'Digite seu nome de usuário'); ok = false; }
-            else clearError(usernameInput, usernameError);
-            if (!passwordInput.value) { showError(passwordInput, passwordError, 'Digite sua senha'); ok = false; }
-            else clearError(passwordInput, passwordError);
-            if (!ok) e.preventDefault();
+            let isValid = true;
+
+            // Validar usuário
+            if (!usernameInput.value.trim()) {
+                showError(usernameInput, usernameError, 'Digite seu nome de usuário');
+                isValid = false;
+            } else {
+                clearError(usernameInput, usernameError);
+            }
+
+            // Validar senha
+            if (!passwordInput.value) {
+                showError(passwordInput, passwordError, 'Digite sua senha');
+                isValid = false;
+            } else {
+                clearError(passwordInput, passwordError);
+            }
+
+            if (!isValid) {
+                e.preventDefault();
+            }
         });
 
-        usernameInput.addEventListener('input', () => { if (usernameInput.value.trim()) clearError(usernameInput, usernameError); });
-        passwordInput.addEventListener('input', () => { if (passwordInput.value) clearError(passwordInput, passwordError); });
+        // Limpar erros ao digitar
+        usernameInput.addEventListener('input', () => {
+            if (usernameInput.value.trim()) {
+                clearError(usernameInput, usernameError);
+            }
+        });
+
+        passwordInput.addEventListener('input', () => {
+            if (passwordInput.value) {
+                clearError(passwordInput, passwordError);
+            }
+        });
     </script>
 </body>
 </html>

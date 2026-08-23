@@ -4,12 +4,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Verificação 2FA - Meu Drive Pessoal</title>
+    <title>Verificação 2FA — Meu Drive</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
     <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <style>
+        /* ===== VERIFICAR 2FA PAGE STYLES ===== */
+        .login-container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg);
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .login-container::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle at 50% 50%, rgba(26, 115, 232, 0.08) 0%, transparent 50%);
+            animation: bgPulse 20s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes bgPulse {
+            0%, 100% { transform: scale(1) rotate(0deg); }
+            50% { transform: scale(1.1) rotate(5deg); }
+        }
+
+        .login-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
+            max-width: 440px;
+            width: 100%;
+            position: relative;
+            z-index: 1;
+            animation: slideUp 0.4s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .login-header {
+            text-align: center;
+            padding: 40px 32px 32px;
+            border-bottom: 1px solid var(--border-light);
+        }
+
+        .login-logo {
+            width: 72px;
+            height: 72px;
+            background: linear-gradient(135deg, #16a34a 0%, #22c55e 100%);
+            border-radius: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 8px 24px rgba(22, 163, 74, 0.25);
+            animation: logoFloat 3s ease-in-out infinite;
+        }
+
+        @keyframes logoFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+
+        .login-logo i { color: white; }
+
+        .login-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin: 0 0 8px;
+            background: linear-gradient(135deg, #16a34a, #22c55e);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .login-subtitle {
+            font-size: 0.9375rem;
+            color: var(--text-secondary);
+            margin: 0;
+        }
+
+        .login-body { padding: 32px; }
+
+        .form-group { margin-bottom: 20px; }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text);
+            margin-bottom: 8px;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.9375rem;
+            color: var(--text);
+            background: var(--bg);
+            transition: all 0.2s;
+        }
+
         .code-input {
             font-size: 24px;
             letter-spacing: 8px;
@@ -17,82 +131,241 @@
             font-family: 'Courier New', monospace;
             font-weight: 600;
         }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            background: var(--card);
+            box-shadow: 0 0 0 4px var(--primary-light);
+        }
+
+        .form-input.error {
+            border-color: #dc3545;
+            background: rgba(220, 53, 69, 0.05);
+        }
+
+        .form-error {
+            font-size: 0.8125rem;
+            color: #dc3545;
+            margin-top: 6px;
+            display: none;
+            font-weight: 500;
+        }
+
+        .form-small {
+            display: block;
+            margin-top: 6px;
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+        }
+
+        .login-footer { padding: 24px 32px 32px; }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            background: #16a34a;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(22, 163, 74, 0.3);
+        }
+
+        .btn-login:hover {
+            background: #15803d;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(22, 163, 74, 0.4);
+        }
+
+        .btn-login:active { transform: translateY(0); }
+
         .backup-code-toggle {
             text-align: center;
-            margin-top: 16px;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border-light);
         }
+
         .backup-code-toggle a {
             color: var(--primary);
             text-decoration: none;
-            font-size: 0.85rem;
+            font-size: 0.875rem;
+            font-weight: 500;
             cursor: pointer;
+            transition: all 0.2s;
         }
+
         .backup-code-toggle a:hover {
             text-decoration: underline;
+            color: var(--primary-hover);
+        }
+
+        .theme-toggle {
+            position: absolute;
+            top: 24px;
+            right: 24px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            z-index: 10;
+        }
+
+        .theme-toggle:hover {
+            background: var(--primary-light);
+            border-color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        /* Responsividade Mobile */
+        @media (max-width: 768px) {
+            .login-container { padding: 16px; }
+            .login-card { border-radius: 16px; }
+            .login-header { padding: 32px 24px 24px; }
+            .login-logo { width: 64px; height: 64px; border-radius: 16px; margin-bottom: 16px; }
+            .login-logo i { width: 36px !important; height: 36px !important; }
+            .login-title { font-size: 1.5rem; }
+            .login-subtitle { font-size: 0.875rem; }
+            .login-body { padding: 24px; }
+            .login-footer { padding: 20px 24px 24px; }
+            .theme-toggle { top: 16px; right: 16px; width: 40px; height: 40px; }
+            .code-input { font-size: 20px; letter-spacing: 6px; }
+        }
+
+        @media (max-width: 480px) {
+            .login-container { padding: 12px; }
+            .login-header { padding: 28px 20px 20px; }
+            .login-logo { width: 56px; height: 56px; border-radius: 14px; }
+            .login-logo i { width: 32px !important; height: 32px !important; }
+            .login-title { font-size: 1.35rem; }
+            .login-body { padding: 20px; }
+            .form-input { padding: 11px 14px; font-size: 0.9rem; }
+            .code-input { font-size: 18px; letter-spacing: 4px; }
+            .btn-login { padding: 13px; font-size: 0.95rem; }
+            .login-footer { padding: 18px 20px 20px; }
+            .theme-toggle { width: 36px; height: 36px; }
+            .theme-toggle i { width: 18px !important; height: 18px !important; }
         }
     </style>
 </head>
-<body class="page-simple">
-    <header class="header-simple">
-        <nav class="header-nav">
-            <a href="{{ url_for('auth.logout') }}">
-                <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Cancelar
-            </a>
-        </nav>
-    </header>
+<body>
+    <div class="login-container">
+        <!-- Theme Toggle -->
+        <button class="theme-toggle" id="theme-toggle" title="Alternar tema">
+            <i data-lucide="sun" id="theme-icon" style="width:20px;height:20px;color:var(--text);"></i>
+        </button>
 
-    <main class="content-centered">
-        <div class="form-card">
-            <div class="form-card-header">
-                <h1 class="form-card-title">
-                    <i data-lucide="shield-check" style="width:32px;height:32px;color:var(--primary);"></i>
-                    Autenticação de Dois Fatores
-                </h1>
-                <p class="form-card-subtitle" id="subtitle-text">
+        <div class="login-card">
+            <!-- Header -->
+            <div class="login-header">
+                <div class="login-logo">
+                    <i data-lucide="shield-check" style="width:40px;height:40px;"></i>
+                </div>
+                <h1 class="login-title">Verificação 2FA</h1>
+                <p class="login-subtitle" id="subtitle-text">
                     Digite o código de 6 dígitos do seu autenticador
                 </p>
             </div>
 
+            <!-- Alertas -->
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-            {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
-            {% endfor %}
+            <div style="padding: 0 32px; padding-top: 24px;">
+                {% for category, message in messages %}
+                <div class="alert alert-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }}" style="margin-bottom: 16px;">
+                    <i data-lucide="{{ 'check-circle' if category == 'success' else 'alert-circle' if category == 'error' else 'info' }}" style="width: 18px; height: 18px;"></i>
+                    <span>{{ message }}</span>
+                </div>
+                {% endfor %}
+            </div>
             {% endif %}
             {% endwith %}
 
-            <form method="POST" class="login-form" id="verify-form">
+            <!-- Form -->
+            <form method="POST" id="verify-form">
                 <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                 <input type="hidden" name="usar_backup" id="usar_backup" value="false">
 
-                <div class="form-group">
-                    <label for="codigo" class="form-label" id="label-text">
-                        <i data-lucide="key" style="width:15px;height:15px;"></i> Código
-                    </label>
-                    <input type="text" name="codigo" id="codigo" class="form-input code-input"
-                        placeholder="000000" autofocus autocomplete="off" maxlength="16" inputmode="numeric">
-                    <div class="form-error" id="codigo-error"></div>
+                <div class="login-body">
+                    <!-- Código -->
+                    <div class="form-group">
+                        <label for="codigo" class="form-label" id="label-text">
+                            <i data-lucide="key" style="width:16px;height:16px;"></i>
+                            Código
+                        </label>
+                        <input
+                            type="text"
+                            name="codigo"
+                            id="codigo"
+                            class="form-input code-input"
+                            placeholder="000000"
+                            autofocus
+                            autocomplete="off"
+                            maxlength="16"
+                            inputmode="numeric"
+                        >
+                        <div class="form-error" id="codigo-error"></div>
+                        <span class="form-small" id="hint-text">Digite os 6 dígitos do app</span>
+                    </div>
                 </div>
 
-                <button type="submit" class="btn-primary">
-                    <i data-lucide="check-circle" style="width:18px;height:18px;"></i> Verificar
-                </button>
+                <!-- Footer com botão -->
+                <div class="login-footer">
+                    <button type="submit" class="btn-login">
+                        <i data-lucide="check-circle" style="width:20px;height:20px;"></i>
+                        Verificar
+                    </button>
+
+                    <!-- Toggle backup code -->
+                    <div class="backup-code-toggle">
+                        <a href="#" id="toggle-backup">Usar código de backup</a>
+                    </div>
+                </div>
             </form>
-
-            <div class="backup-code-toggle">
-                <a href="#" id="toggle-backup">Usar código de backup</a>
-            </div>
         </div>
-    </main>
-
-    <footer class="footer-simple">
-        <p>Meu Drive Pessoal - Seu repositório de arquivos pessoal</p>
-    </footer>
+    </div>
 
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
         lucide.createIcons();
 
+        // Theme toggle
+        const themeToggle = document.getElementById('theme-toggle');
+        const themeIcon = document.getElementById('theme-icon');
+        const html = document.documentElement;
+
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', savedTheme);
+        updateThemeIcon(savedTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            themeIcon.setAttribute('data-lucide', theme === 'light' ? 'sun' : 'moon');
+            lucide.createIcons();
+        }
+
+        // Toggle entre modo normal e backup
         const codigoInput = document.getElementById('codigo');
         const codigoError = document.getElementById('codigo-error');
         const verifyForm = document.getElementById('verify-form');
@@ -100,24 +373,26 @@
         const usarBackupInput = document.getElementById('usar_backup');
         const subtitleText = document.getElementById('subtitle-text');
         const labelText = document.getElementById('label-text');
+        const hintText = document.getElementById('hint-text');
 
         let isBackupMode = false;
 
-        // Toggle entre modo normal e backup
         toggleBackup.addEventListener('click', function(e) {
             e.preventDefault();
             isBackupMode = !isBackupMode;
 
             if (isBackupMode) {
                 subtitleText.textContent = 'Digite um dos seus códigos de backup';
-                labelText.innerHTML = '<i data-lucide="key" style="width:15px;height:15px;"></i> Código de Backup';
+                labelText.innerHTML = '<i data-lucide="key" style="width:16px;height:16px;"></i> Código de Backup';
+                hintText.textContent = 'Use um código de 8+ caracteres';
                 codigoInput.placeholder = 'XXXXXXXX';
                 codigoInput.maxLength = 16;
                 toggleBackup.textContent = 'Usar código do autenticador';
                 usarBackupInput.value = 'true';
             } else {
                 subtitleText.textContent = 'Digite o código de 6 dígitos do seu autenticador';
-                labelText.innerHTML = '<i data-lucide="key" style="width:15px;height:15px;"></i> Código';
+                labelText.innerHTML = '<i data-lucide="key" style="width:16px;height:16px;"></i> Código';
+                hintText.textContent = 'Digite os 6 dígitos do app';
                 codigoInput.placeholder = '000000';
                 codigoInput.maxLength = 6;
                 toggleBackup.textContent = 'Usar código de backup';
@@ -129,6 +404,7 @@
             lucide.createIcons();
         });
 
+        // Validação
         function showError(el, div, msg) {
             el.classList.add('error');
             div.textContent = msg;
