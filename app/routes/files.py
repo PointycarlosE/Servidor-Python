@@ -526,6 +526,87 @@ def deletar_multiplos():
         return {'sucesso': False, 'erro': 'Erro interno'}, 500
 
 
+# ===== RENAME FILE/FOLDER =====
+@file_bp.route('/renomear/<path:caminho_arquivo>', methods=['POST'])
+@limiter.limit(RATELIMIT_DELETE)
+@login_required_optional
+def renomear(caminho_arquivo):
+    """Renomeia um arquivo ou pasta"""
+    caminho_completo = caminho_seguro(caminho_arquivo)
+
+    if caminho_completo is None:
+        log_path_traversal(caminho_arquivo)
+        abort(403)
+
+    if not os.path.exists(caminho_completo):
+        if request.is_json:
+            return jsonify(sucesso=False, erro="Item não encontrado"), 404
+        return "Item não encontrado", 404
+
+    if request.is_json:
+        dados = request.get_json()
+        novo_nome = dados.get('novo_nome', '').strip() if dados else ''
+    else:
+        novo_nome = request.form.get('novo_nome', '').strip()
+
+    if not novo_nome:
+        if request.is_json:
+            return jsonify(sucesso=False, erro="Nome inválido"), 400
+        return "Nome inválido", 400
+
+    # Sanitizar nome
+    from werkzeug.utils import secure_filename
+    nome_seguro = secure_filename(novo_nome)
+    if not nome_seguro:
+        if request.is_json:
+            return jsonify(sucesso=False, erro="Nome inválido após sanitização"), 400
+        return "Nome inválido após sanitização", 400
+
+    # Verificar se o novo nome já existe
+    pasta_pai = os.path.dirname(caminho_completo)
+    novo_caminho = os.path.join(pasta_pai, nome_seguro)
+
+    if os.path.exists(novo_caminho):
+        if request.is_json:
+            return jsonify(sucesso=False, erro="Já existe um item com esse nome"), 400
+        return "Já existe um item com esse nome", 400
+
+    # Validar que o novo caminho continua dentro de PASTA_BASE
+    if caminho_seguro(os.path.relpath(novo_caminho, os.path.realpath(PASTA_BASE))) is None:
+        if request.is_json:
+            return jsonify(sucesso=False, erro="Acesso negado"), 403
+        return "Acesso negado", 403
+
+    try:
+        # Renomear
+        os.rename(caminho_completo, novo_caminho)
+
+        # Se for pasta, também precisamos revogar links de compartilhamento de arquivos dentro dela
+        # O nome do caminho mudou, então links antigos não funcionariam mais
+        if os.path.isdir(novo_caminho):
+            revogar_links_por_caminho(caminho_arquivo, current_user.username)
+
+        # Log de auditoria
+        from app.utils.audit import log_rename
+        log_rename(current_user.username, caminho_arquivo, novo_nome)
+
+    except PermissionError:
+        if request.is_json:
+            return jsonify(sucesso=False, erro="Sem permissão"), 403
+        return "Sem permissão", 403
+    except Exception as e:
+        current_app.logger.exception("Erro ao renomear: %s", caminho_arquivo)
+        if request.is_json:
+            return jsonify(sucesso=False, erro="Erro ao renomear"), 500
+        return "Erro ao renomear", 500
+
+    if request.is_json:
+        return jsonify(sucesso=True, mensagem="Renomeado com sucesso", novo_nome=nome_seguro)
+
+    pasta_relativa = os.path.dirname(caminho_arquivo)
+    return redirect(url_for('file.explorar', caminho=pasta_relativa))
+
+
 # ===== DOWNLOAD EM ZIP =====
 @file_bp.route('/download_zip', methods=['POST'])
 @limiter.limit(RATELIMIT_ZIP)

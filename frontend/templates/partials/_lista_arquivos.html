@@ -26,15 +26,20 @@
                         <i data-lucide="ellipsis-vertical" style="width:18px;height:18px;"></i>
                     </button>
                     <div class="item-dropdown">
-                        <form action="{{ url_for('file.deletar_pasta', caminho_pasta=caminho + '/' + pasta.nome if caminho else pasta.nome) }}"
-                            method="post" class="form-excluir"
-                            onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusaoPasta('{{ pasta.nome }}', this); return false;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="dropdown-item danger">
-                                <i data-lucide="trash-2"></i> Excluir pasta
-                            </button>
-                        </form>
-                    </div>
+                    <button type="button" class="dropdown-item"
+                        onclick="fecharDropdowns(); abrirModalRenomear('{{ caminho + '/' + pasta.nome if caminho else pasta.nome }}', '{{ pasta.nome }}', 'pasta')">
+                        <i data-lucide="edit-2"></i> Renomear
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <form action="{{ url_for('file.deletar_pasta', caminho_pasta=caminho + '/' + pasta.nome if caminho else pasta.nome) }}"
+                        method="post" class="form-excluir"
+                        onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusaoPasta('{{ pasta.nome }}', this); return false;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="dropdown-item danger">
+                            <i data-lucide="trash-2"></i> Excluir pasta
+                        </button>
+                    </form>
+                </div>
                 </div>
             </div>
         </div>
@@ -77,6 +82,10 @@
                         <button type="button" class="dropdown-item"
                             onclick="fecharDropdowns(); abrirModalCompartilhar('{{ caminho + '/' + imagem.nome if caminho else imagem.nome }}', '{{ imagem.nome }}')">
                             <i data-lucide="share-2"></i> Compartilhar
+                        </button>
+                        <button type="button" class="dropdown-item"
+                            onclick="fecharDropdowns(); abrirModalRenomear('{{ caminho + '/' + imagem.nome if caminho else imagem.nome }}', '{{ imagem.nome }}', 'imagem')">
+                            <i data-lucide="edit-2"></i> Renomear
                         </button>
                         <div class="dropdown-divider"></div>
                         <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=caminho + '/' + imagem.nome if caminho else imagem.nome) }}"
@@ -127,6 +136,10 @@
                         <button type="button" class="dropdown-item"
                             onclick="fecharDropdowns(); abrirModalCompartilhar('{{ caminho + '/' + audio.nome if caminho else audio.nome }}', '{{ audio.nome }}')">
                             <i data-lucide="share-2"></i> Compartilhar
+                        </button>
+                        <button type="button" class="dropdown-item"
+                            onclick="fecharDropdowns(); abrirModalRenomear('{{ caminho + '/' + audio.nome if caminho else audio.nome }}', '{{ audio.nome }}', 'audio')">
+                            <i data-lucide="edit-2"></i> Renomear
                         </button>
                         <div class="dropdown-divider"></div>
                         <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=caminho + '/' + audio.nome if caminho else audio.nome) }}"
@@ -182,6 +195,10 @@
                             onclick="fecharDropdowns(); abrirModalCompartilhar('{{ caminho + '/' + pdf.nome if caminho else pdf.nome }}', '{{ pdf.nome }}')">
                             <i data-lucide="share-2"></i> Compartilhar
                         </button>
+                        <button type="button" class="dropdown-item"
+                            onclick="fecharDropdowns(); abrirModalRenomear('{{ caminho + '/' + pdf.nome if caminho else pdf.nome }}', '{{ pdf.nome }}', 'pdf')">
+                            <i data-lucide="edit-2"></i> Renomear
+                        </button>
                         <div class="dropdown-divider"></div>
                         <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=caminho + '/' + pdf.nome if caminho else pdf.nome) }}"
                             method="post" class="form-excluir"
@@ -233,6 +250,10 @@
                         <button type="button" class="dropdown-item"
                             onclick="fecharDropdowns(); abrirModalCompartilhar('{{ caminho + '/' + arquivo.nome if caminho else arquivo.nome }}', '{{ arquivo.nome }}')">
                             <i data-lucide="share-2"></i> Compartilhar
+                        </button>
+                        <button type="button" class="dropdown-item"
+                            onclick="fecharDropdowns(); abrirModalRenomear('{{ caminho + '/' + arquivo.nome if caminho else arquivo.nome }}', '{{ arquivo.nome }}', 'arquivo')">
+                            <i data-lucide="edit-2"></i> Renomear
                         </button>
                         <div class="dropdown-divider"></div>
                         <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=caminho + '/' + arquivo.nome if caminho else arquivo.nome) }}"

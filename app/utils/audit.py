@@ -126,3 +126,8 @@ def log_permanently_deleted(usuario: str, caminho: str):
 def log_trash_emptied(usuario: str, quantidade: int):
     """Lixeira esvaziada."""
     _registrar('INFO', 'TRASH_EMPTIED', usuario, f"{quantidade} itens removidos")
+
+
+def log_rename(usuario: str, caminho_antigo: str, novo_nome: str):
+    """Arquivo/pasta renomeado."""
+    _registrar('INFO', 'RENAME', usuario, f"{caminho_antigo} -> {novo_nome}")

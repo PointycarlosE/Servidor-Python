@@ -1379,3 +1379,129 @@ document.addEventListener('keydown', function (e) {
         }
     });
 })();
+
+// ===== MODAL RENOMEAR =====
+(function () {
+    const renameModal = document.getElementById('rename-modal');
+    const renameForm = document.getElementById('rename-form');
+    const renameCaminhoAntigo = document.getElementById('rename-caminho-antigo');
+    const renameNovoNome = document.getElementById('rename-novo-nome');
+    const renameTipoHint = document.getElementById('rename-tipo-hint');
+    const closeRenameModal = document.getElementById('close-rename-modal');
+    const cancelRenameModal = document.getElementById('cancel-rename-modal');
+
+    if (!renameModal || !renameForm) return;
+
+    window.abrirModalRenomear = function (caminho, nomeAtual, tipo) {
+        renameCaminhoAntigo.value = caminho;
+        renameNovoNome.value = nomeAtual;
+        renameNovoNome.focus();
+        renameNovoNome.select();
+
+        // Atualiza o hint do tipo
+        const tipoLabels = {
+            'pasta': 'Pasta',
+            'imagem': 'Imagem',
+            'audio': 'Áudio',
+            'pdf': 'PDF',
+            'arquivo': 'Arquivo'
+        };
+        if (renameTipoHint) {
+            renameTipoHint.textContent = `Renomeando ${tipoLabels[tipo] || 'arquivo'}: "${nomeAtual}"`;
+        }
+
+        fecharDropdowns();
+        renameModal.style.display = 'flex';
+        setTimeout(() => renameModal.classList.add('active'), 10);
+
+        // Empurra um estado falso no histórico para capturar o botão voltar do celular
+        if (!history.state?.renameModalOpen) {
+            history.pushState({ renameModalOpen: true }, '');
+        }
+    };
+
+    function fecharModalRenomear() {
+        renameModal.classList.remove('active');
+        setTimeout(() => {
+            renameModal.style.display = 'none';
+            renameForm.reset();
+        }, 200);
+
+        // Descarta o estado falso que empurramos ao abrir
+        if (history.state?.renameModalOpen) {
+            history.back();
+        }
+    }
+
+    // Fechar modal
+    closeRenameModal?.addEventListener('click', fecharModalRenomear);
+    cancelRenameModal?.addEventListener('click', fecharModalRenomear);
+    renameModal.addEventListener('click', (e) => { if (e.target === renameModal) fecharModalRenomear(); });
+
+    // Submeter formulário
+    renameForm.addEventListener('submit', async function (e) {
+        e.preventDefault();
+
+        const caminhoAntigo = renameCaminhoAntigo.value;
+        const novoNome = renameNovoNome.value.trim();
+
+        if (!caminhoAntigo || !novoNome) {
+            showToast('Nome inválido', 'error');
+            return;
+        }
+
+        // Construir a URL do endpoint de renomeação
+        // O endpoint é POST /renomear/<path:caminho_arquivo>
+        const renameUrl = `/renomear/${encodeURIComponent(caminhoAntigo)}`;
+
+        const submitBtn = renameForm.querySelector('button[type="submit"]');
+        const originalText = submitBtn.innerHTML;
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i data-lucide="loader-2" style="width:16px;height:16px;animation:spin 1s linear infinite;"></i> Renomeando...';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+
+        try {
+            const response = await fetch(renameUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCsrfToken()
+                },
+                body: JSON.stringify({ novo_nome: novoNome })
+            });
+
+            const data = await response.json();
+
+            if (data.sucesso || data.success) {
+                showToast(data.mensagem || data.message || 'Renomeado com sucesso!', 'success');
+                fecharModalRenomear();
+                if (typeof atualizarLista === 'function') atualizarLista();
+            } else {
+                showToast(data.erro || data.error || 'Erro ao renomear', 'error');
+            }
+        } catch (error) {
+            console.error('Erro ao renomear:', error);
+            showToast('Erro ao renomear. Tente novamente.', 'error');
+        } finally {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    });
+
+    // Fechar com ESC
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && renameModal && renameModal.classList.contains('active')) {
+            e.preventDefault();
+            fecharModalRenomear();
+        }
+    });
+
+    // Intercepta o botão "voltar" do celular
+    window.addEventListener('popstate', function (e) {
+        if (renameModal && renameModal.classList.contains('active')) {
+            renameModal.classList.remove('active');
+            renameModal.style.display = 'none';
+        }
+    });
+})();
