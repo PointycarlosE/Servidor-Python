@@ -5,6 +5,7 @@ Documentação completa de todos os recursos do Cloud Storage App.
 ## Índice
 
 - [Gerenciamento de Arquivos](#gerenciamento-de-arquivos)
+- [Sistema de Lixeira](#sistema-de-lixeira)
 - [Sistema de Compartilhamento](#sistema-de-compartilhamento)
 - [Autenticação e Segurança](#autenticação-e-segurança)
 - [Visualização de Arquivos](#visualização-de-arquivos)
@@ -139,7 +140,134 @@ Delete pastas e todo seu conteúdo.
 2. Selecione "Excluir"
 3. Confirme a exclusão
 
-**Aviso:** A exclusão é permanente (não há lixeira ainda).
+**Comportamento:**
+- Arquivos individuais vão para a **lixeira**
+- Pastas vazias são excluídas permanentemente
+- Pastas com conteúdo movem os arquivos para a lixeira
+
+---
+
+## Sistema de Lixeira
+
+### Visão Geral
+Sistema completo de recuperação de arquivos excluídos, permitindo restaurar arquivos deletados acidentalmente.
+
+### Acessar a Lixeira
+
+**Como usar:**
+1. Menu lateral → "Lixeira"
+2. Veja todos os arquivos excluídos
+3. Restaure ou delete permanentemente
+
+**Interface:**
+- Design moderno e responsivo
+- Busca em tempo real
+- Ordenação por nome, tamanho, data de exclusão
+- Seleção múltipla
+- Visualização de grid ou lista
+
+### Funcionalidades
+
+#### Ver Arquivos na Lixeira
+
+**Informações mostradas:**
+- Nome original do arquivo
+- Tamanho
+- Data e hora da exclusão
+- Caminho original (onde estava antes da exclusão)
+- Ícone por tipo de arquivo
+
+**Recursos:**
+- Busca em tempo real
+- Ordenação (nome, tamanho, data)
+- Contador de arquivos na lixeira
+- Preview de imagens
+
+#### Restaurar Arquivos
+
+**Restauração Individual:**
+1. Clique no menu de três pontos do arquivo
+2. Selecione "Restaurar"
+3. Arquivo volta para o local original
+
+**Restauração em Lote:**
+1. Selecione múltiplos arquivos (Ctrl+Clique ou Ctrl+A)
+2. Clique em "Restaurar Selecionados"
+3. Todos os arquivos são restaurados
+
+**Como funciona:**
+- Arquivo é movido de volta para a pasta original
+- Se a pasta original não existir mais, cria automaticamente
+- Mantém o nome original do arquivo
+- Log de auditoria registra a restauração
+
+#### Excluir Permanentemente
+
+**Exclusão Individual:**
+1. Menu de três pontos → "Excluir Permanentemente"
+2. Confirme a exclusão definitiva
+3. Arquivo é removido do disco
+
+**Exclusão em Lote:**
+1. Selecione os arquivos
+2. Clique em "Excluir Permanentemente"
+3. Confirme a exclusão
+
+**Aviso:** Esta ação é irreversível!
+
+#### Esvaziar Lixeira
+
+Exclui todos os arquivos da lixeira de uma vez.
+
+**Como usar:**
+1. Na página da lixeira, clique em "Esvaziar Lixeira"
+2. Confirme a ação no modal
+3. Todos os arquivos são excluídos permanentemente
+
+**Confirmação:**
+- Modal de confirmação com contagem de arquivos
+- Aviso de ação irreversível
+- Feedback visual após conclusão
+
+#### Visualizar Arquivos
+
+**Imagens:**
+- Clique na imagem para abrir lightbox
+- Visualização em tela cheia
+- Navegação entre imagens
+- Download e restauração direto do lightbox
+
+**Áudios:**
+- Clique no arquivo para abrir player
+- Controles customizados
+- Opções de restaurar ou excluir
+
+**PDFs e outros:**
+- Preview quando disponível
+- Download direto
+
+### Interface Mobile
+
+**Otimizações para mobile:**
+- Layout de grid responsivo (2 colunas)
+- Cards compactos com informações essenciais
+- Menu de contexto otimizado para toque
+- Botões grandes e acessíveis
+- Barra de ações flutuante
+- Busca com teclado virtual otimizado
+
+### Segurança
+
+**Log de Auditoria:**
+- Exclusões são registradas
+- Restaurações são registradas
+- Exclusões permanentes são registradas
+- Timestamp e IP do usuário
+
+**Permissões:**
+- Apenas o usuário autenticado pode acessar
+- Rate limiting aplicado
+- Proteção CSRF em todas as ações
 
 ### Seleção de Arquivos
 
@@ -384,6 +512,78 @@ Links de imagens mostram preview antes do download.
 
 ## Autenticação e Segurança
 
+### Páginas de Autenticação Redesenhadas
+
+#### Design Moderno
+Todas as páginas de autenticação foram completamente redesenhadas com um visual moderno e profissional.
+
+**Características:**
+- **Cards centralizados** com animação de entrada suave
+- **Gradientes temáticos** para cada página:
+  - Login: Azul (#3b82f6 → #2563eb)
+  - Setup: Rosa (#ec4899 → #f472b6)
+  - Reset de Senha: Verde (#10b981 → #059669)
+- **Headers com ícones** grandes e estilizados
+- **Formulários limpos** com validação em tempo real
+- **Totalmente responsivo** para todos os dispositivos
+- **Suporte a dark mode** com cores ajustadas
+
+#### Toggle de Senha Melhorado
+Sistema de visualização de senha aprimorado.
+
+**Recursos:**
+- Botão com ícone de olho (eye/eye-off)
+- Troca suave de ícones sem duplicação
+- Funciona em todos os campos de senha
+- Feedback visual ao hover
+- Acessível via teclado
+
+**Páginas com toggle:**
+- Login (senha)
+- Setup (senha e confirmação)
+- Reset de Senha (nova senha e confirmação)
+- Perfil (senha atual e nova)
+
+#### Indicador de Força de Senha
+Validação visual em tempo real da força da senha.
+
+**Recursos:**
+- 4 barras coloridas que preenchem conforme requisitos
+- Lista de requisitos que ficam verdes ao serem atendidos:
+  - ✓ Mínimo 12 caracteres
+  - ✓ Uma letra maiúscula
+  - ✓ Uma letra minúscula
+  - ✓ Um número
+  - ✓ Um caractere especial
+- Cores por força:
+  - Vermelho: Muito fraca (1-2 requisitos)
+  - Laranja: Fraca (2-3 requisitos)
+  - Amarelo: Média (3-4 requisitos)
+  - Verde: Forte (todos os requisitos)
+
+**Onde aparece:**
+- Página de Setup (configuração inicial)
+- Página de Reset de Senha
+- Perfil (ao trocar senha)
+
+#### Responsividade
+Otimizado para todos os tamanhos de tela.
+
+**Desktop:**
+- Card centralizado elegante
+- Espaçamento generoso
+- Ícones e textos grandes
+
+**Tablet:**
+- Card adaptado ao tamanho
+- Elementos proporcionalmente reduzidos
+
+**Mobile:**
+- Card ocupa largura total
+- Padding reduzido
+- Inputs e botões otimizados para toque
+- Teclado virtual otimizado
+
 ### Sistema de Login
 
 #### Proteção contra Força Bruta
@@ -562,18 +762,28 @@ Aplicados automaticamente em produção:
 ### Lightbox de Imagens
 
 **Recursos:**
-- Visualização em tela cheia
-- Fundo escuro semitransparente
+- Visualização em tela cheia otimizada
+- Fundo escuro semitransparente com blur
 - Navegação entre imagens (anterior/próximo)
-- Zoom com scroll do mouse
 - Download direto
 - Exclusão rápida
+- **Design moderno e responsivo:**
+  - Modal compacto sem scroll horizontal
+  - Botões de navegação posicionados dentro do modal
+  - Controles sempre acessíveis no mobile
+  - Redimensionamento inteligente para telas pequenas
 
 **Controles:**
-- Setas esquerda/direita: navegar
-- ESC: fechar
-- Scroll: zoom in/out
-- Clique fora: fechar
+- **Desktop:**
+  - Setas esquerda/direita: navegar entre imagens
+  - ESC: fechar lightbox
+  - Clique fora do modal: fechar
+  - Botões de navegação laterais
+- **Mobile:**
+  - Botões de navegação sobrepostos na imagem
+  - Controles de footer sempre visíveis
+  - Toque fora para fechar
+  - Gestos de swipe (futuro)
 
 **Formatos suportados:**
 - JPG, JPEG
@@ -583,15 +793,35 @@ Aplicados automaticamente em produção:
 - BMP
 - SVG
 
+**Responsividade:**
+- **Desktop (>768px):** Modal 85vw x 85vh, botões laterais grandes
+- **Tablet (768px):** Modal 90vw x 75vh, controles adaptados
+- **Mobile (<480px):** Modal 100vw x 90vh, layout vertical compacto
+
 ### Player de Áudio
 
 **Recursos:**
-- Modal centralizado
-- Controles nativos do navegador
-- Play/pause
-- Controle de volume
-- Barra de progresso
-- Duração total
+- **Player customizado com design moderno**
+- Modal centralizado com gradiente roxo
+- **Controles totalmente personalizados:**
+  - Botão play/pause grande e estiloso
+  - Barra de progresso interativa com handle arrastável
+  - Controle de volume com slider expansível
+  - Tempo atual e duração formatados (MM:SS)
+  - Ícones que mudam dinamicamente
+- **Interações avançadas:**
+  - Clique na barra de progresso para pular
+  - Arraste o handle para navegar
+  - Hover no volume para expandir slider
+  - Botão mute/unmute que lembra último volume
+
+**Controles:**
+- **Play/Pause:** Botão grande centralizado com ícone animado
+- **Barra de Progresso:** Clique ou arraste para qualquer ponto do áudio
+- **Volume:** Slider que aparece ao passar o mouse, ícone muda por nível
+- **Tempo:** Mostra tempo atual e duração total
+- **Download:** Baixar arquivo direto do player
+- **Excluir:** Deletar com confirmação
 
 **Formatos suportados:**
 - MP3
@@ -599,11 +829,21 @@ Aplicados automaticamente em produção:
 - OGG
 - M4A
 - AAC
+- FLAC
 
 **Como usar:**
 1. Clique no arquivo de áudio
-2. Player abre automaticamente
-3. Use controles para reproduzir
+2. Player abre com controles customizados
+3. Use play/pause para reproduzir
+4. Clique na barra ou arraste para navegar
+5. Ajuste volume com slider ou clique no ícone para mutar
+6. Feche com X, ESC ou clicando fora
+
+**Responsividade Mobile:**
+- Controles reorganizados verticalmente
+- Botões maiores para facilitar toque
+- Slider de volume sempre visível
+- Layout otimizado para telas pequenas
 
 ### Visualizador de PDF
 
@@ -943,7 +1183,6 @@ Funcionalidades planejadas (veja [ROADMAP.md](ROADMAP.md)):
 
 - Interface de visualização de logs de auditoria
 - Player de vídeo integrado
-- Lixeira para arquivos excluídos
 - Sistema de favoritos
 - Suporte multi-usuário com permissões
 - Busca avançada com filtros
@@ -961,7 +1200,10 @@ Funcionalidades planejadas (veja [ROADMAP.md](ROADMAP.md)):
 Atualmente o sistema suporta apenas um usuário. Suporte multi-usuário está no roadmap.
 
 **Posso recuperar arquivos excluídos?**
-Não no momento. Implemente backups regulares. Lixeira está planejada.
+Sim! Use a **Lixeira** no menu lateral. Arquivos excluídos ficam lá até serem restaurados ou excluídos permanentemente.
+
+**Por quanto tempo os arquivos ficam na lixeira?**
+Indefinidamente, até você restaurá-los ou excluí-los permanentemente. A lixeira não tem limpeza automática.
 
 **Qual o limite de armazenamento?**
 Limitado pelo espaço em disco disponível no sistema.

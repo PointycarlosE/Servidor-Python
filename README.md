@@ -15,11 +15,13 @@ Uma solução de armazenamento em nuvem auto-hospedada com interface moderna e o
 
 ### Principais Recursos
 
+- **Sistema de Lixeira** - Recupere arquivos excluídos com um clique, visualize e restaure facilmente
 - **Sistema de Compartilhamento de Arquivos** - Gere links públicos com proteção por senha opcional e expiração
 - **Autenticação Avançada** - Autenticação de dois fatores (2FA), recuperação de senha e notificações de login
 - **Interface Otimizada para Mobile** - Interface redesenhada com ~40% mais espaço na tela para conteúdo
+- **Player de Áudio Customizado** - Controles modernos e estilosos com barra de progresso interativa
 - **Multi-Plataforma** - Funciona em Windows, Linux, macOS e Android (Termux)
-- **Interface Moderna** - Design responsivo com temas claro e escuro
+- **Interface Moderna** - Design totalmente redesenhado com temas claro e escuro
 - **Segurança em Primeiro Lugar** - Rate limiting, proteção CSRF, sessões seguras e log de auditoria
 - **Deploy Fácil** - Modo de produção integrado com suporte a Cloudflare Tunnel
 
@@ -122,6 +124,7 @@ Após a configuração, faça login e comece a gerenciar seus arquivos!
 - Rastreamento de progresso de upload em tempo real
 - Download de arquivos individualmente ou como arquivos ZIP
 - Criar e gerenciar pastas
+- **Lixeira de arquivos** - Recupere arquivos excluídos acidentalmente
 - Seleção múltipla (Ctrl+Clique, Ctrl+A)
 - Busca rápida com filtragem ao vivo
 - Ordenação inteligente (tipo, nome, tamanho, data)
@@ -146,14 +149,15 @@ Após a configuração, faça login e comece a gerenciar seus arquivos!
 - Headers de segurança (CSP, HSTS, X-Frame-Options)
 
 ### Experiência do Usuário
-- Design responsivo para todos os tamanhos de tela
-- Suporte a temas claro e escuro
-- Visualizador lightbox de imagens
-- Player de áudio com controles
+- Design responsivo totalmente redesenhado para todos os tamanhos de tela
+- Suporte a temas claro e escuro com design moderno
+- Visualizador lightbox de imagens com modal otimizado
+- **Player de áudio customizado** com controles modernos e interativos
 - Visualizador de PDF
 - Atalhos de teclado
 - Notificações toast
 - Interface otimizada para mobile com princípios do Material Design
+- **Páginas de autenticação redesenhadas** (Login, Setup, Reset de Senha)
 
 ## Stack de Tecnologia
 
@@ -176,6 +180,12 @@ Após a configuração, faça login e comece a gerenciar seus arquivos!
 ### Compartilhamento de Arquivos
 ![Link de Compartilhamento](docs/assets/share-link.jpeg)
 
+### Tela de Gestão de Links
+![Gestão dos Links](docs/assets/share-view.jpeg)
+
+### Lixeira de Arquivos
+![Lixeira dos Arquivos](docs/assets/lixeira-view.jpeg)
+
 ## Contribuindo
 
 Contribuições são bem-vindas! Por favor, siga estas diretrizes:
@@ -194,7 +204,10 @@ Veja [CONTRIBUTING.md](CONTRIBUTING.md) para diretrizes detalhadas.
 ### Implementado
 - [x] Sistema de autenticação avançado (2FA, recuperação de senha, notificações por email)
 - [x] Compartilhamento de arquivos com links públicos
+- [x] **Lixeira para arquivos deletados**
 - [x] Interface otimizada para mobile
+- [x] **Redesign completo da UI com design moderno**
+- [x] **Player de áudio customizado com controles estilosos**
 - [x] Upload com arrastar e soltar
 - [x] Operações em lote
 - [x] Temas claro/escuro
@@ -204,7 +217,6 @@ Veja [CONTRIBUTING.md](CONTRIBUTING.md) para diretrizes detalhadas.
 ### Planejado
 - [ ] Interface de visualização de log de auditoria
 - [ ] Player de vídeo
-- [ ] Lixeira para arquivos deletados
 - [ ] Sistema de favoritos
 - [ ] Suporte multi-usuário com permissões
 - [ ] Filtros de busca avançada
