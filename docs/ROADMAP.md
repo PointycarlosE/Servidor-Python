@@ -2,7 +2,7 @@
 
 Este documento descreve a evolução do Cloud Storage App, incluindo recursos implementados e o plano de desenvolvimento futuro.
 
-## Versão Atual: 1.0
+## Versão Atual: 1.1
 
 ### Recursos Implementados ✅
 
@@ -21,12 +21,31 @@ Este documento descreve a evolução do Cloud Storage App, incluindo recursos im
 - **Revogação de Links** - Desative links a qualquer momento
 - **Pré-visualização** - Visualize imagens antes de baixar
 
+#### Sistema de Lixeira
+- **Recuperação de Arquivos** - Restaure arquivos deletados antes da remoção permanente
+- **Restauração Individual e em Lote** - Selecione múltiplos arquivos para restaurar
+- **Exclusão Permanente** - Remova arquivos definitivamente da lixeira
+- **Esvaziar Lixeira** - Limpe todos os arquivos de uma vez
+- **Busca e Ordenação** - Encontre arquivos na lixeira rapidamente
+- **Interface Responsiva** - Funciona perfeitamente em mobile e desktop
+
+#### Painel de Detalhes de Arquivos
+- **Visualização Completa de Metadados** - Nome, tipo, tamanho, datas, localização
+- **Preview de Imagens** - Visualize imagens diretamente no painel
+- **Informações de Compartilhamento** - Veja links ativos, expiração e downloads
+- **Duração de Áudio** - Exibe duração de arquivos de áudio
+- **Painel Lateral Desktop** - Desliza suavemente da direita (360px)
+- **Tela Cheia Mobile** - Interface otimizada para dispositivos móveis
+- **Navegação Especial** - Clique atualiza info, duplo-clique abre pastas
+- **Animações Fluidas** - Transições suaves com cubic-bezier
+
 #### Interface Otimizada para Mobile
 - **Redesign Completo** - ~40% mais espaço para conteúdo
 - **FAB (Floating Action Button)** - Ações rápidas de upload
 - **Gestos Touch** - Navegação otimizada para toque
 - **Header Compacto** - Maximiza área de visualização de arquivos
 - **Responsividade Total** - Funciona perfeitamente de 320px a 4K
+- **Bottom Sheet Fluido** - Animações suaves ao abrir menus
 
 #### Gerenciamento de Arquivos
 - **Upload Arrastar e Soltar** - Interface intuitiva de upload
@@ -36,10 +55,11 @@ Este documento descreve a evolução do Cloud Storage App, incluindo recursos im
 - **Busca Instantânea** - Filtragem ao vivo conforme você digita
 - **Ordenação Inteligente** - Por tipo, nome, tamanho ou data
 - **Seleção Múltipla** - Ctrl+Clique e Ctrl+A para operações em lote
+- **Renomear Arquivos/Pastas** - Renomeação inline com validação
 
 #### Visualizadores de Arquivos
 - **Lightbox de Imagens** - Visualizador full-screen com navegação
-- **Player de Áudio** - Controles de reprodução integrados
+- **Player de Áudio Customizado** - Controles modernos com barra de progresso interativa
 - **Visualizador de PDF** - Renderização inline de PDFs
 - **Pré-visualização de Thumbnails** - Miniaturas para tipos suportados
 
@@ -62,16 +82,17 @@ Este documento descreve a evolução do Cloud Storage App, incluindo recursos im
 
 #### Experiência do Usuário
 - **Temas Claro e Escuro** - Alternância instantânea
-- **Atalhos de Teclado** - Ctrl+A para selecionar tudo
+- **Atalhos de Teclado** - Ctrl+A para selecionar tudo, ESC para fechar modais
 - **Notificações Toast** - Feedback visual de ações
 - **Breadcrumbs** - Navegação de diretório clara
 - **Estados de Loading** - Feedback visual durante operações
+- **Animações Suaves** - Transições polidas em todas as interações
 
 ---
 
 ## Próximas Versões
 
-### Versão 1.1 (Curto Prazo - Q3 2026)
+### Versão 1.2 (Curto Prazo - Q4 2026)
 
 #### Interface de Visualização de Log de Auditoria
 **Prioridade:** Alta  
@@ -91,25 +112,13 @@ Este documento descreve a evolução do Cloud Storage App, incluindo recursos im
 
 **Formatos suportados:**
 - MP4, WebM, OGG
-- Controles personalizados
+- Controles personalizados consistentes com player de áudio
 - Suporte a legendas (SRT, VTT)
 - Velocidade de reprodução ajustável
 - Picture-in-picture
 - Atalhos de teclado (espaço para play/pause, setas para avançar/retroceder)
 
-#### Lixeira
-**Prioridade:** Média  
-**Descrição:** Recuperação de arquivos deletados antes da remoção permanente.
-
-**Funcionalidades:**
-- Pasta especial `.trash` ou `instance/trash/`
-- Arquivos mantidos por 30 dias (configurável)
-- Interface de restauração
-- Esvaziamento automático por data
-- Esvaziamento manual
-- Visualização de tamanho da lixeira
-
-### Versão 1.2 (Médio Prazo - Q4 2026)
+### Versão 1.3 (Médio Prazo - Q1 2027)
 
 #### Sistema de Favoritos
 **Prioridade:** Média  
@@ -121,6 +130,7 @@ Este documento descreve a evolução do Cloud Storage App, incluindo recursos im
 - Filtro para mostrar apenas favoritos
 - Ordenação personalizada de favoritos
 - Atalho de teclado (Ctrl+D para favoritar)
+- Indicador visual no painel de detalhes
 
 #### Filtros de Busca Avançada
 **Prioridade:** Média  
@@ -135,6 +145,18 @@ Este documento descreve a evolução do Cloud Storage App, incluindo recursos im
 - Salvar pesquisas frequentes
 - Exportar resultados da busca
 
+#### Histórico de Atividades no Painel de Detalhes
+**Prioridade:** Média  
+**Descrição:** Aba "Atividades" no painel de detalhes mostrando histórico do arquivo.
+
+**Funcionalidades:**
+- Linha do tempo de ações (upload, modificação, compartilhamento, download)
+- Quem acessou o arquivo (para arquivos compartilhados)
+- Estatísticas de visualização
+- Integração com log de auditoria
+
+### Versão 2.0 (Longo Prazo - 2027)
+
 #### Suporte Multi-usuário (Fase 1)
 **Prioridade:** Baixa  
 **Descrição:** Múltiplos usuários com pastas separadas.
@@ -146,8 +168,6 @@ Este documento descreve a evolução do Cloud Storage App, incluindo recursos im
 - Gerenciamento de usuários (admin)
 - Limites de armazenamento por usuário
 - Sessões isoladas
-
-### Versão 2.0 (Longo Prazo - 2027)
 
 #### Pré-visualização de Documentos Office
 **Prioridade:** Baixa  
@@ -163,6 +183,7 @@ Este documento descreve a evolução do Cloud Storage App, incluindo recursos im
 - LibreOffice para conversão para HTML/PDF
 - Ou biblioteca Python (python-docx, openpyxl)
 - Renderização no navegador
+- Visualização no painel de detalhes
 
 #### Editor de Texto Online
 **Prioridade:** Baixa  
@@ -244,6 +265,14 @@ Novos recursos são avaliados com base em:
 
 ## Histórico de Versões
 
+### v1.1.0 (Agosto 2026)
+- Sistema de lixeira completo
+- Painel de detalhes de arquivos/pastas
+- Renomear arquivos e pastas
+- Player de áudio customizado
+- Melhorias nas animações mobile
+- Redesign das páginas de autenticação
+
 ### v1.0.0 (Agosto 2026)
 - Lançamento inicial
 - Sistema de autenticação avançado
@@ -264,4 +293,4 @@ Novos recursos são avaliados com base em:
 ---
 
 **Última atualização:** Agosto 2026  
-**Próxima revisão prevista:** Setembro 2026
+**Próxima revisão prevista:** Outubro 2026

@@ -8,6 +8,28 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ## [Não Lançado]
 
 ### Adicionado
+- **Painel de Detalhes de Arquivos/Pastas**
+  - Painel lateral no desktop (360px) que desliza da direita ao clicar em "Ver informações"
+  - Tela full-screen no mobile com animação fluida
+  - Exibição de metadados completos:
+    - Preview de imagens ou ícone para outros tipos
+    - Nome, tipo, tamanho, localização (caminho)
+    - Data de modificação e criação
+    - Duração de arquivos de áudio (quando disponível)
+  - Seção de compartilhamento ativo:
+    - Link público ativo
+    - Data de expiração
+    - Contador de downloads
+  - Novo endpoint de API: `/api/files/info/<path:caminho>`
+  - Comportamento especial de navegação:
+    - Com painel aberto, clique simples atualiza informações
+    - Duplo-clique em pastas fecha o painel e navega
+  - Animações suaves com cubic-bezier para transições naturais
+  - Overlay com fade in/out no mobile
+  - Header invertido no mobile (X à esquerda, "Detalhes" à direita)
+  - Suporte completo a dark mode
+  - Integração com sistema de compartilhamento existente
+
 - **Sistema de Lixeira completo**
   - Página dedicada para visualizar arquivos excluídos
   - Restauração individual e em lote de arquivos
@@ -35,7 +57,19 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
   - Layout responsivo para mobile
   - Correção de bugs de ícones duplicados
 
+- **Funcionalidade de Renomear Arquivos e Pastas**
+  - Renomeação inline de arquivos e pastas
+  - Validação de nomes em tempo real
+  - Endpoint `/renomear/<path:caminho>`
+  - Integrado nos menus de contexto
+
 ### Melhorado
+- **Animações Mobile**
+  - Bottom sheet com deslizamento suave (0.35s cubic-bezier)
+  - Painel de detalhes com transição fluida (0.4s)
+  - Overlay com fade suave de opacidade
+  - Experiência mais natural e polida
+
 - **Redesign Completo da Interface de Autenticação**
   - **Página de Login:**
     - Card centralizado com gradiente azul (#3b82f6 → #2563eb)
@@ -81,6 +115,8 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
   - Melhor organização visual
 
 ### Corrigido
+- Bottom sheet mobile não duplica mais o botão "Excluir"
+- Filtro correto de elementos do dropdown no mobile
 - Toggle de senha agora troca o ícone corretamente sem duplicar elementos
 - Ícones do player de áudio (play/pause e volume) agora atualizam sem criar duplicatas
 - Modal de áudio abre corretamente após ser fechado (não requer mais reload manual)
@@ -90,12 +126,19 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - Botões de navegação do lightbox posicionados corretamente
 
 ### Técnico
+- Novo módulo JavaScript `DetailsPanel` para gerenciar painel de informações
+- Endpoint RESTful `/api/files/info/<path>` com suporte a metadados completos
+- Integração com biblioteca `mutagen` (opcional) para duração de áudio
+- Uso de `os.stat()` para metadados de sistema (st_ctime, st_mtime)
+- Detecção de MIME type com `mimetypes.guess_type()`
+- Handler especial para "Ver informações" no bottom sheet mobile
 - Implementação de sistema de troca de ícones Lucide sem duplicação
 - Uso de classes CSS (`.active`) em vez de manipulação inline de `style.display`
 - Melhor organização do CSS com variáveis customizadas
 - JavaScript modularizado para controles do player de áudio
 - Event listeners otimizados para evitar conflitos
 - Box-sizing e overflow controlados para prevenir scroll indesejado
+- Animações otimizadas com cubic-bezier curves para sensação mais natural
 
 ---
 

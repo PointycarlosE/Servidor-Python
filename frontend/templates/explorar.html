@@ -445,6 +445,93 @@
                 </div>
             </div>
 
+            <!-- ===== PAINEL DE DETALHES ===== -->
+            <aside id="details-panel" class="details-panel">
+                <div class="details-panel-header">
+                    <h3 class="details-panel-title">Detalhes</h3>
+                    <button class="details-panel-close" id="details-panel-close" aria-label="Fechar">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+
+                <div class="details-panel-content" id="details-panel-content">
+                    <!-- Estado: Carregando -->
+                    <div class="details-loading" id="details-loading">
+                        <i data-lucide="loader-2" class="spin-icon"></i>
+                        <span>Carregando...</span>
+                    </div>
+
+                    <!-- Estado: Erro -->
+                    <div class="details-error" id="details-error" style="display: none;">
+                        <i data-lucide="alert-circle"></i>
+                        <span id="details-error-message">Erro ao carregar</span>
+                    </div>
+
+                    <!-- Conteúdo -->
+                    <div id="details-info" style="display: none;">
+                        <!-- Preview/Ícone -->
+                        <div class="details-preview" id="details-preview"></div>
+
+                        <!-- Metadados -->
+                        <div class="details-section">
+                            <div class="details-row">
+                                <span class="details-label">Nome</span>
+                                <span class="details-value" id="details-nome">--</span>
+                            </div>
+                            <div class="details-row">
+                                <span class="details-label">Tipo</span>
+                                <span class="details-value" id="details-tipo">--</span>
+                            </div>
+                            <div class="details-row">
+                                <span class="details-label">Tamanho</span>
+                                <span class="details-value" id="details-tamanho">--</span>
+                            </div>
+                            <div class="details-row">
+                                <span class="details-label">Localização</span>
+                                <span class="details-value details-path" id="details-localizacao">--</span>
+                            </div>
+                            <div class="details-row">
+                                <span class="details-label">Modificado</span>
+                                <span class="details-value" id="details-modificado">--</span>
+                            </div>
+                            <div class="details-row">
+                                <span class="details-label">Criado</span>
+                                <span class="details-value" id="details-criado">--</span>
+                            </div>
+                            <div class="details-row" id="details-duracao-row" style="display: none;">
+                                <span class="details-label">Duração</span>
+                                <span class="details-value" id="details-duracao">--</span>
+                            </div>
+                        </div>
+
+                        <!-- Seção de Compartilhamento (condicional) -->
+                        <div class="details-section" id="details-share-section" style="display: none;">
+                            <div class="details-section-title">
+                                <i data-lucide="share-2"></i>
+                                Compartilhamento ativo
+                            </div>
+                            <div class="details-share-card">
+                                <div class="details-row">
+                                    <span class="details-label">Link</span>
+                                    <a class="details-link" id="details-share-link" target="_blank">Ver link</a>
+                                </div>
+                                <div class="details-row">
+                                    <span class="details-label">Expira em</span>
+                                    <span class="details-value" id="details-share-expires">--</span>
+                                </div>
+                                <div class="details-row">
+                                    <span class="details-label">Downloads</span>
+                                    <span class="details-value" id="details-share-downloads">0</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Overlay (mobile) -->
+            <div class="details-overlay" id="details-overlay"></div>
+
         </main>
     </div>
 

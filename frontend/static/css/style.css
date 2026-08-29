@@ -1403,11 +1403,14 @@ a {
     padding-bottom: calc(16px + var(--sab));
     max-height: 85vh;
     overflow-y: auto;
+    transform: translateY(100%);
+    transition: transform 0.35s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
 .mobile-bottom-sheet.active {
     display: flex;
     flex-direction: column;
+    transform: translateY(0);
 }
 
 .bottom-sheet-handle {
@@ -1808,5 +1811,222 @@ a {
     .item-folder-silhouette {
         width: 50px;
         height: 42px;
+    }
+}
+
+/* ===== PAINEL DE DETALHES ===== */
+.details-panel {
+    position: fixed;
+    top: 0;
+    right: 0;
+    width: 360px;
+    height: 100vh;
+    background: var(--surface);
+    border-left: 1px solid var(--border);
+    box-shadow: -4px 0 24px rgba(0, 0, 0, 0.08);
+    z-index: 150;
+    display: none;
+    flex-direction: column;
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+}
+
+.details-panel.active {
+    display: flex;
+    transform: translateX(0);
+}
+
+.details-panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    border-bottom: 1px solid var(--border-light);
+    flex-shrink: 0;
+}
+
+.details-panel-title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text);
+}
+
+.details-panel-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-muted);
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    transition: var(--transition-fast);
+}
+
+.details-panel-close:hover {
+    background: var(--surface-hover);
+    color: var(--text);
+}
+
+.details-panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+}
+
+/* Estados */
+.details-loading,
+.details-error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 40px 20px;
+    color: var(--text-muted);
+}
+
+.details-error {
+    color: var(--danger);
+}
+
+.spin-icon {
+    width: 32px;
+    height: 32px;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Preview */
+.details-preview {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: var(--surface-variant);
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 24px;
+    overflow: hidden;
+}
+
+.details-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.details-preview-icon {
+    width: 64px;
+    height: 64px;
+    color: var(--text-muted);
+}
+
+/* Seções e linhas */
+.details-section {
+    margin-bottom: 24px;
+}
+
+.details-section-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.details-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--border-light);
+}
+
+.details-row:last-child {
+    border-bottom: none;
+}
+
+.details-label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    flex-shrink: 0;
+}
+
+.details-value {
+    font-size: 0.875rem;
+    color: var(--text);
+    text-align: right;
+    word-break: break-word;
+    max-width: 60%;
+}
+
+.details-path {
+    font-family: 'Monaco', 'Courier New', monospace;
+    font-size: 0.8125rem;
+    background: var(--surface-variant);
+    padding: 4px 8px;
+    border-radius: 4px;
+}
+
+.details-link {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.details-link:hover {
+    text-decoration: underline;
+}
+
+.details-share-card {
+    background: var(--primary-light);
+    border: 1px solid rgba(var(--primary-rgb), 0.2);
+    border-radius: var(--radius-md);
+    padding: 12px;
+}
+
+/* Overlay mobile */
+.details-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 149;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.details-overlay.active {
+    display: block;
+    opacity: 1;
+}
+
+/* Responsivo Mobile */
+@media (max-width: 768px) {
+    .details-panel {
+        width: 100%;
+    }
+
+    /* Inverter posição do X e título no mobile */
+    .details-panel-header {
+        flex-direction: row-reverse;
+        padding: 16px 20px;
+        padding-top: calc(16px + var(--sat));
+    }
+
+    .details-panel-title {
+        text-align: right;
     }
 }

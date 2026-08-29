@@ -890,6 +890,7 @@ function abrirBottomSheet(card, link, dropdown) {
 
     const nome = link?.dataset.nome || card.querySelector('.item-card-title, .item-nome')?.textContent.trim() || 'Arquivo';
     const tipo = link?.dataset.tipo || 'arquivo';
+    const caminho = link?.dataset.caminho || '';
 
     if (bottomSheetTitle) bottomSheetTitle.textContent = nome;
 
@@ -903,9 +904,16 @@ function abrirBottomSheet(card, link, dropdown) {
     }
 
     bottomSheetOptions.innerHTML = '';
-    const items = dropdown.querySelectorAll('.dropdown-item, form');
+
+    // Pegar apenas elementos filhos diretos do dropdown (ignorando o que está dentro de forms)
+    const items = Array.from(dropdown.children);
 
     items.forEach(el => {
+        // Ignorar dividers
+        if (el.classList.contains('dropdown-divider')) {
+            return;
+        }
+
         if (el.tagName.toLowerCase() === 'form') {
             const formClone = el.cloneNode(true);
             const submitBtn = formClone.querySelector('button');
@@ -924,12 +932,25 @@ function abrirBottomSheet(card, link, dropdown) {
             if (el.getAttribute('download') !== null) btn.setAttribute('download', '');
             if (el.getAttribute('target')) btn.setAttribute('target', el.getAttribute('target'));
 
-            btn.addEventListener('click', (e) => {
-                fecharBottomSheet();
-                if (el.getAttribute('onclick')) {
-                    eval(el.getAttribute('onclick'));
-                }
-            });
+            // Handler especial para "Ver informações"
+            const onclickAttr = el.getAttribute('onclick');
+            if (onclickAttr && onclickAttr.includes('DetailsPanel.open')) {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    fecharBottomSheet();
+                    if (caminho) {
+                        DetailsPanel.open(caminho);
+                    }
+                });
+            } else {
+                btn.addEventListener('click', (e) => {
+                    fecharBottomSheet();
+                    if (onclickAttr) {
+                        eval(onclickAttr);
+                    }
+                });
+            }
+
             bottomSheetOptions.appendChild(btn);
         }
     });
@@ -1095,3 +1116,202 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 })();
+
+// ===== PAINEL DE DETALHES =====
+const DetailsPanel = {
+    panel: null,
+    overlay: null,
+    isOpen: false,
+    currentPath: null,
+
+    init() {
+        this.panel = document.getElementById('details-panel');
+        this.overlay = document.getElementById('details-overlay');
+
+        const closeBtn = document.getElementById('details-panel-close');
+        closeBtn?.addEventListener('click', () => this.close());
+        this.overlay?.addEventListener('click', () => this.close());
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && this.isOpen) this.close();
+        });
+    },
+
+    async open(caminho) {
+        if (!this.panel) return;
+
+        this.currentPath = caminho;
+        this.isOpen = true;
+        this.panel.classList.add('active');
+        this.overlay?.classList.add('active');
+
+        this.showLoading();
+        await this.loadFileInfo(caminho);
+    },
+
+    close() {
+        this.panel?.classList.remove('active');
+        this.overlay?.classList.remove('active');
+        this.isOpen = false;
+        this.currentPath = null;
+    },
+
+    showLoading() {
+        document.getElementById('details-loading').style.display = 'flex';
+        document.getElementById('details-error').style.display = 'none';
+        document.getElementById('details-info').style.display = 'none';
+    },
+
+    showError(message) {
+        document.getElementById('details-loading').style.display = 'none';
+        document.getElementById('details-error').style.display = 'flex';
+        document.getElementById('details-info').style.display = 'none';
+        document.getElementById('details-error-message').textContent = message;
+    },
+
+    showInfo() {
+        document.getElementById('details-loading').style.display = 'none';
+        document.getElementById('details-error').style.display = 'none';
+        document.getElementById('details-info').style.display = 'block';
+    },
+
+    async loadFileInfo(caminho) {
+        try {
+            const response = await fetch(`/api/files/info/${encodeURIComponent(caminho).replace(/%2F/g, '/')}`);
+
+            if (!response.ok) {
+                throw new Error(response.status === 404 ? 'Arquivo não encontrado' : 'Erro ao carregar');
+            }
+
+            const result = await response.json();
+            if (!result.success) throw new Error(result.error || 'Erro desconhecido');
+
+            this.renderFileInfo(result.data);
+            this.showInfo();
+
+        } catch (error) {
+            console.error('Erro ao carregar info:', error);
+            this.showError(error.message);
+        }
+    },
+
+    renderFileInfo(data) {
+        // Nome, tipo, tamanho
+        document.getElementById('details-nome').textContent = data.nome;
+
+        const tipoLabels = {
+            'pasta': 'Pasta',
+            'imagem': 'Imagem',
+            'audio': 'Áudio',
+            'pdf': 'Documento PDF',
+            'arquivo': data.extensao ? data.extensao.toUpperCase() : 'Arquivo'
+        };
+        document.getElementById('details-tipo').textContent = tipoLabels[data.tipo] || 'Arquivo';
+        document.getElementById('details-tamanho').textContent = data.tamanho_formatado;
+
+        // Localização (pasta pai)
+        const pathParts = data.caminho_relativo.split('/');
+        pathParts.pop();
+        document.getElementById('details-localizacao').textContent = pathParts.join('/') || '/';
+
+        // Datas
+        document.getElementById('details-modificado').textContent = data.data_modificacao;
+        document.getElementById('details-criado').textContent = data.data_criacao;
+
+        // Duração (áudio/vídeo)
+        const durationRow = document.getElementById('details-duracao-row');
+        if (data.duracao_formatada) {
+            document.getElementById('details-duracao').textContent = data.duracao_formatada;
+            durationRow.style.display = 'flex';
+        } else {
+            durationRow.style.display = 'none';
+        }
+
+        // Preview
+        this.renderPreview(data);
+
+        // Compartilhamento
+        this.renderShareInfo(data.share_link);
+    },
+
+    renderPreview(data) {
+        const preview = document.getElementById('details-preview');
+        preview.innerHTML = '';
+
+        if (data.tipo === 'imagem') {
+            const img = document.createElement('img');
+            img.src = `/visualizar/${data.caminho_relativo}`;
+            img.alt = data.nome;
+            img.loading = 'lazy';
+            preview.appendChild(img);
+        } else {
+            const iconMap = {
+                'pasta': 'folder',
+                'audio': 'music',
+                'pdf': 'file-text',
+                'arquivo': 'file'
+            };
+            preview.innerHTML = `<i data-lucide="${iconMap[data.tipo] || 'file'}" class="details-preview-icon"></i>`;
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+    },
+
+    renderShareInfo(shareLink) {
+        const section = document.getElementById('details-share-section');
+
+        if (!shareLink) {
+            section.style.display = 'none';
+            return;
+        }
+
+        section.style.display = 'block';
+
+        const fullUrl = window.location.origin + shareLink.url;
+        const linkEl = document.getElementById('details-share-link');
+        linkEl.href = fullUrl;
+        linkEl.textContent = shareLink.url;
+
+        document.getElementById('details-share-expires').textContent = shareLink.expires_at;
+        document.getElementById('details-share-downloads').textContent = shareLink.downloads_count;
+    }
+};
+
+// Inicializar
+document.addEventListener('DOMContentLoaded', () => {
+    DetailsPanel.init();
+});
+
+// Modificar comportamento de clique quando painel aberto
+document.addEventListener('click', function (e) {
+    const itemLink = e.target.closest('.item-link');
+    if (!itemLink) return;
+
+    // Se painel aberto, atualizar info ao invés de navegar
+    if (DetailsPanel.isOpen && !e.ctrlKey) {
+        if (e.target.closest('.item-menu-wrapper') || e.target.closest('.item-checkbox')) {
+            return;
+        }
+
+        e.preventDefault();
+        e.stopPropagation();
+        const caminho = itemLink.dataset.caminho;
+        DetailsPanel.open(caminho);
+    }
+});
+
+// Duplo-clique para abrir pastas quando painel aberto
+document.addEventListener('dblclick', function (e) {
+    const itemLink = e.target.closest('.item-link');
+    if (!itemLink) return;
+
+    const tipo = itemLink.dataset.tipo;
+    const caminho = itemLink.dataset.caminho;
+
+    if (tipo === 'pasta' && DetailsPanel.isOpen) {
+        e.preventDefault();
+        DetailsPanel.close();
+        window.location.href = `/explorar/${encodeURIComponent(caminho).replace(/%2F/g, '/')}`;
+    }
+});
+
+window.DetailsPanel = DetailsPanel;

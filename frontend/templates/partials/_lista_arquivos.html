@@ -49,6 +49,9 @@
                     <button type="button" class="dropdown-item" onclick="fecharDropdowns(); abrirModalRenomear('{{ item_path }}', '{{ pasta.nome }}', 'pasta')">
                         <i data-lucide="edit-2"></i> Renomear
                     </button>
+                    <button type="button" class="dropdown-item" onclick="fecharDropdowns(); DetailsPanel.open('{{ item_path }}')">
+                        <i data-lucide="info"></i> Ver informações
+                    </button>
                     <div class="dropdown-divider"></div>
                     <form action="{{ url_for('file.deletar_pasta', caminho_pasta=item_path) }}" method="post" class="form-excluir"
                         onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusaoPasta('{{ pasta.nome }}', this); return false;">
@@ -109,6 +112,9 @@
                     </button>
                     <button type="button" class="dropdown-item" onclick="fecharDropdowns(); abrirModalRenomear('{{ item_path }}', '{{ imagem.nome }}', 'imagem')">
                         <i data-lucide="edit-2"></i> Renomear
+                    </button>
+                    <button type="button" class="dropdown-item" onclick="fecharDropdowns(); DetailsPanel.open('{{ item_path }}')">
+                        <i data-lucide="info"></i> Ver informações
                     </button>
                     <div class="dropdown-divider"></div>
                     <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=item_path) }}" method="post" class="form-excluir"
@@ -172,6 +178,9 @@
                     </button>
                     <button type="button" class="dropdown-item" onclick="fecharDropdowns(); abrirModalRenomear('{{ item_path }}', '{{ audio.nome }}', 'audio')">
                         <i data-lucide="edit-2"></i> Renomear
+                    </button>
+                    <button type="button" class="dropdown-item" onclick="fecharDropdowns(); DetailsPanel.open('{{ item_path }}')">
+                        <i data-lucide="info"></i> Ver informações
                     </button>
                     <div class="dropdown-divider"></div>
                     <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=item_path) }}" method="post" class="form-excluir"
@@ -239,6 +248,9 @@
                     <button type="button" class="dropdown-item" onclick="fecharDropdowns(); abrirModalRenomear('{{ item_path }}', '{{ pdf.nome }}', 'pdf')">
                         <i data-lucide="edit-2"></i> Renomear
                     </button>
+                    <button type="button" class="dropdown-item" onclick="fecharDropdowns(); DetailsPanel.open('{{ item_path }}')">
+                        <i data-lucide="info"></i> Ver informações
+                    </button>
                     <div class="dropdown-divider"></div>
                     <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=item_path) }}" method="post" class="form-excluir"
                         onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusao('{{ pdf.nome }}', this); return false;">
@@ -301,6 +313,9 @@
                     </button>
                     <button type="button" class="dropdown-item" onclick="fecharDropdowns(); abrirModalRenomear('{{ item_path }}', '{{ arquivo.nome }}', 'arquivo')">
                         <i data-lucide="edit-2"></i> Renomear
+                    </button>
+                    <button type="button" class="dropdown-item" onclick="fecharDropdowns(); DetailsPanel.open('{{ item_path }}')">
+                        <i data-lucide="info"></i> Ver informações
                     </button>
                     <div class="dropdown-divider"></div>
                     <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=item_path) }}" method="post" class="form-excluir"

@@ -246,6 +246,107 @@ def visualizar_arquivo(caminho_arquivo):
     return send_from_directory(pasta, nome_arquivo, as_attachment=False)
 
 
+# ===== API: INFORMAÇÕES DETALHADAS DO ARQUIVO =====
+@file_bp.route('/api/files/info/<path:caminho>')
+@login_required_optional
+def file_info_api(caminho):
+    """Retorna informações detalhadas sobre arquivo/pasta como JSON"""
+    try:
+        caminho_completo = caminho_seguro(caminho)
+
+        if caminho_completo is None:
+            log_path_traversal(caminho)
+            return jsonify(success=False, error="Acesso negado"), 403
+
+        if not os.path.exists(caminho_completo):
+            return jsonify(success=False, error="Arquivo não encontrado"), 404
+
+        stats = os.stat(caminho_completo)
+        nome = os.path.basename(caminho_completo)
+
+        # Determinar tipo
+        if os.path.isdir(caminho_completo):
+            tipo = 'pasta'
+            tamanho_formatado = '--'
+        else:
+            nome_lower = nome.lower()
+            if nome_lower.endswith(EXTENSOES_IMAGENS):
+                tipo = 'imagem'
+            elif nome_lower.endswith(EXTENSOES_AUDIO):
+                tipo = 'audio'
+            elif nome_lower.endswith(EXTENSOES_PDF):
+                tipo = 'pdf'
+            else:
+                tipo = 'arquivo'
+
+            from app.utils.helpers import formatar_tamanho
+            tamanho_formatado = formatar_tamanho(stats.st_size)
+
+        # MIME type
+        mime_type, _ = mimetypes.guess_type(nome)
+        extensao = os.path.splitext(nome)[1].lstrip('.') if '.' in nome else None
+
+        # Formatar datas
+        from app.utils.helpers import formatar_data
+        data_modificacao = formatar_data(stats.st_mtime)
+        data_criacao = formatar_data(stats.st_ctime)
+
+        info = {
+            'nome': nome,
+            'tipo': tipo,
+            'caminho_relativo': caminho,
+            'tamanho': stats.st_size,
+            'tamanho_formatado': tamanho_formatado,
+            'data_modificacao': data_modificacao,
+            'data_modificacao_timestamp': stats.st_mtime,
+            'data_criacao': data_criacao,
+            'data_criacao_timestamp': stats.st_ctime,
+            'mime_type': mime_type,
+            'extensao': extensao,
+            'duracao': None,
+            'duracao_formatada': None
+        }
+
+        # Duração de áudio (se mutagen disponível)
+        if tipo == 'audio':
+            try:
+                from mutagen import File
+                audio = File(caminho_completo)
+                if audio and hasattr(audio.info, 'length'):
+                    duracao_seg = audio.info.length
+                    info['duracao'] = duracao_seg
+                    minutos = int(duracao_seg // 60)
+                    segundos = int(duracao_seg % 60)
+                    info['duracao_formatada'] = f"{minutos}:{segundos:02d}"
+            except (ImportError, Exception):
+                pass  # mutagen não instalado ou erro ao ler
+
+        # Verificar link de compartilhamento ativo
+        from app.share.models import listar_links_usuario
+        share_info = None
+        if current_user.is_authenticated:
+            links_usuario = listar_links_usuario(current_user.username)
+            for link in links_usuario:
+                if link.file_path == caminho and link.esta_valido():
+                    share_info = {
+                        'url': f'/s/{link.token}',
+                        'expires_at': formatar_data(link.expires_at) if link.expires_at else 'Nunca',
+                        'has_password': link.tem_senha,
+                        'downloads_count': link.downloads_count
+                    }
+                    break
+
+        info['share_link'] = share_info
+
+        return jsonify(success=True, data=info)
+
+    except PermissionError:
+        return jsonify(success=False, error="Sem permissão"), 403
+    except Exception as e:
+        current_app.logger.exception("Erro ao obter info do arquivo: %s", caminho)
+        return jsonify(success=False, error="Erro interno"), 500
+
+
 # ===== UPLOAD =====
 @file_bp.route('/upload/<path:caminho>', methods=['POST'])
 @file_bp.route('/upload/', defaults={'caminho': ''}, methods=['POST'])
