@@ -47,12 +47,14 @@ class CaminhoSeguroTestCase(unittest.TestCase):
 class UploadValidationTestCase(unittest.TestCase):
     def test_bloqueia_extensoes_perigosas(self):
         self.assertTrue(files.extensao_bloqueada("script.sh"))
-        self.assertTrue(files.extensao_bloqueada("payload.PY"))
+        self.assertTrue(files.extensao_bloqueada("payload.EXE"))
+        self.assertTrue(files.extensao_bloqueada("backdoor.PHP"))
         self.assertTrue(files.extensao_bloqueada(".htaccess"))
 
     def test_permite_extensoes_comuns(self):
         self.assertFalse(files.extensao_bloqueada("foto.jpg"))
         self.assertFalse(files.extensao_bloqueada("documento.pdf"))
+        self.assertFalse(files.extensao_bloqueada("codigo.py"))
 
 
 class SenhaForteTestCase(unittest.TestCase):

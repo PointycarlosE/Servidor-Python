@@ -87,11 +87,43 @@ def create_app():
 
     @app.context_processor
     def inject_globals():
+        storage_info = {
+            'used_str': '0 GB',
+            'total_str': '0 GB',
+            'percent': 0,
+            'text': '0 GB de 0 GB usados'
+        }
+        try:
+            import shutil
+            if PASTA_BASE and os.path.exists(PASTA_BASE):
+                total, used, free = shutil.disk_usage(PASTA_BASE)
+                used_gb = used / (1024 ** 3)
+                total_gb = total / (1024 ** 3)
+                percent = round((used / total) * 100, 1) if total > 0 else 0
+                
+                total_str = f"{total_gb / 1024:.1f} TB" if total_gb >= 1000 else f"{total_gb:.1f} GB"
+                if used_gb >= 1000:
+                    used_str = f"{used_gb / 1024:.2f} TB"
+                elif used_gb >= 1:
+                    used_str = f"{used_gb:.2f} GB"
+                else:
+                    used_str = f"{used / (1024 ** 2):.1f} MB"
+
+                storage_info = {
+                    'used_str': used_str,
+                    'total_str': total_str,
+                    'percent': percent,
+                    'text': f"{used_str} de {total_str} usados"
+                }
+        except Exception:
+            pass
+
         return {
             'PASTA_BASE': PASTA_BASE,
             'IS_FIRST_RUN': IS_FIRST_RUN,
             'CONFIGURADO': CONFIGURADO,
             'IS_PRODUCTION': IS_PRODUCTION,
+            'storage_info': storage_info,
         }
 
     return app

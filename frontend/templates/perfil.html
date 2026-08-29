@@ -1,139 +1,99 @@
-<!--perfil.html-->
+<!-- perfil.html -->
 <!DOCTYPE html>
 <html lang="pt-br" data-theme="{{ current_user.tema if current_user.is_authenticated else 'light' }}">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meu Perfil — Meu Drive</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Meu Perfil — Meu Drive Pessoal</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
-    <style>
-        .password-wrapper { position: relative; }
-        .password-wrapper .form-input { padding-right: 44px; }
-        .btn-toggle-senha {
-            position: absolute; right: 12px; top: 50%; transform: translateY(-50%);
-            background: none; border: none; cursor: pointer;
-            color: var(--text-secondary); padding: 4px; line-height: 1;
-            display: flex; align-items: center; transition: color 0.2s;
-        }
-        .btn-toggle-senha:hover { color: var(--text); }
-
-        /* Responsividade Mobile */
-        @media (max-width: 768px) {
-            .content > div:first-child > div:first-child > div:first-child {
-                width: 36px !important; height: 36px !important;
-            }
-            .content > div:first-child > div:first-child > div:first-child i {
-                width: 18px !important; height: 18px !important;
-            }
-            .content > div:first-child > div:first-child h1 {
-                font-size: 1.3rem !important;
-            }
-            .content > div:nth-child(3) {
-                grid-template-columns: 1fr !important;
-                gap: 12px !important;
-            }
-            .card-header > div > div:first-child {
-                width: 36px !important; height: 36px !important;
-            }
-            .card-header > div > div:first-child i {
-                width: 18px !important; height: 18px !important;
-            }
-            .card-header h3 { font-size: 1rem !important; }
-            .card-header p { font-size: 0.8rem !important; }
-        }
-
-        @media (max-width: 480px) {
-            .content { padding: 16px 12px !important; }
-            .content > div:first-child { margin-bottom: 16px !important; }
-            .content > div:first-child > div:first-child > div:first-child {
-                width: 32px !important; height: 32px !important;
-            }
-            .content > div:first-child > div:first-child > div:first-child i {
-                width: 16px !important; height: 16px !important;
-            }
-            .content > div:first-child > div:first-child h1 { font-size: 1.2rem !important; }
-            .card { border-radius: 10px !important; }
-            .card-header { padding: 12px !important; }
-            .card-body { padding: 12px !important; }
-            .card-footer { padding: 12px !important; }
-            .card-header > div > div:first-child {
-                width: 32px !important; height: 32px !important;
-            }
-            .card-header > div > div:first-child i {
-                width: 16px !important; height: 16px !important;
-            }
-            .card-header h3 { font-size: 0.95rem !important; }
-            .card-header p { font-size: 0.75rem !important; }
-            .form-label { font-size: 0.85rem !important; }
-            .form-input { font-size: 0.9rem !important; padding: 10px 12px !important; }
-            .btn { font-size: 0.85rem !important; padding: 10px 14px !important; }
-            .theme-preview { height: 40px !important; }
-            .theme-label { font-size: 0.8rem !important; }
-        }
-    </style>
 </head>
+
 <body>
     <div class="app">
 
-        <!-- SIDEBAR -->
+        <!-- ===== SIDEBAR ===== -->
         <aside class="sidebar" id="sidebar">
             <div class="logo">
-                <span class="logo-icon"><i data-lucide="cloud" style="width:28px;height:28px;color:var(--primary);"></i></span>
+                <span class="logo-icon"><i data-lucide="cloud"></i></span>
                 <span class="logo-text">Meu Drive</span>
             </div>
+
             <nav class="sidebar-nav">
                 <a href="{{ url_for('file.explorar') }}" class="nav-item">
                     <span class="nav-icon"><i data-lucide="folder"></i></span>
                     <span class="nav-text">Meus arquivos</span>
                 </a>
                 <a href="{{ url_for('share.compartilhamentos_page') }}" class="nav-item">
-                    <span class="nav-icon"><i data-lucide="share-2"></i></span>
-                    <span class="nav-text">Compartilhamentos</span>
-                </a>
-                <a href="#" class="nav-item" style="opacity: 0.6; cursor: not-allowed;">
-                    <span class="nav-icon"><i data-lucide="star"></i></span>
-                    <span class="nav-text">Favoritos</span>
-                    <span class="nav-badge">Em breve</span>
+                    <span class="nav-icon"><i data-lucide="users"></i></span>
+                    <span class="nav-text">Compartilhados</span>
                 </a>
                 <a href="{{ url_for('trash.lixeira_page') }}" class="nav-item">
                     <span class="nav-icon"><i data-lucide="trash-2"></i></span>
                     <span class="nav-text">Lixeira</span>
                 </a>
             </nav>
-            <div class="sidebar-footer">
-                <a href="{{ url_for('auth.perfil') }}" class="user-info user-info-link active">
-                    <span class="user-icon"><i data-lucide="circle-user-round"></i></span>
-                    <span class="user-name">{{ current_user.nome if current_user.is_authenticated else 'Usuário' }}</span>
+
+            <!-- Seção de Armazenamento do Servidor (Imagem 2) -->
+            <div class="drawer-storage-section">
+                <div class="drawer-storage-header">
+                    <i data-lucide="cloud" style="width: 18px; height: 18px; color: var(--primary);"></i>
+                    <span>Armazenamento</span>
+                </div>
+                <div class="drawer-storage-bar-bg">
+                    <div class="drawer-storage-bar-fill" style="width: {{ storage_info.percent if storage_info else 0 }}%;"></div>
+                </div>
+                <div class="drawer-storage-text">
+                    {{ storage_info.text if storage_info else 'Armazenamento indisponível' }}
+                </div>
+                <a href="{{ url_for('trash.lixeira_page') }}" class="drawer-storage-btn">
+                    Gerenciar espaço
                 </a>
+            </div>
+
+                        <div class="sidebar-footer">
                 <a href="{{ url_for('auth.logout') }}" class="logout-link">
-                    <span class="logout-icon"><i data-lucide="log-out"></i></span>
+                    <span class="nav-icon"><i data-lucide="log-out"></i></span>
                     <span>Sair</span>
                 </a>
             </div>
+
         </aside>
 
-        <!-- MAIN -->
+        <!-- OVERLAY SIDEBAR -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- ===== MAIN AREA ===== -->
         <main class="main">
-            <header class="topbar">
-                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">
+
+            <!-- TOPBAR -->
+            <header class="topbar" style="justify-content: space-between;">
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu de navegação">
                     <i data-lucide="menu"></i>
                 </button>
+                <div style="font-weight: 700; font-size: 1.1rem; color: var(--text);">Configurações da Conta</div>
+                <a href="{{ url_for('auth.perfil') }}" class="topbar-avatar" title="Meu Perfil">
+                    {{ current_user.nome[0]|upper if current_user.is_authenticated and current_user.nome else 'U' }}
+                </a>
             </header>
 
+            <!-- CONTEÚDO -->
             <div class="content">
-                <!-- HEADER DA PÁGINA -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
-                            <i data-lucide="user-circle" style="width:22px;height:22px;"></i>
+
+                <!-- CABEÇALHO -->
+                <div class="page-header">
+                    <div class="page-header-left">
+                        <div class="page-header-icon">
+                            <i data-lucide="user-circle"></i>
                         </div>
-                        <div>
-                            <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--text);">Meu Perfil</h1>
-                            <p style="margin: 4px 0 0; font-size: 0.875rem; color: var(--text-secondary);">Gerencie suas configurações e preferências</p>
+                        <div class="page-header-title">
+                            <h1>Meu Perfil</h1>
+                            <p>Gerencie suas credenciais, preferências visuais e segurança 2FA.</p>
                         </div>
                     </div>
                 </div>
@@ -141,93 +101,77 @@
                 {% with messages = get_flashed_messages(with_categories=true) %}
                 {% if messages %}
                 {% for category, message in messages %}
-                <div class="alert alert-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }}" style="margin-bottom: 20px; padding: 12px 16px; border-radius: 8px; display: flex; align-items: center; gap: 10px; {% if category == 'success' %} background: rgba(22, 163, 74, 0.1); border: 1px solid rgba(22, 163, 74, 0.3); color: #16a34a; {% elif category == 'error' %} background: rgba(220, 53, 69, 0.1); border: 1px solid rgba(220, 53, 69, 0.3); color: #dc3545; {% else %} background: rgba(var(--primary-rgb), 0.1); border: 1px solid rgba(var(--primary-rgb), 0.3); color: var(--primary); {% endif %}">
-                    <i data-lucide="{{ 'check-circle' if category == 'success' else 'alert-circle' if category == 'error' else 'info' }}" style="width: 18px; height: 18px; flex-shrink: 0;"></i>
+                <div class="alert alert-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }}">
+                    <i data-lucide="{{ 'check-circle' if category == 'success' else 'alert-circle' if category == 'error' else 'info' }}"></i>
                     <span>{{ message }}</span>
                 </div>
                 {% endfor %}
                 {% endif %}
                 {% endwith %}
 
-                <!-- Grid de configurações -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 450px), 1fr)); gap: 16px;">
+                <!-- GRID DE CONFIGURAÇÕES -->
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 420px), 1fr)); gap: 16px;">
 
                     <!-- Card: Nome -->
-                    <div class="card animate-slide-up">
+                    <div class="card">
                         <form method="POST" action="{{ url_for('auth.perfil') }}" style="display: flex; flex-direction: column; height: 100%;">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="acao" value="nome">
                             <div class="card-header">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                        <i data-lucide="pencil" style="width:22px;height:22px;"></i>
-                                    </div>
-                                    <div style="flex: 1; min-width: 0;">
-                                        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: var(--text);">Nome de exibição</h3>
-                                        <p style="margin: 4px 0 0; font-size: 0.875rem; color: var(--text-secondary);">Como seu nome aparece</p>
-                                    </div>
-                                </div>
+                                <h3 class="card-header-title">
+                                    <i data-lucide="pencil" style="color: var(--primary);"></i>
+                                    Nome de exibição
+                                </h3>
                             </div>
                             <div class="card-body" style="flex: 1;">
                                 <div class="form-group">
-                                    <label class="form-label" for="nome">Nome de exibição</label>
+                                    <label class="form-label" for="nome">Nome</label>
                                     <input type="text" id="nome" name="nome" class="form-input" value="{{ current_user.nome }}" required maxlength="50" placeholder="Como quer ser chamado?">
                                     <div class="form-hint">
-                                        <i data-lucide="info" style="width:14px;height:14px;flex-shrink:0;"></i>
-                                        <span>Nome de usuário: <strong>{{ current_user.username }}</strong></span>
+                                        <i data-lucide="info"></i>
+                                        <span>Nome de usuário do sistema: <strong>{{ current_user.username }}</strong></span>
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-footer" style="margin-top: auto;">
-                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
-                                    <i data-lucide="save" style="width:16px;height:16px;"></i> Salvar nome
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                    <i data-lucide="save"></i> Salvar Nome
                                 </button>
                             </div>
                         </form>
                     </div>
 
                     <!-- Card: Tema -->
-                    <div class="card animate-slide-up">
+                    <div class="card">
                         <form method="POST" action="{{ url_for('auth.perfil') }}" style="display: flex; flex-direction: column; height: 100%;">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="acao" value="tema">
                             <div class="card-header">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                        <i data-lucide="palette" style="width:22px;height:22px;"></i>
-                                    </div>
-                                    <div style="flex: 1; min-width: 0;">
-                                        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: var(--text);">Aparência</h3>
-                                        <p style="margin: 4px 0 0; font-size: 0.875rem; color: var(--text-secondary);">Escolha o tema do sistema</p>
-                                    </div>
-                                </div>
+                                <h3 class="card-header-title">
+                                    <i data-lucide="palette" style="color: var(--primary);"></i>
+                                    Aparência
+                                </h3>
                             </div>
                             <div class="card-body" style="flex: 1;">
                                 <div class="form-group">
-                                    <label class="form-label">Tema</label>
-                                    <div style="display: flex; gap: 12px;">
-                                        <label class="theme-option" style="flex: 1; cursor: pointer;">
-                                            <input type="radio" name="tema" value="light" {{ 'checked' if current_user.tema == 'light' else '' }} style="position: absolute; opacity: 0; pointer-events: none;">
-                                            <div class="theme-card" data-theme-option="light">
-                                                <div class="theme-preview theme-preview-light">
-                                                    <div style="background: white; height: 8px; border-radius: 4px 4px 0 0;"></div>
-                                                    <div style="background: #f5f5f5; flex: 1; border-radius: 0 0 4px 4px;"></div>
-                                                </div>
+                                    <label class="form-label">Tema da interface</label>
+                                    <div class="theme-selector">
+                                        <label class="theme-option" style="cursor: pointer;">
+                                            <input type="radio" name="tema" value="light" {{ 'checked' if current_user.tema == 'light' else '' }} style="display: none;">
+                                            <div class="theme-card {{ 'selected' if current_user.tema == 'light' else '' }}" data-theme-option="light">
+                                                <div class="theme-preview theme-preview-light"></div>
                                                 <div class="theme-label">
-                                                    <i data-lucide="sun" style="width:16px;height:16px;"></i>
+                                                    <i data-lucide="sun"></i>
                                                     <span>Claro</span>
                                                 </div>
                                             </div>
                                         </label>
-                                        <label class="theme-option" style="flex: 1; cursor: pointer;">
-                                            <input type="radio" name="tema" value="dark" {{ 'checked' if current_user.tema == 'dark' else '' }} style="position: absolute; opacity: 0; pointer-events: none;">
-                                            <div class="theme-card" data-theme-option="dark">
-                                                <div class="theme-preview theme-preview-dark">
-                                                    <div style="background: #1a1a1a; height: 8px; border-radius: 4px 4px 0 0;"></div>
-                                                    <div style="background: #0a0a0a; flex: 1; border-radius: 0 0 4px 4px;"></div>
-                                                </div>
+                                        <label class="theme-option" style="cursor: pointer;">
+                                            <input type="radio" name="tema" value="dark" {{ 'checked' if current_user.tema == 'dark' else '' }} style="display: none;">
+                                            <div class="theme-card {{ 'selected' if current_user.tema == 'dark' else '' }}" data-theme-option="dark">
+                                                <div class="theme-preview theme-preview-dark"></div>
                                                 <div class="theme-label">
-                                                    <i data-lucide="moon" style="width:16px;height:16px;"></i>
+                                                    <i data-lucide="moon"></i>
                                                     <span>Escuro</span>
                                                 </div>
                                             </div>
@@ -235,29 +179,24 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="card-footer" style="margin-top: auto;">
-                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
-                                    <i data-lucide="check" style="width:16px;height:16px;"></i> Salvar tema
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                    <i data-lucide="check"></i> Aplicar Tema
                                 </button>
                             </div>
                         </form>
                     </div>
 
                     <!-- Card: Senha -->
-                    <div class="card animate-slide-up">
+                    <div class="card">
                         <form method="POST" action="{{ url_for('auth.perfil') }}" id="form-senha" style="display: flex; flex-direction: column; height: 100%;">
                             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                             <input type="hidden" name="acao" value="senha">
                             <div class="card-header">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                        <i data-lucide="lock" style="width:22px;height:22px;"></i>
-                                    </div>
-                                    <div style="flex: 1; min-width: 0;">
-                                        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: var(--text);">Alterar senha</h3>
-                                        <p style="margin: 4px 0 0; font-size: 0.875rem; color: var(--text-secondary);">Senha forte (mínimo 12 caracteres)</p>
-                                    </div>
-                                </div>
+                                <h3 class="card-header-title">
+                                    <i data-lucide="lock" style="color: var(--primary);"></i>
+                                    Alterar Senha
+                                </h3>
                             </div>
                             <div class="card-body" style="flex: 1;">
                                 <div class="form-group">
@@ -265,116 +204,115 @@
                                     <div class="password-wrapper">
                                         <input type="password" id="senha_atual" name="senha_atual" class="form-input" required placeholder="Digite sua senha atual" autocomplete="current-password">
                                         <button type="button" class="btn-toggle-senha" id="btn-toggle-atual" title="Mostrar/ocultar">
-                                            <i data-lucide="eye" id="icon-toggle-atual" style="width:18px;height:18px;"></i>
+                                            <i data-lucide="eye" id="icon-toggle-atual"></i>
                                         </button>
                                     </div>
                                     <div class="form-error" id="senha-atual-error"></div>
                                 </div>
+
                                 <div class="form-group">
                                     <label class="form-label" for="nova_senha">Nova senha</label>
                                     <div class="password-wrapper">
                                         <input type="password" id="nova_senha" name="nova_senha" class="form-input" required placeholder="Mínimo 12 caracteres" autocomplete="new-password">
                                         <button type="button" class="btn-toggle-senha" id="btn-toggle-nova" title="Mostrar/ocultar">
-                                            <i data-lucide="eye" id="icon-toggle-nova" style="width:18px;height:18px;"></i>
+                                            <i data-lucide="eye" id="icon-toggle-nova"></i>
                                         </button>
                                     </div>
                                     <div class="form-error" id="nova-senha-error"></div>
                                     <div id="password-strength" style="margin-top: 8px; display: none;">
-                                        <div style="display: flex; gap: 4px; margin-bottom: 6px;">
-                                            <div class="strength-bar" id="bar-1" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
-                                            <div class="strength-bar" id="bar-2" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
-                                            <div class="strength-bar" id="bar-3" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
-                                            <div class="strength-bar" id="bar-4" style="height:4px; flex:1; border-radius:2px; background: var(--border);"></div>
+                                        <div class="password-strength-bars">
+                                            <div class="strength-bar" id="bar-1"></div>
+                                            <div class="strength-bar" id="bar-2"></div>
+                                            <div class="strength-bar" id="bar-3"></div>
+                                            <div class="strength-bar" id="bar-4"></div>
                                         </div>
-                                        <ul id="password-rules" style="font-size:0.75rem; color: var(--text-secondary); padding-left: 16px; margin: 0;">
-                                            <li id="rule-len">Mínimo 12 caracteres</li>
-                                            <li id="rule-upper">Uma letra maiúscula</li>
-                                            <li id="rule-lower">Uma letra minúscula</li>
-                                            <li id="rule-num">Um número</li>
-                                            <li id="rule-special">Um caractere especial (!@#$%...)</li>
-                                        </ul>
+                                        <div class="password-requirements" style="margin-top: 6px;">
+                                            <div class="requirement-item" id="rule-len"><i data-lucide="circle" style="width:12px;height:12px;"></i> Mínimo 12 caracteres</div>
+                                            <div class="requirement-item" id="rule-upper"><i data-lucide="circle" style="width:12px;height:12px;"></i> Uma letra maiúscula</div>
+                                            <div class="requirement-item" id="rule-lower"><i data-lucide="circle" style="width:12px;height:12px;"></i> Uma letra minúscula</div>
+                                            <div class="requirement-item" id="rule-num"><i data-lucide="circle" style="width:12px;height:12px;"></i> Um número</div>
+                                            <div class="requirement-item" id="rule-special"><i data-lucide="circle" style="width:12px;height:12px;"></i> Um caractere especial (!@#$%...)</div>
+                                        </div>
                                     </div>
                                 </div>
+
                                 <div class="form-group">
                                     <label class="form-label" for="confirmar_senha">Confirmar nova senha</label>
                                     <div class="password-wrapper">
                                         <input type="password" id="confirmar_senha" name="confirmar_senha" class="form-input" required placeholder="Repita a nova senha" autocomplete="new-password">
                                         <button type="button" class="btn-toggle-senha" id="btn-toggle-confirmar" title="Mostrar/ocultar">
-                                            <i data-lucide="eye" id="icon-toggle-confirmar" style="width:18px;height:18px;"></i>
+                                            <i data-lucide="eye" id="icon-toggle-confirmar"></i>
                                         </button>
                                     </div>
                                     <div class="form-error" id="confirmar-senha-error"></div>
                                 </div>
                             </div>
-                            <div class="card-footer" style="margin-top: auto;">
-                                <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
-                                    <i data-lucide="shield-check" style="width:16px;height:16px;"></i> Alterar senha
+                            <div class="card-footer">
+                                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                    <i data-lucide="shield-check"></i> Atualizar Senha
                                 </button>
                             </div>
                         </form>
                     </div>
 
                     <!-- Card: 2FA -->
-                    <div class="card animate-slide-up">
+                    <div class="card">
                         <div style="display: flex; flex-direction: column; height: 100%;">
                             <div class="card-header">
-                                <div style="display: flex; align-items: center; gap: 12px;">
-                                    <div style="width: 44px; height: 44px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                        <i data-lucide="shield" style="width:22px;height:22px;"></i>
-                                    </div>
-                                    <div style="flex: 1; min-width: 0;">
-                                        <h3 style="margin: 0; font-size: 1.1rem; font-weight: 600; color: var(--text);">Autenticação 2FA</h3>
-                                        <p style="margin: 4px 0 0; font-size: 0.875rem; color: var(--text-secondary);">Segurança extra para sua conta</p>
-                                    </div>
-                                </div>
+                                <h3 class="card-header-title">
+                                    <i data-lucide="shield" style="color: var(--primary);"></i>
+                                    Autenticação em Duas Etapas (2FA)
+                                </h3>
                             </div>
                             <div class="card-body" style="flex: 1; display: flex; flex-direction: column;">
                                 {% if not current_user.tem_2fa_ativo %}
-                                    <p style="margin-bottom: 16px; color: var(--text-secondary); font-size: 0.9rem; flex: 1;">
-                                        O 2FA exige um código do celular além da senha, tornando sua conta muito mais segura.
+                                    <p style="margin-bottom: 16px; color: var(--text-muted); font-size: 0.9rem; flex: 1;">
+                                        Proteja sua conta adicionando uma camada extra de segurança através de um aplicativo autenticador no seu celular (Google Authenticator, Authy, etc.).
                                     </p>
                                     <form method="POST" action="{{ url_for('auth.ativar_2fa') }}" style="margin-top: auto;">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center;">
-                                            <i data-lucide="shield-check" style="width:18px;height:18px;"></i> Ativar 2FA
+                                        <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                            <i data-lucide="shield-check"></i> Ativar 2FA
                                         </button>
                                     </form>
                                 {% else %}
                                     <div style="flex: 1;">
-                                        <div class="alert alert-success" style="margin-bottom: 16px; padding: 12px 16px; border-radius: 8px; display: flex; align-items: center; gap: 10px; background: rgba(22, 163, 74, 0.1); border: 1px solid rgba(22, 163, 74, 0.3); color: #16a34a;">
-                                            <i data-lucide="shield-check" style="width:18px;height:18px;"></i>
-                                            <span><strong>2FA ativo!</strong> Conta protegida.</span>
+                                        <div class="alert alert-success" style="margin-bottom: 16px;">
+                                            <i data-lucide="shield-check"></i>
+                                            <span><strong>2FA Ativo!</strong> Sua conta está protegida com autenticação em duas etapas.</span>
                                         </div>
-                                        <details style="border: 1px solid var(--border); border-radius: 8px; padding: 12px;">
+
+                                        <details style="border: 1px solid var(--border); border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
                                             <summary style="cursor: pointer; font-weight: 600; color: var(--text); list-style: none; display: flex; align-items: center; gap: 8px;">
                                                 <i data-lucide="key" style="width:16px;height:16px;"></i>
-                                                <span>Códigos de backup ({{ current_user.backup_codes|length }})</span>
+                                                <span>Códigos de Backup ({{ current_user.backup_codes|length }} disponíveis)</span>
                                                 <i data-lucide="chevron-down" style="width:16px;height:16px; margin-left: auto;"></i>
                                             </summary>
-                                            <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--border);">
-                                                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">
-                                                    Use se perder acesso ao autenticador. Cada código funciona uma vez.
+                                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border-light);">
+                                                <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 10px;">
+                                                    Guarde estes códigos em local seguro caso perca seu celular:
                                                 </p>
-                                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 12px;">
+                                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; margin-bottom: 12px;">
                                                     {% for code in current_user.backup_codes %}
-                                                    <div class="badge badge-secondary" style="font-family: 'Courier New', monospace; font-weight: 600; text-align: center; font-size: 0.85rem; padding: 10px;">
+                                                    <div class="badge badge-secondary" style="font-family: monospace; font-size: 0.85rem; padding: 8px; justify-content: center;">
                                                         {{ code }}
                                                     </div>
                                                     {% endfor %}
                                                 </div>
                                                 <form method="POST" action="{{ url_for('auth.regenerar_backup_codes') }}">
                                                     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                                    <button type="submit" class="btn btn-secondary" style="width: 100%; justify-content: center;" onclick="return confirm('Os códigos antigos deixarão de funcionar.')">
-                                                        <i data-lucide="refresh-cw" style="width:16px;height:16px;"></i> Regenerar códigos
+                                                    <button type="submit" class="btn btn-secondary" style="width: 100%;" onclick="return confirm('Os códigos anteriores deixarão de funcionar. Deseja continuar?')">
+                                                        <i data-lucide="refresh-cw"></i> Gerar Novos Códigos
                                                     </button>
                                                 </form>
                                             </div>
                                         </details>
                                     </div>
-                                    <form method="POST" action="{{ url_for('auth.desativar_2fa') }}" style="margin-top: 16px;" onsubmit="return confirm('⚠️ Tem certeza? Sua conta ficará menos segura.')">
+
+                                    <form method="POST" action="{{ url_for('auth.desativar_2fa') }}" style="margin-top: auto;" onsubmit="return confirm('⚠️ Tem certeza que deseja desativar o 2FA? Sua conta ficará menos protegida.')">
                                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                        <button type="submit" class="btn btn-danger" style="width: 100%; justify-content: center;">
-                                            <i data-lucide="shield-off" style="width:18px;height:18px;"></i> Desativar 2FA
+                                        <button type="submit" class="btn btn-danger" style="width: 100%;">
+                                            <i data-lucide="shield-off"></i> Desativar 2FA
                                         </button>
                                     </form>
                                 {% endif %}
@@ -388,21 +326,11 @@
         </main>
     </div>
 
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
         lucide.createIcons();
 
-        // Mobile menu
-        const mobileBtn = document.getElementById('mobile-menu-btn');
-        const sidebar = document.getElementById('sidebar');
-        if (mobileBtn && sidebar) {
-            mobileBtn.addEventListener('click', () => sidebar.classList.toggle('active'));
-            document.addEventListener('click', (e) => {
-                if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !mobileBtn.contains(e.target))
-                    sidebar.classList.remove('active');
-            });
-        }
-
-        // Selecionar tema visualmente
+        // Alternância visual de temas no formulário
         document.querySelectorAll('.theme-option').forEach(option => {
             const input = option.querySelector('input[type="radio"]');
             const card = option.querySelector('.theme-card');
@@ -414,15 +342,20 @@
             });
         });
 
-        // Toggle senhas
+        // Alternar visualização de senhas
         function setupToggle(btnId, inputId, iconId) {
             const btn = document.getElementById(btnId);
             const input = document.getElementById(inputId);
             const icon = document.getElementById(iconId);
-            if (!btn) return;
+            if (!btn || !input) return;
             btn.addEventListener('click', () => {
-                if (input.type === 'password') { input.type = 'text'; icon.setAttribute('data-lucide', 'eye-off'); }
-                else { input.type = 'password'; icon.setAttribute('data-lucide', 'eye'); }
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.setAttribute('data-lucide', 'eye-off');
+                } else {
+                    input.type = 'password';
+                    icon.setAttribute('data-lucide', 'eye');
+                }
                 lucide.createIcons();
             });
         }
@@ -430,7 +363,7 @@
         setupToggle('btn-toggle-nova', 'nova_senha', 'icon-toggle-nova');
         setupToggle('btn-toggle-confirmar', 'confirmar_senha', 'icon-toggle-confirmar');
 
-        // Validação de senha
+        // Validação e indicador de força de senha
         document.addEventListener('DOMContentLoaded', function () {
             const novaSenhaInput = document.getElementById('nova_senha');
             const confirmarInput = document.getElementById('confirmar_senha');
@@ -438,11 +371,23 @@
             const confirmarError = document.getElementById('confirmar-senha-error');
             const formSenha = document.getElementById('form-senha');
 
-            function showError(input, div, msg) { input.classList.add('error'); div.textContent = msg; div.style.display = 'block'; }
-            function clearError(input, div) { input.classList.remove('error'); div.textContent = ''; div.style.display = 'none'; }
+            function showError(input, div, msg) {
+                input.classList.add('error');
+                if (div) { div.textContent = msg; div.style.display = 'block'; }
+            }
+            function clearError(input, div) {
+                input.classList.remove('error');
+                if (div) { div.textContent = ''; div.style.display = 'none'; }
+            }
 
             function checkPassword(senha) {
-                return { len: senha.length >= 12, upper: /[A-Z]/.test(senha), lower: /[a-z]/.test(senha), num: /\d/.test(senha), special: /[^A-Za-z0-9]/.test(senha) };
+                return {
+                    len: senha.length >= 12,
+                    upper: /[A-Z]/.test(senha),
+                    lower: /[a-z]/.test(senha),
+                    num: /\d/.test(senha),
+                    special: /[^A-Za-z0-9]/.test(senha)
+                };
             }
 
             function updateStrengthUI(senha) {
@@ -450,22 +395,39 @@
                 if (!senha) { el.style.display = 'none'; return; }
                 el.style.display = 'block';
                 const r = checkPassword(senha);
-                const rules = { 'rule-len': r.len, 'rule-upper': r.upper, 'rule-lower': r.lower, 'rule-num': r.num, 'rule-special': r.special };
-                Object.entries(rules).forEach(([id, ok]) => { document.getElementById(id).style.color = ok ? '#22c55e' : 'var(--text-secondary)'; });
+                const rules = {
+                    'rule-len': r.len,
+                    'rule-upper': r.upper,
+                    'rule-lower': r.lower,
+                    'rule-num': r.num,
+                    'rule-special': r.special
+                };
+                Object.entries(rules).forEach(([id, ok]) => {
+                    const item = document.getElementById(id);
+                    if (item) {
+                        if (ok) item.classList.add('valid');
+                        else item.classList.remove('valid');
+                    }
+                });
                 const score = Object.values(r).filter(Boolean).length;
-                const colors = ['', '#ef4444', '#f97316', '#eab308', '#22c55e'];
-                for (let i = 1; i <= 4; i++) { document.getElementById('bar-' + i).style.background = i <= score ? colors[score] : 'var(--border)'; }
+                const colors = ['', 'var(--danger)', 'var(--warning)', 'var(--warning)', 'var(--success)'];
+                for (let i = 1; i <= 4; i++) {
+                    const bar = document.getElementById('bar-' + i);
+                    if (bar) {
+                        bar.style.background = i <= (score <= 1 ? 1 : score - 1) ? colors[score] : 'var(--border)';
+                    }
+                }
             }
 
             function validateNovaSenha() {
                 const senha = novaSenhaInput.value;
                 if (!senha) { showError(novaSenhaInput, novaSenhaError, 'Digite a nova senha'); return false; }
                 const r = checkPassword(senha);
-                if (!r.len) { showError(novaSenhaInput, novaSenhaError, 'Mínimo 12 caracteres'); return false; }
-                if (!r.upper) { showError(novaSenhaInput, novaSenhaError, 'Adicione uma letra maiúscula'); return false; }
-                if (!r.lower) { showError(novaSenhaInput, novaSenhaError, 'Adicione uma letra minúscula'); return false; }
-                if (!r.num) { showError(novaSenhaInput, novaSenhaError, 'Adicione um número'); return false; }
-                if (!r.special) { showError(novaSenhaInput, novaSenhaError, 'Adicione um caractere especial'); return false; }
+                if (!r.len) { showError(novaSenhaInput, novaSenhaError, 'A senha deve ter pelo menos 12 caracteres'); return false; }
+                if (!r.upper) { showError(novaSenhaInput, novaSenhaError, 'Adicione pelo menos uma letra maiúscula'); return false; }
+                if (!r.lower) { showError(novaSenhaInput, novaSenhaError, 'Adicione pelo menos uma letra minúscula'); return false; }
+                if (!r.num) { showError(novaSenhaInput, novaSenhaError, 'Adicione pelo menos um número'); return false; }
+                if (!r.special) { showError(novaSenhaInput, novaSenhaError, 'Adicione pelo menos um caractere especial'); return false; }
                 clearError(novaSenhaInput, novaSenhaError); return true;
             }
 
@@ -475,12 +437,24 @@
                 clearError(confirmarInput, confirmarError); return true;
             }
 
-            novaSenhaInput.addEventListener('input', () => { updateStrengthUI(novaSenhaInput.value); validateNovaSenha(); if (confirmarInput.value) validateConfirmar(); });
-            confirmarInput.addEventListener('input', validateConfirmar);
-            formSenha.addEventListener('submit', function (e) {
-                const ok = validateNovaSenha() && validateConfirmar();
-                if (!ok) e.preventDefault();
-            });
+            if (novaSenhaInput) {
+                novaSenhaInput.addEventListener('input', () => {
+                    updateStrengthUI(novaSenhaInput.value);
+                    validateNovaSenha();
+                    if (confirmarInput && confirmarInput.value) validateConfirmar();
+                });
+            }
+
+            if (confirmarInput) {
+                confirmarInput.addEventListener('input', validateConfirmar);
+            }
+
+            if (formSenha) {
+                formSenha.addEventListener('submit', function (e) {
+                    const ok = validateNovaSenha() && validateConfirmar();
+                    if (!ok) e.preventDefault();
+                });
+            }
         });
     </script>
 </body>

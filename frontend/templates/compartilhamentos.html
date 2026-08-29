@@ -1,569 +1,224 @@
-<!--compartilhamentos.html-->
+<!-- compartilhamentos.html — Material 3 Inspirado no Google Drive -->
 <!DOCTYPE html>
 <html lang="pt-br" data-theme="{{ current_user.tema if current_user.is_authenticated else 'light' }}">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Compartilhamentos — Meu Drive</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Compartilhados — Meu Drive Pessoal</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
-    <style>
-        /* Estilo baseado na página da lixeira */
-
-        /* Animação spin para loading */
-        @keyframes spin {
-            from { transform: rotate(0deg); }
-            to { transform: rotate(360deg); }
-        }
-
-        /* Responsividade Mobile */
-        @media (max-width: 768px) {
-            /* Header compacto no mobile */
-            .content > div:first-child {
-                flex-direction: column !important;
-                align-items: flex-start !important;
-                gap: 20px !important;
-            }
-
-            .content > div:first-child > div:first-child {
-                width: 100%;
-            }
-
-            .content > div:first-child > div:last-child {
-                width: 100%;
-                justify-content: space-around !important;
-            }
-
-            /* Grid de itens - 1 coluna no mobile */
-            .content > div:nth-child(2) {
-                grid-template-columns: 1fr !important;
-                gap: 12px !important;
-            }
-
-            /* Cards otimizados no mobile */
-            .share-item {
-                border-radius: 12px !important;
-            }
-
-            .share-item .card-body {
-                padding: 14px !important;
-            }
-
-            /* Ícone e nome mais compactos */
-            .share-item .card-body > div:nth-child(2) {
-                gap: 10px !important;
-            }
-
-            .share-item .card-body > div:nth-child(2) > div:first-child {
-                width: 44px !important;
-                height: 44px !important;
-            }
-
-            .share-item .card-body > div:nth-child(2) > div:first-child i {
-                width: 22px !important;
-                height: 22px !important;
-            }
-
-            /* Texto do nome menor */
-            .share-item .card-body > div:nth-child(2) > div:last-child > div:first-child {
-                font-size: 0.95rem !important;
-            }
-
-            /* Metadados mais compactos */
-            .share-item .card-body > div:nth-child(3) {
-                gap: 6px !important;
-                padding: 10px 0 !important;
-                font-size: 0.75rem !important;
-            }
-
-            .share-item .card-body > div:nth-child(3) i {
-                width: 12px !important;
-                height: 12px !important;
-            }
-
-            /* Link box e botão em coluna no mobile */
-            .share-item .card-body > div:nth-child(4) {
-                flex-direction: column !important;
-                gap: 8px !important;
-            }
-
-            .share-item .card-body > div:nth-child(4) > div {
-                width: 100% !important;
-            }
-
-            .share-item .card-body > div:nth-child(4) button {
-                width: 100% !important;
-            }
-
-            /* Header da página mais compacto */
-            .content > div:first-child > div:first-child {
-                gap: 10px !important;
-            }
-
-            .content > div:first-child > div:first-child > div:first-child {
-                width: 36px !important;
-                height: 36px !important;
-                border-radius: 8px !important;
-            }
-
-            .content > div:first-child > div:first-child > div:first-child i {
-                width: 18px !important;
-                height: 18px !important;
-            }
-
-            .content > div:first-child > div:first-child > div:last-child h1 {
-                font-size: 1.25rem !important;
-            }
-
-            .content > div:first-child > div:first-child > div:last-child p {
-                font-size: 0.8rem !important;
-            }
-        }
-
-        @media (max-width: 480px) {
-            /* Conteúdo com menos padding */
-            .content {
-                padding: 16px 12px !important;
-            }
-
-            /* Header ainda mais compacto */
-            .content > div:first-child {
-                margin-bottom: 16px !important;
-            }
-
-            /* Cards mais compactos */
-            .share-item .card-body {
-                padding: 12px !important;
-            }
-
-            .share-item .card-body > div:nth-child(2) {
-                gap: 8px !important;
-            }
-
-            .share-item .card-body > div:nth-child(2) > div:first-child {
-                width: 40px !important;
-                height: 40px !important;
-            }
-
-            .share-item .card-body > div:nth-child(2) > div:first-child i {
-                width: 20px !important;
-                height: 20px !important;
-            }
-
-            /* Metadados compactos */
-            .share-item .card-body > div:nth-child(3) {
-                gap: 6px !important;
-                padding: 8px 0 !important;
-            }
-
-            /* Link box compacto */
-            .link-input-box {
-                padding: 8px 10px !important;
-                font-size: 0.75rem !important;
-            }
-
-            .link-input-box input {
-                font-size: 0.75rem !important;
-            }
-
-            /* Botões compactos */
-            .share-item .card-body > div:nth-child(4) button {
-                padding: 10px 8px !important;
-                font-size: 0.85rem !important;
-            }
-
-            .share-item .card-body > div:nth-child(4) button i {
-                width: 14px !important;
-                height: 14px !important;
-            }
-
-            /* Modal responsivo */
-            .modal-container {
-                margin: 16px !important;
-                max-width: calc(100vw - 32px) !important;
-                border-radius: 16px !important;
-            }
-
-            .modal-header {
-                padding: 16px !important;
-            }
-
-            .modal-body {
-                padding: 16px !important;
-            }
-
-            .modal-footer {
-                flex-direction: column !important;
-                gap: 8px !important;
-                padding: 16px !important;
-            }
-
-            .modal-footer button {
-                width: 100% !important;
-                padding: 12px !important;
-            }
-
-            .modal-title {
-                font-size: 1.05rem !important;
-            }
-
-            /* Empty state compacto */
-            .empty-state h2 {
-                font-size: 1.25rem !important;
-            }
-
-            .empty-state p {
-                font-size: 0.9rem !important;
-            }
-
-            .empty-state-icon {
-                width: 80px !important;
-                height: 80px !important;
-            }
-
-            .empty-state-icon i {
-                width: 40px !important;
-                height: 40px !important;
-            }
-        }
-    </style>
-    <style>
-        /* CSS Mobile DEFINITIVO - Funciona de verdade */
-        @media (max-width: 768px) {
-            /* Grid 1 coluna */
-            #links-container {
-                grid-template-columns: 1fr !important;
-                gap: 12px !important;
-            }
-
-            /* Header */
-            .content > div:first-child {
-                flex-direction: column !important;
-                gap: 16px !important;
-            }
-
-            .content > div:first-child > div:first-child > div:first-child {
-                width: 36px !important;
-                height: 36px !important;
-            }
-
-            .content > div:first-child > div:first-child > div:first-child i {
-                width: 18px !important;
-                height: 18px !important;
-            }
-
-            .content > div:first-child > div:first-child h1 {
-                font-size: 1.3rem !important;
-            }
-
-            #stats-container {
-                width: 100% !important;
-                justify-content: center !important;
-            }
-
-            /* Cards - remover TODAS as alturas fixas */
-            .share-item * {
-                min-height: unset !important;
-                height: auto !important;
-            }
-
-            .share-item .card-body {
-                padding: 14px !important;
-            }
-
-            /* Ícone do arquivo */
-            .share-item .card-body > div:first-child > div:first-child {
-                width: 44px !important;
-                height: 44px !important;
-            }
-
-            .share-item .card-body > div:first-child > div:first-child i {
-                width: 22px !important;
-                height: 22px !important;
-            }
-
-            /* Nome do arquivo */
-            .share-item .card-body > div:first-child > div:last-child {
-                padding-right: 70px !important;
-            }
-
-            /* Link box */
-            .share-item .card-body > div:nth-child(3) {
-                padding: 8px 10px !important;
-                flex-direction: row !important;
-                display: flex !important;
-                align-items: center !important;
-                flex-wrap: nowrap !important;
-                gap: 6px !important;
-            }
-
-            .share-item .card-body > div:nth-child(3) i:first-child {
-                flex-shrink: 0 !important;
-            }
-
-            .share-item .card-body > div:nth-child(3) input {
-                font-size: 0.7rem !important;
-                flex: 1 !important;
-                min-width: 0 !important;
-            }
-
-            .share-item .card-body > div:nth-child(3) button {
-                width: 15% !important;
-                min-width: 32px !important;
-                padding: 5px !important;
-                flex-shrink: 0 !important;
-            }
-
-            .share-item .card-body > div:nth-child(3) button i {
-                width: 13px !important;
-                height: 13px !important;
-            }
-
-            /* Botão revogar */
-            .share-item .card-body > div:last-child button {
-                padding: 10px !important;
-            }
-        }
-
-        @media (max-width: 480px) {
-            .content {
-                padding: 14px 10px !important;
-            }
-
-            .share-item .card-body {
-                padding: 12px !important;
-            }
-
-            /* Ícone menor */
-            .share-item .card-body > div:first-child > div:first-child {
-                width: 40px !important;
-                height: 40px !important;
-            }
-
-            .share-item .card-body > div:first-child > div:first-child i {
-                width: 20px !important;
-                height: 20px !important;
-            }
-
-            /* Nome menor */
-            .share-item .card-body > div:first-child > div:last-child {
-                padding-right: 65px !important;
-            }
-
-            .share-item .card-body > div:first-child > div:last-child > div:first-child {
-                font-size: 0.9rem !important;
-                line-height: 1.3 !important;
-            }
-
-            .share-item .card-body > div:first-child > div:last-child > div:last-child {
-                font-size: 0.7rem !important;
-            }
-
-            /* Metadados menores */
-            .share-item .card-body > div:nth-child(2) {
-                font-size: 0.7rem !important;
-                padding: 8px 0 !important;
-                gap: 6px !important;
-            }
-
-            .share-item .card-body > div:nth-child(2) i {
-                width: 12px !important;
-                height: 12px !important;
-            }
-
-            /* Link box compacto */
-            .share-item .card-body > div:nth-child(3) {
-                padding: 7px 8px !important;
-                flex-direction: row !important;
-                display: flex !important;
-                align-items: center !important;
-                gap: 6px !important;
-                flex-wrap: nowrap !important;
-            }
-
-            .share-item .card-body > div:nth-child(3) i:first-child {
-                width: 11px !important;
-                height: 11px !important;
-                flex-shrink: 0 !important;
-            }
-
-            .share-item .card-body > div:nth-child(3) input {
-                font-size: 0.6rem !important;
-                flex: 1 !important;
-                min-width: 0 !important;
-            }
-
-            .share-item .card-body > div:nth-child(3) button {
-                width: 18% !important;
-                min-width: 30px !important;
-                padding: 4px !important;
-                flex-shrink: 0 !important;
-            }
-
-            .share-item .card-body > div:nth-child(3) button i {
-                width: 12px !important;
-                height: 12px !important;
-            }
-
-            /* Botão revogar compacto */
-            .share-item .card-body > div:last-child button {
-                padding: 9px !important;
-                font-size: 0.85rem !important;
-            }
-
-            .share-item .card-body > div:last-child button i {
-                width: 15px !important;
-                height: 15px !important;
-            }
-
-            .share-item .card-body > div:last-child > div {
-                padding: 9px !important;
-                font-size: 0.75rem !important;
-            }
-
-            .share-item .card-body > div:last-child > div i {
-                width: 13px !important;
-                height: 13px !important;
-            }
-        }
-    </style>
 </head>
+
 <body>
     <div class="app">
 
-        <!-- SIDEBAR -->
+        <!-- ===== SIDEBAR (GAVETA LATERAL NO MOBILE) ===== -->
         <aside class="sidebar" id="sidebar">
             <div class="logo">
-                <span class="logo-icon"><i data-lucide="cloud" style="width:28px;height:28px;color:var(--primary);"></i></span>
+                <span class="logo-icon"><i data-lucide="cloud"></i></span>
                 <span class="logo-text">Meu Drive</span>
             </div>
+
             <nav class="sidebar-nav">
                 <a href="{{ url_for('file.explorar') }}" class="nav-item">
                     <span class="nav-icon"><i data-lucide="folder"></i></span>
                     <span class="nav-text">Meus arquivos</span>
                 </a>
                 <a href="{{ url_for('share.compartilhamentos_page') }}" class="nav-item active">
-                    <span class="nav-icon"><i data-lucide="share-2"></i></span>
-                    <span class="nav-text">Compartilhamentos</span>
-                </a>
-                <a href="#" class="nav-item" style="opacity: 0.6; cursor: not-allowed;">
-                    <span class="nav-icon"><i data-lucide="star"></i></span>
-                    <span class="nav-text">Favoritos</span>
-                    <span class="nav-badge">Em breve</span>
+                    <span class="nav-icon"><i data-lucide="users"></i></span>
+                    <span class="nav-text">Compartilhados</span>
                 </a>
                 <a href="{{ url_for('trash.lixeira_page') }}" class="nav-item">
                     <span class="nav-icon"><i data-lucide="trash-2"></i></span>
                     <span class="nav-text">Lixeira</span>
                 </a>
             </nav>
-            <div class="sidebar-footer">
-                <a href="{{ url_for('auth.perfil') }}" class="user-info user-info-link">
-                    <span class="user-icon"><i data-lucide="circle-user-round"></i></span>
-                    <span class="user-name">{{ current_user.nome if current_user.is_authenticated else 'Usuário' }}</span>
+
+            <!-- Seção de Armazenamento do Servidor (Imagem 2) -->
+            <div class="drawer-storage-section">
+                <div class="drawer-storage-header">
+                    <i data-lucide="cloud" style="width: 18px; height: 18px; color: var(--primary);"></i>
+                    <span>Armazenamento</span>
+                </div>
+                <div class="drawer-storage-bar-bg">
+                    <div class="drawer-storage-bar-fill" style="width: {{ storage_info.percent if storage_info else 0 }}%;"></div>
+                </div>
+                <div class="drawer-storage-text">
+                    {{ storage_info.text if storage_info else 'Armazenamento indisponível' }}
+                </div>
+                <a href="{{ url_for('trash.lixeira_page') }}" class="drawer-storage-btn">
+                    Gerenciar espaço
                 </a>
+            </div>
+
+            <div class="sidebar-footer">
                 <a href="{{ url_for('auth.logout') }}" class="logout-link">
-                    <span class="logout-icon"><i data-lucide="log-out"></i></span>
+                    <span class="nav-icon"><i data-lucide="log-out"></i></span>
                     <span>Sair</span>
                 </a>
             </div>
         </aside>
 
-        <!-- MAIN -->
+        <!-- OVERLAY SIDEBAR -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- ===== MAIN AREA ===== -->
         <main class="main">
+
+            <!-- TOPBAR -->
             <header class="topbar">
-                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu de navegação">
                     <i data-lucide="menu"></i>
                 </button>
+                <div class="search-wrapper">
+                    <span class="search-icon"><i data-lucide="search"></i></span>
+                    <input type="text" id="pesquisa-compartilhamentos" class="search-input" placeholder="Pesquisar em links compartilhados" autocomplete="off">
+                    <button id="pesquisa-limpar" class="search-clear" title="Limpar busca">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <a href="{{ url_for('auth.perfil') }}" class="topbar-avatar" title="Meu Perfil">
+                    {{ current_user.nome[0]|upper if current_user.is_authenticated and current_user.nome else 'U' }}
+                </a>
             </header>
 
-            <div class="content">
-                <!-- HEADER DA PÁGINA - Estilo Lixeira -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
-                            <i data-lucide="share-2" style="width:22px;height:22px;"></i>
-                        </div>
-                        <div>
-                            <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--text);">Compartilhamentos</h1>
-                            <p style="margin: 4px 0 0; font-size: 0.875rem; color: var(--text-secondary);">Links compartilhados mantidos ativos</p>
-                        </div>
-                    </div>
-
-                    <div id="stats-container" style="display: flex; gap: 16px; padding: 8px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;">
-                        <div style="text-align: center;">
-                            <div style="font-size: 1.25rem; font-weight: 700; color: var(--text);" id="links-count">0</div>
-                            <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Links</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Loading -->
-                <div id="loading" class="empty-state animate-fade-in">
-                    <div class="empty-state-icon">
-                        <i data-lucide="loader-2" style="width: 32px; height: 32px; animation: spin 1s linear infinite;"></i>
-                    </div>
-                    <h2>Carregando compartilhamentos...</h2>
-                    <p>Aguarde enquanto buscamos seus links</p>
-                </div>
-
-                <!-- GRID DE ITENS - Estilo Lixeira -->
-                <div id="links-container" style="display: none; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px;">
-                    <!-- Será preenchido via JavaScript -->
-                </div>
-
-                <!-- Empty state -->
-                <div id="empty-state" class="empty-state animate-fade-in" style="display: none;">
-                    <div class="empty-state-icon">
-                        <i data-lucide="share-2" style="width:48px;height:48px;"></i>
-                    </div>
-                    <h2>Nenhum compartilhamento ainda</h2>
-                    <p>Compartilhe arquivos para que outras pessoas possam baixá-los sem precisar fazer login.</p>
-                    <a href="{{ url_for('file.explorar') }}" class="btn btn-primary">
-                        <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
-                        Voltar para Meus arquivos
-                    </a>
+            <!-- SUBHEADER TABS (ESTILO GOOGLE DRIVE) -->
+            <div class="nav-tabs-wrapper">
+                <div class="nav-tab-item active">
+                    <i data-lucide="users" style="width: 18px; height: 18px;"></i>
+                    <span>Compartilhados</span>
                 </div>
             </div>
+
+            <!-- BARRA DE CONTROLES -->
+            <div class="controls-bar">
+                <div style="font-size: 0.84rem; font-weight: 600; color: var(--text-secondary);" id="stats-container">
+                    <span id="links-count">0</span> link(s) compartilhado(s)
+                </div>
+            </div>
+
+            <!-- CONTEÚDO -->
+            <div class="content">
+
+                <!-- LOADING -->
+                <div id="loading" class="empty-state">
+                    <div class="empty-state-icon">
+                        <i data-lucide="loader-2" style="animation: spin 1s linear infinite;"></i>
+                    </div>
+                    <h2 class="empty-state-title">Carregando links...</h2>
+                    <p class="empty-state-desc">Buscando seus arquivos compartilhados.</p>
+                </div>
+
+                <!-- LISTA DE LINKS (M3 COMPACTA E ELEGANTE) -->
+                <div id="links-container" class="share-grid" style="display: none;"></div>
+
+                <!-- EMPTY STATE -->
+                <div id="empty-state" class="empty-state" style="display: none;">
+                    <div class="empty-state-icon">
+                        <i data-lucide="share-2"></i>
+                    </div>
+                    <h2 class="empty-state-title">Nenhum link ativo</h2>
+                    <p class="empty-state-desc">Compartilhe arquivos com qualquer pessoa usando links protegidos ou temporários.</p>
+                    <a href="{{ url_for('file.explorar') }}" class="btn btn-primary" style="margin-top: 8px;">
+                        <i data-lucide="arrow-left"></i> Ir para Meus arquivos
+                    </a>
+                </div>
+
+            </div>
+
+            <!-- MODAL DE CONFIRMAÇÃO -->
+            <div id="confirmModal" class="modal-overlay" style="display: none;">
+                <div class="modal-container modal-small">
+                    <div class="modal-header">
+                        <h3 class="modal-title" id="modalTitle">Confirmar ação</h3>
+                        <button class="modal-close" onclick="fecharModalConfirm()"><i data-lucide="x"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="modalMessage" style="margin-bottom: 8px; font-weight: 600;"></p>
+                        <p id="modalDetail" style="font-size: 0.85rem; color: var(--text-muted); white-space: pre-wrap;"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="fecharModalConfirm()">Cancelar</button>
+                        <button class="btn btn-danger" id="modalConfirm">Confirmar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOAST -->
+            <div id="toast" class="toast" style="display: none;">
+                <div class="toast-content">
+                    <span id="toast-icon" class="toast-icon"></span>
+                    <span id="toast-message" class="toast-message">Operação realizada!</span>
+                </div>
+            </div>
+
         </main>
     </div>
 
-    <!-- Modal de Confirmação -->
-    <div id="confirmModal" class="modal-overlay" style="display: none;">
-        <div class="modal-container modal-small">
-            <div class="modal-header">
-                <h3 class="modal-title" id="modalTitle">Confirmar</h3>
-                <button class="modal-close" onclick="fecharModalConfirm()"><i data-lucide="x"></i></button>
-            </div>
-            <div class="modal-body">
-                <p id="modalMessage" style="margin-bottom: 10px; font-weight: 500;"></p>
-                <p id="modalDetail" style="font-size: 0.85rem; color: var(--text-secondary);"></p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn btn-secondary" onclick="fecharModalConfirm()">Cancelar</button>
-                <button class="btn btn-danger" id="modalConfirm">Confirmar</button>
-            </div>
-        </div>
-    </div>
-
+    <!-- SCRIPTS -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
     <script>
-        lucide.createIcons();
+        let todosLinks = [];
 
-        // Mobile menu
-        const mobileBtn = document.getElementById('mobile-menu-btn');
-        const sidebar = document.getElementById('sidebar');
-        if (mobileBtn && sidebar) {
-            mobileBtn.addEventListener('click', () => sidebar.classList.toggle('active'));
-            document.addEventListener('click', (e) => {
-                if (window.innerWidth <= 768 && !sidebar.contains(e.target) && !mobileBtn.contains(e.target))
-                    sidebar.classList.remove('active');
+        // Busca em tempo real nos links compartilhados
+        const inputBusca = document.getElementById('pesquisa-compartilhamentos');
+        const btnLimpar = document.getElementById('pesquisa-limpar');
+
+        if (inputBusca) {
+            inputBusca.addEventListener('input', (e) => {
+                const termo = e.target.value.toLowerCase().trim();
+                filtrarLinks(termo);
             });
         }
 
-        // Carregar links
+        if (btnLimpar && inputBusca) {
+            btnLimpar.addEventListener('click', () => {
+                inputBusca.value = '';
+                filtrarLinks('');
+                inputBusca.focus();
+            });
+        }
+
+        function filtrarLinks(termo) {
+            const cards = document.querySelectorAll('.share-item');
+            let visiveis = 0;
+
+            cards.forEach(card => {
+                const nome = (card.dataset.nome || '').toLowerCase();
+                if (!termo || nome.includes(termo)) {
+                    card.style.display = 'flex';
+                    visiveis++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            const emptyState = document.getElementById('empty-state');
+            if (cards.length > 0 && visiveis === 0) {
+                if (!document.getElementById('search-empty-state')) {
+                    const searchEmpty = document.createElement('div');
+                    searchEmpty.id = 'search-empty-state';
+                    searchEmpty.className = 'empty-state';
+                    searchEmpty.style.gridColumn = '1 / -1';
+                    searchEmpty.innerHTML = `
+                        <div class="empty-state-icon"><i data-lucide="search-x"></i></div>
+                        <h2 class="empty-state-title">Nenhum resultado encontrado</h2>
+                        <p class="empty-state-desc">Nenhum link corresponde à busca "${escapeHtml(termo)}".</p>
+                    `;
+                    document.getElementById('links-container').appendChild(searchEmpty);
+                    lucide.createIcons();
+                }
+            } else {
+                const searchEmpty = document.getElementById('search-empty-state');
+                if (searchEmpty) searchEmpty.remove();
+            }
+        }
+
         async function carregarLinks() {
             try {
                 const response = await fetch('/api/share/list');
@@ -572,13 +227,14 @@
                 document.getElementById('loading').style.display = 'none';
 
                 if (!data.success || data.links.length === 0) {
-                    document.getElementById('empty-state').style.display = 'block';
+                    document.getElementById('empty-state').style.display = 'flex';
                     document.getElementById('stats-container').style.display = 'none';
                     return;
                 }
 
+                todosLinks = data.links;
                 const container = document.getElementById('links-container');
-                container.style.display = 'grid';
+                container.style.display = 'flex';
                 container.innerHTML = '';
 
                 document.getElementById('links-count').textContent = data.links.length;
@@ -593,8 +249,9 @@
             } catch (error) {
                 console.error('Erro ao carregar links:', error);
                 document.getElementById('loading').innerHTML = `
-                    <i data-lucide="alert-circle" style="width: 32px; height: 32px; color: var(--danger);"></i>
-                    <p style="margin-top: 12px; color: var(--danger);">Erro ao carregar compartilhamentos</p>
+                    <div class="empty-state-icon" style="color: var(--danger);"><i data-lucide="alert-circle"></i></div>
+                    <h2 class="empty-state-title">Erro ao carregar compartilhamentos</h2>
+                    <p class="empty-state-desc">Verifique sua conexão e tente novamente.</p>
                 `;
                 lucide.createIcons();
             }
@@ -602,93 +259,61 @@
 
         function criarCardLink(link) {
             const card = document.createElement('div');
-            card.className = 'card share-item animate-slide-up';
-            card.style.cssText = 'transition: all 0.2s; cursor: pointer; position: relative; display: flex; flex-direction: column;';
+            card.className = 'share-item';
+            card.dataset.nome = link.filename;
 
-            // Status
             let statusBadge = '';
             if (!link.is_active) {
-                statusBadge = '<span class="badge badge-danger">Revogado</span>';
+                statusBadge = '<span class="badge badge-danger" style="padding: 1px 6px; font-size: 0.7rem;">Revogado</span>';
             } else if (link.is_expired) {
-                statusBadge = '<span class="badge badge-warning">Expirado</span>';
+                statusBadge = '<span class="badge badge-warning" style="padding: 1px 6px; font-size: 0.7rem;">Expirado</span>';
             } else {
-                statusBadge = '<span class="badge badge-success">Ativo</span>';
+                statusBadge = '<span class="badge badge-success" style="padding: 1px 6px; font-size: 0.7rem;">Ativo</span>';
             }
 
-            // Último acesso
-            let ultimoAcesso = 'Nunca';
+            let ultimoAcesso = 'Nunca acessado';
             if (link.last_accessed) {
                 const diffMs = Date.now() - (link.last_accessed * 1000);
                 const diffHrs = Math.floor(diffMs / 3600000);
                 if (diffHrs < 1) {
-                    ultimoAcesso = 'Há < 1h';
+                    ultimoAcesso = 'Acessado há < 1h';
                 } else if (diffHrs < 24) {
-                    ultimoAcesso = `Há ${diffHrs}h`;
+                    ultimoAcesso = `Acessado há ${diffHrs}h`;
                 } else {
                     const diffDays = Math.floor(diffHrs / 24);
-                    ultimoAcesso = `Há ${diffDays}d`;
+                    ultimoAcesso = `Acessado há ${diffDays}d`;
                 }
             }
 
             const url = window.location.origin + link.url;
 
             card.innerHTML = `
-                <div class="card-body" style="padding: 16px; display: flex; flex-direction: column; height: 100%;">
-                    <!-- Status Badge no canto -->
-                    <div style="position: absolute; top: 12px; right: 12px;">
+                <div class="share-item-icon">
+                    <i data-lucide="file-text"></i>
+                </div>
+
+                <div class="share-item-info">
+                    <div class="share-item-name" title="${escapeHtml(link.filename)}">${escapeHtml(link.filename)}</div>
+                    <div class="share-item-meta">
                         ${statusBadge}
+                        <span class="share-meta-dot">•</span>
+                        <span>${link.has_password ? '🔒 Senha' : '🔓 Sem senha'}</span>
+                        <span class="share-meta-dot">•</span>
+                        <span>${link.tempo_restante ? (link.tempo_restante === 'Expirado' ? 'Expirado' : 'Expira em ' + link.tempo_restante) : 'Sem expiração'}</span>
+                        <span class="share-meta-dot">•</span>
+                        <span>${link.downloads_count} downloads</span>
                     </div>
+                </div>
 
-                    <!-- Ícone e nome - ALTURA FIXA -->
-                    <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px; min-height: 68px;">
-                        <div style="flex-shrink: 0; width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--primary-light); color: var(--primary);">
-                            <i data-lucide="file-text" style="width:24px;height:24px;"></i>
-                        </div>
-
-                        <div style="flex: 1; min-width: 0; padding-right: 70px; display: flex; flex-direction: column;">
-                            <div style="font-weight: 600; color: var(--text); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.4; height: 2.8em;" title="${link.filename}">
-                                ${link.filename}
-                            </div>
-                            <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: auto;">
-                                ${link.has_password ? '🔒 Com senha' : '🔓 Sem senha'}
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Metadados - ALTURA FIXA -->
-                    <div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 12px; font-size: 0.8rem; color: var(--text-secondary); min-height: 56px;">
-                        <div style="display: flex; align-items: center; gap: 6px; height: 20px;">
-                            ${link.tempo_restante ? `<i data-lucide="clock" style="width:14px;height:14px;"></i> <span>${link.tempo_restante === 'Expirado' ? '<span style="color: var(--warning); font-weight: 600;">Expirado</span>' : 'Expira em ' + link.tempo_restante}</span>` : '<i data-lucide="infinity" style="width:14px;height:14px;"></i> <span>Sem expiração</span>'}
-                        </div>
-                        <div style="display: flex; align-items: center; gap: 6px; height: 20px;">
-                            <i data-lucide="download" style="width:14px;height:14px;"></i>
-                            <span>${link.downloads_count} downloads • ${ultimoAcesso}</span>
-                        </div>
-                    </div>
-
-                    <!-- Link Box - ALTURA FIXA -->
-                    <div style="background: var(--bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; margin-bottom: 12px; display: flex; align-items: center; gap: 6px; height: 34px;">
-                        <i data-lucide="link" style="width:12px;height:12px; color: var(--text-secondary); flex-shrink: 0;"></i>
-                        <input type="text" value="${url}" readonly onclick="this.select()" style="flex: 1; background: none; border: none; color: var(--text); outline: none; min-width: 0; font-family: 'Courier New', monospace; font-size: 0.7rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
-                        <button onclick="copiarLink(event, '${url}', this); event.stopPropagation();" class="btn btn-primary" style="padding: 4px; min-width: auto; width: 9%; height: 26px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;" title="Copiar">
-                            <i data-lucide="copy" style="width:14px;height:14px;"></i>
-                        </button>
-                    </div>
-
-                    <!-- Botões de ação - ALTURA FIXA -->
-                    <div style="display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: auto;">
-                        ${link.is_active && !link.is_expired ? `
-                        <button onclick="revogarLink(event, '${link.id}'); event.stopPropagation();" class="btn btn-danger" style="width: 100%; justify-content: center; padding: 8px; height: 36px; display: flex; align-items: center; gap: 8px;">
-                            <i data-lucide="shield-off" style="width:16px;height:16px;"></i>
-                            <span>Revogar</span>
-                        </button>
-                        ` : `
-                        <div style="padding: 8px; text-align: center; background: var(--bg); border: 1px solid var(--border); border-radius: 8px; color: var(--text-secondary); font-size: 0.8rem; height: 36px; display: flex; align-items: center; justify-content: center; gap: 6px;">
-                            <i data-lucide="ban" style="width:14px;height:14px;"></i>
-                            <span>Link inativo</span>
-                        </div>
-                        `}
-                    </div>
+                <div class="share-item-actions">
+                    <button onclick="copiarLink(event, '${url}', this)" class="btn-icon" title="Copiar link" aria-label="Copiar link">
+                        <i data-lucide="copy"></i>
+                    </button>
+                    ${link.is_active && !link.is_expired ? `
+                    <button onclick="revogarLink(event, '${link.id}')" class="btn-icon danger" title="Revogar link" aria-label="Revogar link">
+                        <i data-lucide="shield-off"></i>
+                    </button>
+                    ` : ''}
                 </div>
             `;
 
@@ -696,119 +321,75 @@
         }
 
         function copiarLink(event, url, btn) {
-            // Prevenir qualquer comportamento padrão e propagação
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
             }
 
-            try {
-                // Método moderno - Clipboard API
-                if (navigator.clipboard && window.isSecureContext) {
-                    navigator.clipboard.writeText(url).then(() => {
-                        feedbackCopia(btn);
-                    }).catch(() => {
-                        // Fallback para método antigo
-                        copiarLinkFallback(url, btn);
-                    });
-                } else {
-                    // Fallback para método antigo
-                    copiarLinkFallback(url, btn);
-                }
-            } catch (error) {
-                console.error('Erro ao copiar:', error);
-                copiarLinkFallback(url, btn);
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(url).then(() => {
+                    feedbackCopia(btn);
+                }).catch(() => fallbackCopiar(url, btn));
+            } else {
+                fallbackCopiar(url, btn);
             }
         }
 
-        function copiarLinkFallback(url, btn) {
-            try {
-                // Criar input temporário FORA da view
-                const tempInput = document.createElement('input');
-                tempInput.value = url;
-                tempInput.style.position = 'fixed';
-                tempInput.style.top = '-1000px';
-                tempInput.style.left = '-1000px';
-                tempInput.style.opacity = '0';
-                tempInput.style.pointerEvents = 'none';
-                document.body.appendChild(tempInput);
-
-                // Selecionar e copiar
-                tempInput.focus();
-                tempInput.select();
-                tempInput.setSelectionRange(0, 99999);
-
-                const sucesso = document.execCommand('copy');
-
-                // Remover input temporário
-                document.body.removeChild(tempInput);
-
-                if (sucesso) {
-                    feedbackCopia(btn);
-                }
-            } catch (error) {
-                console.error('Erro no fallback:', error);
-            }
+        function fallbackCopiar(url, btn) {
+            const temp = document.createElement('input');
+            temp.value = url;
+            document.body.appendChild(temp);
+            temp.select();
+            document.execCommand('copy');
+            document.body.removeChild(temp);
+            feedbackCopia(btn);
         }
 
         function feedbackCopia(btn) {
-            if (!btn) return;
-
-            const icon = btn.querySelector('i');
-            if (icon) {
-                icon.setAttribute('data-lucide', 'check');
-                lucide.createIcons();
-
-                if (typeof mostrarToast === 'function') {
-                    mostrarToast('Link copiado!', 'success');
-                }
-
-                setTimeout(() => {
-                    icon.setAttribute('data-lucide', 'copy');
+            showToast('Link copiado para a área de transferência!', 'success');
+            if (btn) {
+                const icon = btn.querySelector('i');
+                if (icon) {
+                    icon.setAttribute('data-lucide', 'check');
                     lucide.createIcons();
-                }, 2000);
+                    setTimeout(() => {
+                        icon.setAttribute('data-lucide', 'copy');
+                        lucide.createIcons();
+                    }, 2000);
+                }
             }
         }
 
         function revogarLink(event, linkId) {
-            // Prevenir propagação
             if (event) {
                 event.preventDefault();
                 event.stopPropagation();
             }
 
-            // Abrir modal de confirmação bonito
             abrirModalConfirm(
-                'Revogar Compartilhamento',
+                'Revogar link de compartilhamento',
                 'Tem certeza que deseja revogar este link?',
-                'Ele não poderá mais ser acessado por ninguém.',
+                'Qualquer pessoa com este link perderá o acesso ao arquivo imediatamente.',
                 async () => {
                     try {
+                        const token = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
                         const response = await fetch(`/api/share/revoke/${linkId}`, {
                             method: 'POST',
                             headers: {
-                                'Content-Type': 'application/json',
-                                'X-CSRFToken': '{{ csrf_token() }}'
+                                'X-CSRFToken': token
                             }
                         });
 
                         const data = await response.json();
-
                         if (data.success) {
-                            if (typeof mostrarToast === 'function') {
-                                mostrarToast('Link revogado com sucesso', 'success');
-                            }
-                            carregarLinks(); // Recarregar lista
+                            showToast('Link revogado com sucesso!', 'success');
+                            carregarLinks();
                         } else {
-                            if (typeof mostrarToast === 'function') {
-                                mostrarToast(data.error || 'Erro ao revogar link', 'error');
-                            }
+                            showToast(data.message || 'Erro ao revogar link', 'error');
                         }
                     } catch (error) {
                         console.error('Erro ao revogar link:', error);
-                        if (typeof mostrarToast === 'function') {
-                            mostrarToast('Erro ao revogar link', 'error');
-                        }
+                        showToast('Erro de conexão ao revogar link', 'error');
                     }
                 }
             );
@@ -822,11 +403,9 @@
             const modal = document.getElementById('confirmModal');
             const btnConfirm = document.getElementById('modalConfirm');
 
-            // Remover listeners antigos
             const newBtn = btnConfirm.cloneNode(true);
             btnConfirm.parentNode.replaceChild(newBtn, btnConfirm);
 
-            // Adicionar novo listener
             newBtn.addEventListener('click', () => {
                 fecharModalConfirm();
                 if (onConfirm) onConfirm();
@@ -843,7 +422,13 @@
             setTimeout(() => modal.style.display = 'none', 200);
         }
 
-        // Carregar na inicialização
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Carrega ao inicializar
         carregarLinks();
     </script>
 </body>

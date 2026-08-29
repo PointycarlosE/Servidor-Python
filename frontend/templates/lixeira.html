@@ -1,418 +1,26 @@
-<!-- lixeira.html -->
+<!-- lixeira.html — Material 3 Inspirado no Google Drive -->
 <!DOCTYPE html>
 <html lang="pt-br" data-theme="{{ current_user.tema if current_user.is_authenticated else 'light' }}">
 
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Lixeira - Meu Drive Pessoal</title>
+    <title>Lixeira — Meu Drive Pessoal</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <meta name="cache-control" content="no-cache, no-store, must-revalidate">
-    <meta name="pragma" content="no-cache">
-    <meta name="expires" content="0">
     <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
-    <style>
-        /* v2.0 - Modal Redesenhado */
-        /* Responsividade Mobile */
-        @media (max-width: 768px) {
-            /* Header compacto no mobile */
-            .content > div:first-child {
-                flex-direction: column !important;
-                align-items: flex-start !important;
-                gap: 20px !important;
-            }
-
-            .content > div:first-child > div:first-child {
-                width: 100%;
-            }
-
-            .content > div:first-child > div:last-child {
-                width: 100%;
-                flex-direction: column;
-                gap: 12px !important;
-            }
-
-            /* Stats em linha no mobile */
-            .content > div:first-child > div:last-child > div:first-child {
-                width: 100%;
-                display: flex !important;
-                justify-content: space-around !important;
-                padding: 12px 16px !important;
-            }
-
-            /* Botões do header empilhados */
-            .content > div:first-child > div:last-child {
-                display: flex;
-                flex-direction: column;
-            }
-
-            #btn-empty-trash,
-            #btn-select-all {
-                width: 100% !important;
-                justify-content: center !important;
-            }
-
-            /* Grid de itens - 1 coluna no mobile */
-            .content > div:nth-child(2) {
-                grid-template-columns: 1fr !important;
-                gap: 12px !important;
-            }
-
-            /* Cards otimizados no mobile */
-            .trash-item {
-                border-radius: 12px !important;
-            }
-
-            .trash-item .card-body {
-                padding: 14px !important;
-            }
-
-            /* Ícone e nome mais compactos */
-            .trash-item .card-body > div:nth-child(2) {
-                gap: 10px !important;
-            }
-
-            .trash-item .card-body > div:nth-child(2) > div:first-child {
-                width: 44px !important;
-                height: 44px !important;
-            }
-
-            .trash-item .card-body > div:nth-child(2) > div:first-child i {
-                width: 22px !important;
-                height: 22px !important;
-            }
-
-            /* Texto do nome menor */
-            .trash-item .card-body > div:nth-child(2) > div:last-child > div:first-child {
-                font-size: 0.95rem !important;
-            }
-
-            /* Path menor */
-            .trash-item .card-body > div:nth-child(2) > div:last-child > div:last-child {
-                font-size: 0.75rem !important;
-            }
-
-            /* Metadados mais compactos */
-            .trash-item .card-body > div:nth-child(3) {
-                gap: 6px !important;
-                padding: 10px 0 !important;
-                font-size: 0.75rem !important;
-            }
-
-            .trash-item .card-body > div:nth-child(3) i {
-                width: 12px !important;
-                height: 12px !important;
-            }
-
-            /* Botões de ação em coluna no mobile */
-            .trash-item .card-body > div:last-child {
-                grid-template-columns: 1fr !important;
-                gap: 8px !important;
-            }
-
-            .trash-item .card-body > div:last-child button {
-                padding: 10px !important;
-                font-size: 0.9rem !important;
-            }
-
-            /* Barra de ações em lote redesenhada para mobile */
-            #bulk-actions-bar {
-                bottom: 12px !important;
-                left: 12px !important;
-                right: 12px !important;
-                transform: none !important;
-                width: auto !important;
-                max-width: none !important;
-                flex-direction: row !important;
-                padding: 0 !important;
-                gap: 0 !important;
-                border-radius: 12px !important;
-                align-items: center !important;
-            }
-
-            /* Contador compacto na lateral */
-            #bulk-actions-bar > div:first-child {
-                width: auto !important;
-                flex-shrink: 0 !important;
-                border-right: 1px solid var(--border) !important;
-                border-bottom: none !important;
-                padding: 10px 12px !important;
-                justify-content: center !important;
-                background: linear-gradient(135deg, var(--primary-light) 0%, rgba(var(--primary-rgb, 59, 130, 246), 0.08) 100%) !important;
-            }
-
-            #bulk-actions-bar > div:first-child > div:first-child {
-                width: 28px !important;
-                height: 28px !important;
-                font-size: 0.8rem !important;
-            }
-
-            /* Ocultar texto no contador mobile */
-            #bulk-actions-bar > div:first-child > div:last-child {
-                display: none !important;
-            }
-
-            /* Botões compactos lado a lado */
-            #bulk-actions-bar > div:last-child {
-                width: 100%;
-                padding: 8px !important;
-                flex-direction: row !important;
-                gap: 6px !important;
-                justify-content: space-between !important;
-            }
-
-            #bulk-actions-bar button {
-                flex: 1 !important;
-                padding: 10px 8px !important;
-                justify-content: center !important;
-                font-size: 0.85rem !important;
-                min-width: 0 !important;
-            }
-
-            #bulk-actions-bar button i {
-                width: 16px !important;
-                height: 16px !important;
-            }
-
-            #bulk-actions-bar button span.btn-text {
-                display: none !important;
-            }
-
-            /* Remover separador vertical */
-            #bulk-actions-bar > div:last-child > div {
-                display: none !important;
-            }
-
-            /* Header da página mais compacto */
-            .content > div:first-child > div:first-child {
-                gap: 10px !important;
-            }
-
-            .content > div:first-child > div:first-child > div:first-child {
-                width: 36px !important;
-                height: 36px !important;
-                border-radius: 8px !important;
-            }
-
-            .content > div:first-child > div:first-child > div:first-child i {
-                width: 18px !important;
-                height: 18px !important;
-            }
-
-            .content > div:first-child > div:first-child > div:last-child h1 {
-                font-size: 1.25rem !important;
-            }
-
-            .content > div:first-child > div:first-child > div:last-child p {
-                font-size: 0.8rem !important;
-            }
-        }
-
-        @media (max-width: 480px) {
-            /* Conteúdo com menos padding */
-            .content {
-                padding: 16px 12px !important;
-            }
-
-            /* Header ainda mais compacto */
-            .content > div:first-child {
-                margin-bottom: 16px !important;
-            }
-
-            /* Cards mais compactos */
-            .trash-item .card-body {
-                padding: 12px !important;
-            }
-
-            .trash-item .card-body > div:nth-child(2) {
-                gap: 8px !important;
-            }
-
-            .trash-item .card-body > div:nth-child(2) > div:first-child {
-                width: 40px !important;
-                height: 40px !important;
-            }
-
-            .trash-item .card-body > div:nth-child(2) > div:first-child i {
-                width: 20px !important;
-                height: 20px !important;
-            }
-
-            /* Checkbox menor */
-            .item-checkbox {
-                width: 16px !important;
-                height: 16px !important;
-            }
-
-            /* Botões de ação mais compactos */
-            .trash-item .card-body > div:last-child button {
-                padding: 10px 8px !important;
-                font-size: 0.85rem !important;
-            }
-
-            .trash-item .card-body > div:last-child button i {
-                width: 14px !important;
-                height: 14px !important;
-            }
-
-            /* Modal responsivo */
-            .modal-container {
-                margin: 16px !important;
-                max-width: calc(100vw - 32px) !important;
-                border-radius: 16px !important;
-            }
-
-            .modal-header {
-                padding: 16px !important;
-            }
-
-            .modal-body {
-                padding: 16px !important;
-            }
-
-            .modal-footer {
-                flex-direction: column !important;
-                gap: 8px !important;
-                padding: 16px !important;
-            }
-
-            .modal-footer button {
-                width: 100% !important;
-                padding: 12px !important;
-            }
-
-            #modal-icon {
-                width: 32px !important;
-                height: 32px !important;
-            }
-
-            #modal-icon i {
-                width: 18px !important;
-                height: 18px !important;
-            }
-
-            .modal-title {
-                font-size: 1.05rem !important;
-            }
-
-            #modal-message {
-                font-size: 0.9rem !important;
-            }
-
-            /* Barra de ações ainda mais compacta */
-            #bulk-actions-bar {
-                bottom: 10px !important;
-                left: 8px !important;
-                right: 8px !important;
-                border-radius: 10px !important;
-            }
-
-            #bulk-actions-bar > div:first-child {
-                padding: 8px 10px !important;
-            }
-
-            #bulk-actions-bar > div:first-child > div:first-child {
-                width: 26px !important;
-                height: 26px !important;
-                font-size: 0.75rem !important;
-            }
-
-            #bulk-actions-bar > div:last-child {
-                padding: 6px !important;
-                gap: 5px !important;
-            }
-
-            #bulk-actions-bar button {
-                padding: 9px 6px !important;
-                font-size: 0.8rem !important;
-            }
-
-            #bulk-actions-bar button i {
-                width: 18px !important;
-                height: 18px !important;
-            }
-
-            /* Stats mais compactos */
-            .content > div:first-child > div:last-child > div:first-child {
-                padding: 10px 12px !important;
-                gap: 12px !important;
-            }
-
-            .content > div:first-child > div:last-child > div:first-child > div {
-                font-size: 1.1rem !important;
-            }
-
-            /* Topbar search menor */
-            .search-input {
-                font-size: 0.9rem !important;
-            }
-
-            /* Empty state compacto */
-            .empty-state h2 {
-                font-size: 1.25rem !important;
-            }
-
-            .empty-state p {
-                font-size: 0.9rem !important;
-            }
-
-            .empty-state-icon {
-                width: 80px !important;
-                height: 80px !important;
-            }
-
-            .empty-state-icon i {
-                width: 40px !important;
-                height: 40px !important;
-            }
-        }
-
-        /* Animação suave para mostrar a barra de ações */
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateX(-50%) translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(-50%) translateY(0);
-            }
-        }
-
-        @keyframes slideUpMobile {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        #bulk-actions-bar[style*="display: flex"] {
-            animation: slideUp 0.3s ease-out;
-        }
-
-        @media (max-width: 768px) {
-            #bulk-actions-bar[style*="display: flex"] {
-                animation: slideUpMobile 0.3s ease-out;
-            }
-        }
-    </style>
-    </head>
+</head>
 
 <body>
     <div class="app">
 
-        <!-- ===== SIDEBAR ===== -->
+        <!-- ===== SIDEBAR (GAVETA LATERAL NO MOBILE) ===== -->
         <aside class="sidebar" id="sidebar">
             <div class="logo">
-                <span class="logo-icon"><i data-lucide="cloud" style="width:28px;height:28px;color:var(--primary);"></i></span>
+                <span class="logo-icon"><i data-lucide="cloud"></i></span>
                 <span class="logo-text">Meu Drive</span>
             </div>
 
@@ -422,603 +30,184 @@
                     <span class="nav-text">Meus arquivos</span>
                 </a>
                 <a href="{{ url_for('share.compartilhamentos_page') }}" class="nav-item">
-                    <span class="nav-icon"><i data-lucide="share-2"></i></span>
-                    <span class="nav-text">Compartilhamentos</span>
+                    <span class="nav-icon"><i data-lucide="users"></i></span>
+                    <span class="nav-text">Compartilhados</span>
                 </a>
-                <a href="#" class="nav-item" id="nav-favoritos" style="opacity: 0.6; cursor: not-allowed;">
-                    <span class="nav-icon"><i data-lucide="star"></i></span>
-                    <span class="nav-text">Favoritos</span>
-                    <span class="nav-badge">Em breve</span>
-                </a>
-                <a href="{{ url_for('trash.lixeira_page') }}" class="nav-item active">
+                <a href="{{ url_for('trash.lixeira_page') }}" class="nav-item active" id="nav-lixeira">
                     <span class="nav-icon"><i data-lucide="trash-2"></i></span>
                     <span class="nav-text">Lixeira</span>
-                    {% if total_itens > 0 %}
-                    <span class="nav-badge">{{ total_itens }}</span>
-                    {% endif %}
                 </a>
             </nav>
 
-            <div class="sidebar-footer">
-                <a href="{{ url_for('auth.perfil') }}" class="user-info user-info-link">
-                    <span class="user-icon"><i data-lucide="circle-user-round"></i></span>
-                    <span class="user-name">{{ current_user.nome if current_user.is_authenticated else 'Usuário' }}</span>
+            <!-- Seção de Armazenamento do Servidor (Imagem 2) -->
+            <div class="drawer-storage-section">
+                <div class="drawer-storage-header">
+                    <i data-lucide="cloud" style="width: 18px; height: 18px; color: var(--primary);"></i>
+                    <span>Armazenamento</span>
+                </div>
+                <div class="drawer-storage-bar-bg">
+                    <div class="drawer-storage-bar-fill" style="width: {{ storage_info.percent if storage_info else 0 }}%;"></div>
+                </div>
+                <div class="drawer-storage-text">
+                    {{ storage_info.text if storage_info else 'Armazenamento indisponível' }}
+                </div>
+                <a href="{{ url_for('trash.lixeira_page') }}" class="drawer-storage-btn">
+                    Gerenciar espaço
                 </a>
+            </div>
+
+                        <div class="sidebar-footer">
                 <a href="{{ url_for('auth.logout') }}" class="logout-link">
-                    <span class="logout-icon"><i data-lucide="log-out"></i></span>
+                    <span class="nav-icon"><i data-lucide="log-out"></i></span>
                     <span>Sair</span>
                 </a>
             </div>
+
         </aside>
 
-        <!-- ===== MAIN ===== -->
+        <!-- OVERLAY DO SIDEBAR -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- ===== MAIN AREA ===== -->
         <main class="main">
 
             <!-- TOPBAR -->
             <header class="topbar">
-                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu">
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu de navegação">
                     <i data-lucide="menu"></i>
                 </button>
 
                 <div class="search-wrapper">
-                    <span class="search-icon"><i data-lucide="search" style="width:18px;height:18px;"></i></span>
-                    <input type="text" id="search-input" class="search-input" placeholder="Buscar na lixeira..." autocomplete="off">
-                    <button id="search-clear" class="search-clear" style="display: none;">
-                        <i data-lucide="x" style="width:16px;height:16px;"></i>
+                    <span class="search-icon"><i data-lucide="search"></i></span>
+                    <input type="text" id="pesquisa-lixeira" class="search-input" placeholder="Pesquisar na lixeira" autocomplete="off">
+                    <button id="pesquisa-limpar" class="search-clear" title="Limpar busca">
+                        <i data-lucide="x"></i>
                     </button>
                 </div>
+
+                <a href="{{ url_for('auth.perfil') }}" class="topbar-avatar" title="Meu Perfil">
+                    {{ current_user.nome[0]|upper if current_user.is_authenticated and current_user.nome else 'U' }}
+                </a>
             </header>
+
+            <!-- SUBHEADER TABS (ESTILO GOOGLE DRIVE) -->
+            <div class="nav-tabs-wrapper">
+                <div class="nav-tab-item active">
+                    <i data-lucide="trash-2" style="width: 18px; height: 18px;"></i>
+                    <span>Lixeira</span>
+                </div>
+            </div>
+
+            <!-- BARRA DE CONTROLES & AÇÕES DA LIXEIRA -->
+            <div class="controls-bar" style="justify-content: space-between;">
+                <div style="font-size: 0.8125rem; font-weight: 500; color: var(--text-muted);">
+                    <span id="total-itens" style="font-weight: 700; color: var(--text);">{{ total_itens }}</span> item(ns) • <span id="tamanho-total">{{ tamanho_total }}</span> • <span style="opacity: 0.85;">Expira em 30d</span>
+                </div>
+
+                {% if total_itens > 0 %}
+                <button id="btn-empty-trash" class="btn btn-danger" onclick="confirmarEsvaziarLixeira()" style="padding: 5px 12px; font-size: 0.8125rem; border-radius: var(--radius-pill);">
+                    <i data-lucide="trash"></i> Esvaziar
+                </button>
+                {% endif %}
+            </div>
 
             <!-- CONTEÚDO -->
             <div class="content">
 
-                <!-- HEADER DA LIXEIRA - Compacto -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 16px;">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <div style="width: 40px; height: 40px; border-radius: 10px; background: var(--primary-light); color: var(--primary); display: flex; align-items: center; justify-content: center;">
-                            <i data-lucide="trash-2" style="width:22px;height:22px;"></i>
+                <!-- LISTA DE ITENS NA LIXEIRA -->
+                <div class="trash-grid" id="trash-grid">
+                    {% if itens %}
+                    {% for item in itens %}
+                    <div class="trash-item" data-id="{{ item.id }}" data-nome="{{ item.original_name }}" data-path="{{ item.original_path }}">
+                        <input type="checkbox" class="trash-item-checkbox item-checkbox-input" data-id="{{ item.id }}" onclick="event.stopPropagation()">
+
+                        <div class="trash-item-icon">
+                            {% if item.is_folder %}
+                            <i data-lucide="folder" style="color: var(--folder-color);"></i>
+                            {% else %}
+                            <i data-lucide="file-text" style="color: var(--primary);"></i>
+                            {% endif %}
                         </div>
-                        <div>
-                            <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--text);">Lixeira</h1>
-                            <p style="margin: 4px 0 0; font-size: 0.875rem; color: var(--text-secondary);">Arquivos mantidos por 30 dias</p>
+
+                        <div class="trash-item-info">
+                            <div class="trash-item-name" title="{{ item.original_name }}">{{ item.original_name }}</div>
+                            <div class="trash-item-meta">
+                                <span>{{ item.size_formatted }}</span>
+                                <span class="trash-meta-dot">•</span>
+                                <span>Excluído em {{ item.deleted_at_formatted }}</span>
+                                <span class="trash-meta-dot">•</span>
+                                <span class="badge badge-warning" style="padding: 1px 6px; font-size: 0.7rem;">{{ item.days_remaining }}d restantes</span>
+                            </div>
+                        </div>
+
+                        <div class="trash-item-actions">
+                            <button class="btn-icon" onclick="restaurarItem('{{ item.id }}', '{{ item.original_name }}')" title="Restaurar arquivo" aria-label="Restaurar {{ item.original_name }}">
+                                <i data-lucide="rotate-ccw"></i>
+                            </button>
+                            <button class="btn-icon danger" onclick="deletarPermanente('{{ item.id }}', '{{ item.original_name }}')" title="Excluir permanentemente" aria-label="Excluir {{ item.original_name }}">
+                                <i data-lucide="trash-2"></i>
+                            </button>
                         </div>
                     </div>
-
-                    {% if itens %}
-                    <div style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
-                        <div style="display: flex; gap: 16px; padding: 8px 16px; background: var(--bg); border: 1px solid var(--border); border-radius: 8px;">
-                            <div style="text-align: center;">
-                                <div style="font-size: 1.25rem; font-weight: 700; color: var(--text);" id="stat-count">{{ total_itens }}</div>
-                                <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Itens</div>
-                            </div>
-                            <div style="width: 1px; background: var(--border);"></div>
-                            <div style="text-align: center;">
-                                <div style="font-size: 1.25rem; font-weight: 700; color: var(--text);" id="stat-size">{{ tamanho_total }}</div>
-                                <div style="font-size: 0.75rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Tamanho</div>
-                            </div>
+                    {% endfor %}
+                    {% else %}
+                    <div class="empty-state">
+                        <div class="empty-state-icon">
+                            <i data-lucide="trash-2"></i>
                         </div>
-                        <button class="btn btn-danger" id="btn-empty-trash">
-                            <i data-lucide="trash" style="width:16px;height:16px;"></i>
-                            Esvaziar
-                        </button>
-                        <button class="btn btn-secondary" id="btn-select-all">
-                            <i data-lucide="check-square" style="width:16px;height:16px;"></i>
-                            Selecionar todos
-                        </button>
+                        <h2 class="empty-state-title">A lixeira está vazia</h2>
+                        <p class="empty-state-desc">Nenhum arquivo ou pasta excluído recentemente.</p>
                     </div>
                     {% endif %}
                 </div>
 
-                {% if itens %}
-
-                <!-- GRID DE ITENS -->
-                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 16px;">
-                    {% for item in itens %}
-                    <div class="card trash-item animate-slide-up" data-id="{{ item.id }}" data-name="{{ item.original_name }}" data-path="{{ item.original_path }}" style="transition: all 0.2s; cursor: pointer; position: relative;">
-                        <div class="card-body" style="padding: 16px;">
-                            <!-- Checkbox no canto superior direito -->
-                            <div style="position: absolute; top: 12px; right: 12px;">
-                                <input type="checkbox" class="item-checkbox" value="{{ item.id }}" onclick="event.stopPropagation();" style="width: 18px; height: 18px; cursor: pointer; accent-color: var(--primary);">
-                            </div>
-
-                            <!-- Ícone e nome -->
-                            <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 12px;">
-                                <div style="flex-shrink: 0; width: 48px; height: 48px; border-radius: 10px; display: flex; align-items: center; justify-content: center; {% if item.is_folder %}background: var(--primary-light); color: var(--primary);{% else %}background: var(--bg); border: 1px solid var(--border);{% endif %}">
-                                    {% if item.is_folder %}
-                                    <i data-lucide="folder" style="width:24px;height:24px;"></i>
-                                    {% else %}
-                                    <i data-lucide="file-text" style="width:24px;height:24px; color: var(--text-secondary);"></i>
-                                    {% endif %}
-                                </div>
-
-                                <div style="flex: 1; min-width: 0; padding-right: 24px;">
-                                    <div style="font-weight: 600; color: var(--text); margin-bottom: 4px; overflow: hidden; text-overflow: ellipsis; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; line-height: 1.4;" title="{{ item.original_name }}">
-                                        {{ item.original_name }}
-                                    </div>
-                                    <div style="font-size: 0.8rem; color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="{{ item.original_path }}">
-                                        <i data-lucide="folder" style="width:12px;height:12px;"></i>
-                                        {{ item.original_path }}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Metadados -->
-                            <div style="display: flex; flex-direction: column; gap: 8px; padding: 12px 0; border-top: 1px solid var(--border); border-bottom: 1px solid var(--border); margin-bottom: 12px; font-size: 0.8rem; color: var(--text-secondary);">
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="calendar" style="width:14px;height:14px;"></i>
-                                    <span>{{ item.deleted_at_formatted }}</span>
-                                </div>
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="clock" style="width:14px;height:14px;"></i>
-                                    {% if item.days_remaining > 7 %}
-                                    <span>{{ item.days_remaining }} dias restantes</span>
-                                    {% elif item.days_remaining > 1 %}
-                                    <span style="color: var(--warning); font-weight: 600;">{{ item.days_remaining }} dias restantes</span>
-                                    {% elif item.days_remaining == 1 %}
-                                    <span style="color: var(--warning); font-weight: 600;">Expira amanhã</span>
-                                    {% else %}
-                                    <span style="color: var(--danger); font-weight: 600;">Expirado</span>
-                                    {% endif %}
-                                </div>
-                                {% if not item.is_folder %}
-                                <div style="display: flex; align-items: center; gap: 6px;">
-                                    <i data-lucide="hard-drive" style="width:14px;height:14px;"></i>
-                                    <span>{{ item.size_formatted }}</span>
-                                </div>
-                                {% endif %}
-                            </div>
-
-                            <!-- Botões de ação -->
-                            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                                <button class="btn btn-primary btn-item-action restore" data-id="{{ item.id }}" style="width: 100%; justify-content: center; padding: 8px;">
-                                    <i data-lucide="rotate-ccw" style="width:16px;height:16px;"></i>
-                                    <span>Restaurar</span>
-                                </button>
-                                <button class="btn btn-danger btn-item-action delete" data-id="{{ item.id }}" style="width: 100%; justify-content: center; padding: 8px;">
-                                    <i data-lucide="x" style="width:16px;height:16px;"></i>
-                                    <span>Excluir</span>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    {% endfor %}
-                </div>
-
-                {% else %}
-
-                <!-- ESTADO VAZIO -->
-                <div class="empty-state animate-fade-in">
-                    <div class="empty-state-icon">
-                        <i data-lucide="trash-2" style="width:48px;height:48px;"></i>
-                    </div>
-                    <h2>Lixeira vazia</h2>
-                    <p>Arquivos e pastas excluídos aparecerão aqui por 30 dias.</p>
-                    <a href="{{ url_for('file.explorar') }}" class="btn btn-primary">
-                        <i data-lucide="arrow-left" style="width:16px;height:16px;"></i>
-                        Voltar para Meus arquivos
-                    </a>
-                </div>
-
-                {% endif %}
-
             </div>
+
+            <!-- BARRA DE AÇÕES EM LOTE DA LIXEIRA -->
+            <div id="bulk-actions-bar" class="selection-bar" style="display: none;">
+                <div class="selection-info">
+                    <span id="selected-count">0</span> selecionados
+                </div>
+                <div class="selection-actions">
+                    <button id="btn-select-all" class="selection-btn" title="Selecionar todos"><i data-lucide="check-square"></i></button>
+                    <button id="btn-clear-selection" class="selection-btn" title="Limpar seleção"><i data-lucide="x"></i></button>
+                    <button id="btn-restore-selected" class="selection-btn" title="Restaurar selecionados"><i data-lucide="rotate-ccw"></i></button>
+                    <button id="btn-delete-selected" class="selection-btn delete-btn" title="Excluir permanentemente"><i data-lucide="trash-2"></i></button>
+                </div>
+            </div>
+
+            <!-- MODAL DE CONFIRMAÇÃO -->
+            <div id="confirmModal" class="modal-overlay" style="display: none;">
+                <div class="modal-container modal-small">
+                    <div class="modal-header">
+                        <h3 class="modal-title" id="modalTitle">Confirmar ação</h3>
+                        <button class="modal-close" id="modalClose"><i data-lucide="x"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="modalMessage" style="margin-bottom: 8px; font-weight: 600;"></p>
+                        <p id="modalDetail" style="font-size: 0.85rem; color: var(--text-muted); white-space: pre-wrap;"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="modalCancel">Cancelar</button>
+                        <button class="btn btn-danger" id="modalConfirm">Confirmar</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TOAST -->
+            <div id="toast" class="toast" style="display: none;">
+                <div class="toast-content">
+                    <span id="toast-icon" class="toast-icon"></span>
+                    <span id="toast-message" class="toast-message">Operação realizada!</span>
+                </div>
+            </div>
+
         </main>
     </div>
 
-    <!-- BARRA DE AÇÕES EM LOTE -->
-    <div id="bulk-actions-bar" style="display: none; position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); background: var(--card); border: 1px solid var(--border); border-radius: 16px; padding: 0; box-shadow: 0 12px 40px rgba(0,0,0,0.12), 0 0 0 1px rgba(0,0,0,0.05); z-index: 1000; align-items: stretch; gap: 0; max-width: calc(100vw - 32px); overflow: hidden; backdrop-filter: blur(10px);">
-        <!-- Seção de Contador -->
-        <div style="display: flex; align-items: center; gap: 12px; padding: 16px 20px; background: linear-gradient(135deg, var(--primary-light) 0%, rgba(var(--primary-rgb, 59, 130, 246), 0.08) 100%); border-right: 1px solid var(--border);">
-            <div style="width: 36px; height: 36px; border-radius: 10px; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9rem; box-shadow: 0 2px 8px rgba(var(--primary-rgb, 59, 130, 246), 0.3);">
-                <span id="selection-count">0</span>
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 2px;">
-                <span style="font-weight: 600; color: var(--text); font-size: 0.95rem; line-height: 1;">
-                    <span id="selection-count-text">0</span> selecionados
-                </span>
-                <span style="font-size: 0.75rem; color: var(--text-secondary); line-height: 1;">
-                    Escolha uma ação
-                </span>
-            </div>
-        </div>
-
-        <!-- Seção de Botões -->
-        <div style="display: flex; gap: 8px; padding: 12px 16px; align-items: center;">
-            <button class="btn btn-primary" id="btn-bulk-restore" style="padding: 10px 18px; font-weight: 600; box-shadow: 0 2px 8px rgba(var(--primary-rgb, 59, 130, 246), 0.2);">
-                <i data-lucide="rotate-ccw" style="width:18px;height:18px;"></i>
-                <span class="btn-text">Restaurar</span>
-            </button>
-            <button class="btn btn-danger" id="btn-bulk-delete" style="padding: 10px 18px; font-weight: 600; box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);">
-                <i data-lucide="trash" style="width:18px;height:18px;"></i>
-                <span class="btn-text">Excluir</span>
-            </button>
-            <div style="width: 1px; height: 32px; background: var(--border); margin: 0 4px;"></div>
-            <button class="btn btn-secondary" id="btn-bulk-cancel" style="padding: 10px 18px;">
-                <i data-lucide="x" style="width:18px;height:18px;"></i>
-                <span class="btn-text">Cancelar</span>
-            </button>
-        </div>
-    </div>
-
-    <!-- MODAL DE CONFIRMAÇÃO -->
-    <div class="modal-overlay" id="confirm-modal" style="display: none;">
-        <div class="modal-container modal-small">
-            <div class="modal-header" style="border-bottom: 1px solid var(--border); padding-bottom: 16px;">
-                <div style="display: flex; align-items: center; gap: 12px;">
-                    <div id="modal-icon" style="width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--primary-light); color: var(--primary);">
-                        <i data-lucide="info" style="width:22px;height:22px;"></i>
-                    </div>
-                    <h3 class="modal-title" id="modal-title" style="margin: 0; font-size: 1.25rem; font-weight: 600;">Confirmar ação</h3>
-                </div>
-                <button class="modal-close" id="modal-close">
-                    <i data-lucide="x" style="width:20px;height:20px;"></i>
-                </button>
-            </div>
-            <div class="modal-body" style="padding: 20px 24px;">
-                <p id="modal-message" style="margin: 0 0 16px 0; font-size: 0.95rem; color: var(--text); line-height: 1.5;">Tem certeza que deseja continuar?</p>
-                <div id="modal-warning" style="display: none; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.2); border-radius: 8px; padding: 12px; align-items: flex-start; gap: 10px;">
-                    <i data-lucide="alert-triangle" style="width:18px;height:18px; color: var(--danger); flex-shrink: 0; margin-top: 2px;"></i>
-                    <div style="font-size: 0.85rem; color: var(--danger); line-height: 1.5;">
-                        <strong>Atenção:</strong> Esta ação é irreversível! Os arquivos serão removidos permanentemente e não poderão ser recuperados.
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer" style="display: flex; gap: 8px; justify-content: flex-end; padding-top: 16px; border-top: 1px solid var(--border);">
-                <button class="btn btn-secondary" id="modal-cancel" style="min-width: 100px;">Cancelar</button>
-                <button class="btn btn-primary" id="modal-confirm" style="min-width: 100px;">Confirmar</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- TOAST CONTAINER -->
-    <div class="toast-container" id="toast-container"></div>
-
-    <script>
-        // Dados globais
-        const trashItems = {{ itens | tojson }};
-        let selectedItems = new Set();
-        let modalCallback = null;
-
-        // Inicialização
-        document.addEventListener('DOMContentLoaded', () => {
-            lucide.createIcons();
-            initEvents();
-        });
-
-        function initEvents() {
-            console.log('Inicializando eventos...');
-
-            // Busca
-            const searchInput = document.getElementById('search-input');
-            const searchClear = document.getElementById('search-clear');
-
-            searchInput?.addEventListener('input', (e) => {
-                const query = e.target.value.toLowerCase();
-                filterItems(query);
-                searchClear.style.display = query ? 'flex' : 'none';
-            });
-
-            searchClear?.addEventListener('click', () => {
-                searchInput.value = '';
-                filterItems('');
-                searchClear.style.display = 'none';
-            });
-
-            // Checkbox
-            document.querySelectorAll('.item-checkbox').forEach(cb => {
-                cb.addEventListener('change', (e) => {
-                    toggleSelection(cb.value, cb.checked);
-                });
-            });
-
-            // Cards clicáveis (mas não os botões)
-            document.querySelectorAll('.trash-item').forEach(item => {
-                item.addEventListener('click', (e) => {
-                    // Não fazer nada se clicou em botão, checkbox ou em elementos dentro deles
-                    if (e.target.closest('.btn-item-action') || e.target.closest('.item-checkbox')) {
-                        return;
-                    }
-                    // Toggle do checkbox
-                    const cb = item.querySelector('.item-checkbox');
-                    if (cb) {
-                        cb.checked = !cb.checked;
-                        toggleSelection(cb.value, cb.checked);
-                    }
-                });
-            });
-
-            // Botões de ação individual
-            const restoreBtns = document.querySelectorAll('.btn-item-action.restore');
-            const deleteBtns = document.querySelectorAll('.btn-item-action.delete');
-
-            console.log('Botões restaurar encontrados:', restoreBtns.length);
-            console.log('Botões deletar encontrados:', deleteBtns.length);
-
-            restoreBtns.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    console.log('Clique em restaurar detectado!', btn.dataset.id);
-                    e.stopPropagation();
-                    const id = btn.dataset.id;
-                    showModal('Restaurar arquivo', `Deseja restaurar "${getItemName(id)}"?`, false, () => restoreItem(id));
-                });
-            });
-
-            deleteBtns.forEach(btn => {
-                btn.addEventListener('click', (e) => {
-                    console.log('Clique em deletar detectado!', btn.dataset.id);
-                    e.stopPropagation();
-                    const id = btn.dataset.id;
-                    showModal('Excluir permanentemente', `Deseja excluir "${getItemName(id)}" permanentemente?`, true, () => deleteItem(id));
-                });
-            });
-
-            // Botões globais
-            document.getElementById('btn-empty-trash')?.addEventListener('click', () => {
-                const count = document.querySelectorAll('.trash-item').length;
-                showModal('Esvaziar lixeira', `Deseja excluir todos os ${count} itens permanentemente?`, true, emptyTrash);
-            });
-
-            document.getElementById('btn-select-all')?.addEventListener('click', toggleSelectAll);
-
-            // Botões de ação em lote
-            document.getElementById('btn-bulk-restore')?.addEventListener('click', () => {
-                showModal('Restaurar itens', `Deseja restaurar ${selectedItems.size} itens selecionados?`, false, () => restoreMultiple(Array.from(selectedItems)));
-            });
-
-            document.getElementById('btn-bulk-delete')?.addEventListener('click', () => {
-                showModal('Excluir permanentemente', `Deseja excluir ${selectedItems.size} itens selecionados permanentemente?`, true, () => deleteMultiple(Array.from(selectedItems)));
-            });
-
-            document.getElementById('btn-bulk-cancel')?.addEventListener('click', clearSelection);
-
-            // Modal
-            document.getElementById('modal-close')?.addEventListener('click', hideModal);
-            document.getElementById('modal-cancel')?.addEventListener('click', hideModal);
-            document.getElementById('modal-confirm')?.addEventListener('click', () => {
-                if (modalCallback) modalCallback();
-                hideModal();
-            });
-
-            document.getElementById('confirm-modal')?.addEventListener('click', (e) => {
-                if (e.target.id === 'confirm-modal') hideModal();
-            });
-        }
-
-        // Funções de UI
-        function filterItems(query) {
-            document.querySelectorAll('.trash-item').forEach(item => {
-                const name = item.dataset.name.toLowerCase();
-                const path = item.dataset.path.toLowerCase();
-                item.style.display = (!query || name.includes(query) || path.includes(query)) ? '' : 'none';
-            });
-        }
-
-        function toggleSelection(id, selected) {
-            if (selected) {
-                selectedItems.add(id);
-            } else {
-                selectedItems.delete(id);
-            }
-            updateItemVisual(id, selected);
-            updateBulkBar();
-        }
-
-        function updateItemVisual(id, selected) {
-            const item = document.querySelector(`.trash-item[data-id="${id}"]`);
-            if (item) {
-                if (selected) {
-                    item.style.borderColor = 'var(--primary)';
-                    item.style.background = 'var(--primary-light)';
-                } else {
-                    item.style.borderColor = 'var(--border)';
-                    item.style.background = 'var(--card)';
-                }
-            }
-        }
-
-        function updateBulkBar() {
-            const bar = document.getElementById('bulk-actions-bar');
-            const count = document.getElementById('selection-count');
-            const countText = document.getElementById('selection-count-text');
-            if (selectedItems.size > 0) {
-                bar.style.display = 'flex';
-                count.textContent = selectedItems.size;
-                if (countText) countText.textContent = selectedItems.size;
-            } else {
-                bar.style.display = 'none';
-            }
-        }
-
-        function clearSelection() {
-            selectedItems.clear();
-            document.querySelectorAll('.item-checkbox').forEach(cb => cb.checked = false);
-            document.querySelectorAll('.trash-item').forEach(item => {
-                item.style.borderColor = 'var(--border)';
-                item.style.background = 'var(--card)';
-            });
-            updateBulkBar();
-        }
-
-        function toggleSelectAll() {
-            const checkboxes = document.querySelectorAll('.item-checkbox');
-            const allSelected = Array.from(checkboxes).every(cb => cb.checked);
-
-            checkboxes.forEach(cb => {
-                cb.checked = !allSelected;
-                toggleSelection(cb.value, !allSelected);
-            });
-        }
-
-        function getItemName(id) {
-            const item = document.querySelector(`.trash-item[data-id="${id}"]`);
-            return item ? item.dataset.name : 'item';
-        }
-
-        // Modal
-        function showModal(title, message, showWarning, callback) {
-            const modalIcon = document.getElementById('modal-icon');
-            const modalIconEl = modalIcon?.querySelector('i');
-
-            // Atualizar ícone e cor
-            if (modalIcon && modalIconEl) {
-                if (showWarning) {
-                    modalIcon.style.background = 'rgba(239, 68, 68, 0.1)';
-                    modalIcon.style.color = 'var(--danger)';
-                    modalIconEl.setAttribute('data-lucide', 'alert-triangle');
-                } else {
-                    modalIcon.style.background = 'var(--primary-light)';
-                    modalIcon.style.color = 'var(--primary)';
-                    modalIconEl.setAttribute('data-lucide', 'info');
-                }
-            }
-
-            const titleEl = document.getElementById('modal-title');
-            const messageEl = document.getElementById('modal-message');
-            if (titleEl) titleEl.textContent = title;
-            if (messageEl) messageEl.textContent = message;
-
-            const warningEl = document.getElementById('modal-warning');
-            if (warningEl) warningEl.style.display = showWarning ? 'flex' : 'none';
-
-            const confirmBtn = document.getElementById('modal-confirm');
-            if (confirmBtn) {
-                confirmBtn.className = showWarning ? 'btn btn-danger' : 'btn btn-primary';
-                confirmBtn.style.minWidth = '100px';
-            }
-
-            const modal = document.getElementById('confirm-modal');
-            if (modal) modal.style.display = 'flex';
-
-            modalCallback = callback;
-
-            // Recriar os ícones do Lucide após atualizar os data-lucide
-            setTimeout(() => lucide.createIcons(), 0);
-        }
-
-        function hideModal() {
-            document.getElementById('confirm-modal').style.display = 'none';
-            modalCallback = null;
-        }
-
-        // API
-        async function apiCall(url, method = 'POST') {
-            const response = await fetch(url, {
-                method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-                }
-            });
-            return response.json();
-        }
-
-        async function restoreItem(id) {
-            const data = await apiCall(`/api/trash/restore/${id}`);
-            if (data.success) {
-                showToast(data.message, 'success');
-                removeItem(id);
-            } else {
-                showToast(data.error || 'Erro ao restaurar', 'error');
-            }
-        }
-
-        async function deleteItem(id) {
-            const data = await apiCall(`/api/trash/delete/${id}`);
-            if (data.success) {
-                showToast(data.message, 'success');
-                removeItem(id);
-            } else {
-                showToast(data.error || 'Erro ao excluir', 'error');
-            }
-        }
-
-        async function emptyTrash() {
-            const data = await apiCall('/api/trash/empty');
-            if (data.success) {
-                showToast(data.message, 'success');
-                setTimeout(() => location.reload(), 1000);
-            } else {
-                showToast(data.error || 'Erro ao esvaziar lixeira', 'error');
-            }
-        }
-
-        async function restoreMultiple(ids) {
-            const response = await fetch('/api/trash/restore-multiple', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify({ items: ids })
-            });
-            const data = await response.json();
-            if (data.success) {
-                showToast(data.message, 'success');
-                ids.forEach(id => removeItem(id));
-                clearSelection();
-            } else {
-                showToast(data.error || 'Erro ao restaurar', 'error');
-            }
-        }
-
-        async function deleteMultiple(ids) {
-            const response = await fetch('/api/trash/delete-multiple', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
-                },
-                body: JSON.stringify({ items: ids })
-            });
-            const data = await response.json();
-            if (data.success) {
-                showToast(data.message, 'success');
-                ids.forEach(id => removeItem(id));
-                clearSelection();
-            } else {
-                showToast(data.error || 'Erro ao excluir', 'error');
-            }
-        }
-
-        function removeItem(id) {
-            const item = document.querySelector(`.trash-item[data-id="${id}"]`);
-            if (item) {
-                item.style.animation = 'fadeOut 0.3s ease forwards';
-                setTimeout(() => {
-                    item.remove();
-                    updateStats();
-                    if (document.querySelectorAll('.trash-item').length === 0) {
-                        location.reload();
-                    }
-                }, 300);
-            }
-        }
-
-        function updateStats() {
-            const count = document.querySelectorAll('.trash-item').length;
-            document.getElementById('stat-count').textContent = count;
-            const badge = document.querySelector('.nav-item.active .nav-badge');
-            if (badge) badge.textContent = count;
-        }
-
-        function showToast(message, type = 'info') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast toast-${type}`;
-            toast.innerHTML = `
-                <i data-lucide="${type === 'success' ? 'check-circle' : type === 'error' ? 'x-circle' : 'info'}" style="width:18px;height:18px;"></i>
-                <span>${message}</span>
-            `;
-            container.appendChild(toast);
-            lucide.createIcons();
-
-            setTimeout(() => {
-                toast.classList.add('fade-out');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-    </script>
+    <!-- SCRIPTS -->
     <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/trash.js') }}"></script>
+    <script>lucide.createIcons();</script>
 </body>
-
 </html>

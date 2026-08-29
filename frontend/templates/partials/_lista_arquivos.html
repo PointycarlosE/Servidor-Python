@@ -1,102 +1,123 @@
-<!--_lista_arquivos.html-->
+<!-- _lista_arquivos.html — Grid & List Material 3 Inspirado no Google Drive -->
 <section class="listagem-itens">
 
-    <!-- Pastas -->
+    <!-- PASTAS -->
     {% if pastas %}
     {% for pasta in pastas %}
-    <div class="item-link" data-nome="{{ pasta.nome }}" data-tipo="pasta"
-        data-caminho="{{ caminho + '/' + pasta.nome if caminho else pasta.nome }}">
+    {% set item_path = caminho + '/' + pasta.nome if caminho else pasta.nome %}
+    <div class="item-link" data-nome="{{ pasta.nome }}" data-tipo="pasta" data-caminho="{{ item_path }}">
         <div class="item-card item-pasta">
+            <!-- Checkbox para seleção -->
             <div class="item-checkbox" onclick="event.stopPropagation()">
-                <input type="checkbox" class="item-checkbox-input" data-nome="{{ pasta.nome }}" data-tipo="pasta"
-                    data-caminho="{{ caminho + '/' + pasta.nome if caminho else pasta.nome }}">
+                <input type="checkbox" class="item-checkbox-input" data-nome="{{ pasta.nome }}" data-tipo="pasta" data-caminho="{{ item_path }}">
             </div>
-            <div class="item-icone"><i data-lucide="folder" style="width:40px;height:40px;color:#f59e0b;"></i></div>
-            <div class="item-info">
-                <div class="item-nome" title="{{ pasta.nome }}">{{ pasta.nome }}</div>
-                <div class="item-meta">
-                    <span class="item-tipo">Pasta</span>
-                    <span class="item-tamanho">{{ pasta.tamanho_formatado }}</span>
-                    <span class="item-data">{{ pasta.data_modificacao }}</span>
+
+            <!-- Preview / Silhueta de Pasta (Centro no Grid, Esquerda na Lista) -->
+            <div class="item-card-preview">
+                <div class="item-folder-silhouette">
+                    <svg viewBox="0 0 72 56" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M4 10C4 6.68629 6.68629 4 10 4H24.5C26.7091 4 28.7458 5.21885 29.7829 7.17056L32.2171 11.7447C32.7356 12.7206 33.754 13.33 34.8585 13.33H62C65.3137 13.33 68 16.0163 68 19.33V46C68 49.3137 65.3137 52 62 52H10C6.68629 52 4 49.3137 4 46V10Z"/>
+                    </svg>
                 </div>
             </div>
-            <div class="item-acoes" onclick="event.stopPropagation()">
-                <div class="item-menu-wrapper">
-                    <button class="btn-menu-item" onclick="toggleDropdown(this)" title="Mais opções">
-                        <i data-lucide="ellipsis-vertical" style="width:18px;height:18px;"></i>
-                    </button>
-                    <div class="item-dropdown">
-                    <button type="button" class="dropdown-item"
-                        onclick="fecharDropdowns(); abrirModalRenomear('{{ caminho + '/' + pasta.nome if caminho else pasta.nome }}', '{{ pasta.nome }}', 'pasta')">
+
+            <!-- Coluna de Informações (Título no Grid, Título + Meta na Lista) -->
+            <div class="item-card-info">
+                <div class="item-card-title-row">
+                    <div class="item-mini-icon">
+                        <i data-lucide="folder" style="color: var(--folder-color);"></i>
+                    </div>
+                    <div class="item-card-title" title="{{ pasta.nome }}">{{ pasta.nome }}</div>
+                </div>
+                <div class="item-card-meta">
+                    <span class="item-tipo">Pasta</span>
+                    <span class="item-meta-dot">•</span>
+                    <span class="item-tamanho">{{ pasta.tamanho_formatado }}</span>
+                    {% if pasta.data_modificacao %}
+                    <span class="item-meta-dot">•</span>
+                    <span class="item-data">{{ pasta.data_modificacao }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Botão de 3 Pontinhos (Topo-Direita no Grid, Direita na Lista) -->
+            <div class="item-menu-wrapper" onclick="event.stopPropagation()">
+                <button class="btn-card-more" onclick="toggleDropdown(this)" title="Mais opções" aria-label="Mais opções para {{ pasta.nome }}">
+                    <i data-lucide="more-vertical"></i>
+                </button>
+                <div class="item-dropdown">
+                    <button type="button" class="dropdown-item" onclick="fecharDropdowns(); abrirModalRenomear('{{ item_path }}', '{{ pasta.nome }}', 'pasta')">
                         <i data-lucide="edit-2"></i> Renomear
                     </button>
                     <div class="dropdown-divider"></div>
-                    <form action="{{ url_for('file.deletar_pasta', caminho_pasta=caminho + '/' + pasta.nome if caminho else pasta.nome) }}"
-                        method="post" class="form-excluir"
+                    <form action="{{ url_for('file.deletar_pasta', caminho_pasta=item_path) }}" method="post" class="form-excluir"
                         onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusaoPasta('{{ pasta.nome }}', this); return false;">
                         <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <button type="submit" class="dropdown-item danger">
-                            <i data-lucide="trash-2"></i> Excluir pasta
+                            <i data-lucide="trash-2"></i> Excluir
                         </button>
                     </form>
                 </div>
-                </div>
             </div>
         </div>
     </div>
     {% endfor %}
     {% endif %}
 
-    <!-- Imagens -->
+    <!-- IMAGENS -->
     {% if imagens %}
     {% for imagem in imagens %}
-    <div class="item-link" data-nome="{{ imagem.nome }}" data-tipo="imagem"
-        data-caminho="{{ caminho + '/' + imagem.nome if caminho else imagem.nome }}">
+    {% set item_path = caminho + '/' + imagem.nome if caminho else imagem.nome %}
+    <div class="item-link" data-nome="{{ imagem.nome }}" data-tipo="imagem" data-caminho="{{ item_path }}">
         <div class="item-card item-imagem">
             <div class="item-checkbox" onclick="event.stopPropagation()">
-                <input type="checkbox" class="item-checkbox-input" data-nome="{{ imagem.nome }}" data-tipo="imagem"
-                    data-caminho="{{ caminho + '/' + imagem.nome if caminho else imagem.nome }}">
+                <input type="checkbox" class="item-checkbox-input" data-nome="{{ imagem.nome }}" data-tipo="imagem" data-caminho="{{ item_path }}">
             </div>
-            <div class="item-icone">
-                <img src="{{ url_for('file.visualizar_arquivo', caminho_arquivo=caminho + '/' + imagem.nome if caminho else imagem.nome) }}"
-                    alt="{{ imagem.nome }}" class="item-thumbnail">
+
+            <div class="item-card-preview">
+                <img src="{{ url_for('file.visualizar_arquivo', caminho_arquivo=item_path) }}" alt="{{ imagem.nome }}" class="item-thumbnail-preview" loading="lazy">
             </div>
-            <div class="item-info">
-                <div class="item-nome" title="{{ imagem.nome }}">{{ imagem.nome }}</div>
-                <div class="item-meta">
+
+            <div class="item-card-info">
+                <div class="item-card-title-row">
+                    <div class="item-mini-icon">
+                        <i data-lucide="image" style="color: var(--image-color);"></i>
+                    </div>
+                    <div class="item-card-title" title="{{ imagem.nome }}">{{ imagem.nome }}</div>
+                </div>
+                <div class="item-card-meta">
                     <span class="item-tipo">Imagem</span>
+                    <span class="item-meta-dot">•</span>
                     <span class="item-tamanho">{{ imagem.tamanho_formatado }}</span>
+                    {% if imagem.data_modificacao %}
+                    <span class="item-meta-dot">•</span>
                     <span class="item-data">{{ imagem.data_modificacao }}</span>
+                    {% endif %}
                 </div>
             </div>
-            <div class="item-acoes" onclick="event.stopPropagation()">
-                <div class="item-menu-wrapper">
-                    <button class="btn-menu-item" onclick="toggleDropdown(this)" title="Mais opções">
-                        <i data-lucide="ellipsis-vertical" style="width:18px;height:18px;"></i>
+
+            <div class="item-menu-wrapper" onclick="event.stopPropagation()">
+                <button class="btn-card-more" onclick="toggleDropdown(this)" title="Mais opções" aria-label="Mais opções para {{ imagem.nome }}">
+                    <i data-lucide="more-vertical"></i>
+                </button>
+                <div class="item-dropdown">
+                    <a href="{{ url_for('file.download', caminho_arquivo=item_path) }}" class="dropdown-item" onclick="fecharDropdowns()">
+                        <i data-lucide="download"></i> Download
+                    </a>
+                    <button type="button" class="dropdown-item" onclick="fecharDropdowns(); abrirModalCompartilhar('{{ item_path }}', '{{ imagem.nome }}')">
+                        <i data-lucide="share-2"></i> Compartilhar
                     </button>
-                    <div class="item-dropdown">
-                        <a href="{{ url_for('file.download', caminho_arquivo=caminho + '/' + imagem.nome if caminho else imagem.nome) }}"
-                            class="dropdown-item" onclick="fecharDropdowns()">
-                            <i data-lucide="download"></i> Download
-                        </a>
-                        <button type="button" class="dropdown-item"
-                            onclick="fecharDropdowns(); abrirModalCompartilhar('{{ caminho + '/' + imagem.nome if caminho else imagem.nome }}', '{{ imagem.nome }}')">
-                            <i data-lucide="share-2"></i> Compartilhar
+                    <button type="button" class="dropdown-item" onclick="fecharDropdowns(); abrirModalRenomear('{{ item_path }}', '{{ imagem.nome }}', 'imagem')">
+                        <i data-lucide="edit-2"></i> Renomear
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=item_path) }}" method="post" class="form-excluir"
+                        onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusao('{{ imagem.nome }}', this); return false;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="dropdown-item danger">
+                            <i data-lucide="trash-2"></i> Excluir
                         </button>
-                        <button type="button" class="dropdown-item"
-                            onclick="fecharDropdowns(); abrirModalRenomear('{{ caminho + '/' + imagem.nome if caminho else imagem.nome }}', '{{ imagem.nome }}', 'imagem')">
-                            <i data-lucide="edit-2"></i> Renomear
-                        </button>
-                        <div class="dropdown-divider"></div>
-                        <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=caminho + '/' + imagem.nome if caminho else imagem.nome) }}"
-                            method="post" class="form-excluir"
-                            onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusao('{{ imagem.nome }}', this); return false;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="dropdown-item danger">
-                                <i data-lucide="trash-2"></i> Excluir
-                            </button>
-                        </form>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>
@@ -104,53 +125,62 @@
     {% endfor %}
     {% endif %}
 
-    <!-- Áudios -->
+    <!-- ÁUDIOS -->
     {% if audios %}
     {% for audio in audios %}
-    <div class="item-link" data-nome="{{ audio.nome }}" data-tipo="audio"
-        data-caminho="{{ caminho + '/' + audio.nome if caminho else audio.nome }}">
+    {% set item_path = caminho + '/' + audio.nome if caminho else audio.nome %}
+    <div class="item-link" data-nome="{{ audio.nome }}" data-tipo="audio" data-caminho="{{ item_path }}">
         <div class="item-card item-audio">
             <div class="item-checkbox" onclick="event.stopPropagation()">
-                <input type="checkbox" class="item-checkbox-input" data-nome="{{ audio.nome }}" data-tipo="audio"
-                    data-caminho="{{ caminho + '/' + audio.nome if caminho else audio.nome }}">
+                <input type="checkbox" class="item-checkbox-input" data-nome="{{ audio.nome }}" data-tipo="audio" data-caminho="{{ item_path }}">
             </div>
-            <div class="item-icone"><i data-lucide="music" style="width:40px;height:40px;color:#8b5cf6;"></i></div>
-            <div class="item-info">
-                <div class="item-nome" title="{{ audio.nome }}">{{ audio.nome }}</div>
-                <div class="item-meta">
-                    <span class="item-tipo">Áudio</span>
-                    <span class="item-tamanho">{{ audio.tamanho_formatado }}</span>
-                    <span class="item-data">{{ audio.data_modificacao }}</span>
+
+            <div class="item-card-preview">
+                <div class="item-generic-preview">
+                    <i data-lucide="music" style="width: 40px; height: 40px; color: var(--audio-color);"></i>
                 </div>
             </div>
-            <div class="item-acoes" onclick="event.stopPropagation()">
-                <div class="item-menu-wrapper">
-                    <button class="btn-menu-item" onclick="toggleDropdown(this)" title="Mais opções">
-                        <i data-lucide="ellipsis-vertical" style="width:18px;height:18px;"></i>
-                    </button>
-                    <div class="item-dropdown">
-                        <a href="{{ url_for('file.download', caminho_arquivo=caminho + '/' + audio.nome if caminho else audio.nome) }}"
-                            class="dropdown-item" onclick="fecharDropdowns()">
-                            <i data-lucide="download"></i> Download
-                        </a>
-                        <button type="button" class="dropdown-item"
-                            onclick="fecharDropdowns(); abrirModalCompartilhar('{{ caminho + '/' + audio.nome if caminho else audio.nome }}', '{{ audio.nome }}')">
-                            <i data-lucide="share-2"></i> Compartilhar
-                        </button>
-                        <button type="button" class="dropdown-item"
-                            onclick="fecharDropdowns(); abrirModalRenomear('{{ caminho + '/' + audio.nome if caminho else audio.nome }}', '{{ audio.nome }}', 'audio')">
-                            <i data-lucide="edit-2"></i> Renomear
-                        </button>
-                        <div class="dropdown-divider"></div>
-                        <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=caminho + '/' + audio.nome if caminho else audio.nome) }}"
-                            method="post" class="form-excluir"
-                            onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusao('{{ audio.nome }}', this); return false;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="dropdown-item danger">
-                                <i data-lucide="trash-2"></i> Excluir
-                            </button>
-                        </form>
+
+            <div class="item-card-info">
+                <div class="item-card-title-row">
+                    <div class="item-mini-icon">
+                        <i data-lucide="music" style="color: var(--audio-color);"></i>
                     </div>
+                    <div class="item-card-title" title="{{ audio.nome }}">{{ audio.nome }}</div>
+                </div>
+                <div class="item-card-meta">
+                    <span class="item-tipo">Áudio</span>
+                    <span class="item-meta-dot">•</span>
+                    <span class="item-tamanho">{{ audio.tamanho_formatado }}</span>
+                    {% if audio.data_modificacao %}
+                    <span class="item-meta-dot">•</span>
+                    <span class="item-data">{{ audio.data_modificacao }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="item-menu-wrapper" onclick="event.stopPropagation()">
+                <button class="btn-card-more" onclick="toggleDropdown(this)" title="Mais opções" aria-label="Mais opções para {{ audio.nome }}">
+                    <i data-lucide="more-vertical"></i>
+                </button>
+                <div class="item-dropdown">
+                    <a href="{{ url_for('file.download', caminho_arquivo=item_path) }}" class="dropdown-item" onclick="fecharDropdowns()">
+                        <i data-lucide="download"></i> Download
+                    </a>
+                    <button type="button" class="dropdown-item" onclick="fecharDropdowns(); abrirModalCompartilhar('{{ item_path }}', '{{ audio.nome }}')">
+                        <i data-lucide="share-2"></i> Compartilhar
+                    </button>
+                    <button type="button" class="dropdown-item" onclick="fecharDropdowns(); abrirModalRenomear('{{ item_path }}', '{{ audio.nome }}', 'audio')">
+                        <i data-lucide="edit-2"></i> Renomear
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=item_path) }}" method="post" class="form-excluir"
+                        onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusao('{{ audio.nome }}', this); return false;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="dropdown-item danger">
+                            <i data-lucide="trash-2"></i> Excluir
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -158,57 +188,65 @@
     {% endfor %}
     {% endif %}
 
-    <!-- PDFs -->
+    <!-- PDFS -->
     {% if pdfs %}
     {% for pdf in pdfs %}
-    <div class="item-link" data-nome="{{ pdf.nome }}" data-tipo="pdf"
-        data-caminho="{{ caminho + '/' + pdf.nome if caminho else pdf.nome }}">
+    {% set item_path = caminho + '/' + pdf.nome if caminho else pdf.nome %}
+    <div class="item-link" data-nome="{{ pdf.nome }}" data-tipo="pdf" data-caminho="{{ item_path }}">
         <div class="item-card item-pdf">
             <div class="item-checkbox" onclick="event.stopPropagation()">
-                <input type="checkbox" class="item-checkbox-input" data-nome="{{ pdf.nome }}" data-tipo="pdf"
-                    data-caminho="{{ caminho + '/' + pdf.nome if caminho else pdf.nome }}">
+                <input type="checkbox" class="item-checkbox-input" data-nome="{{ pdf.nome }}" data-tipo="pdf" data-caminho="{{ item_path }}">
             </div>
-            <div class="item-icone"><i data-lucide="file-text" style="width:40px;height:40px;color:#ef4444;"></i></div>
-            <div class="item-info">
-                <div class="item-nome" title="{{ pdf.nome }}">{{ pdf.nome }}</div>
-                <div class="item-meta">
-                    <span class="item-tipo">PDF</span>
-                    <span class="item-tamanho">{{ pdf.tamanho_formatado }}</span>
-                    <span class="item-data">{{ pdf.data_modificacao }}</span>
+
+            <div class="item-card-preview">
+                <div class="item-generic-preview">
+                    <i data-lucide="file-text" style="width: 40px; height: 40px; color: var(--pdf-color);"></i>
                 </div>
             </div>
-            <div class="item-acoes" onclick="event.stopPropagation()">
-                <div class="item-menu-wrapper">
-                    <button class="btn-menu-item" onclick="toggleDropdown(this)" title="Mais opções">
-                        <i data-lucide="ellipsis-vertical" style="width:18px;height:18px;"></i>
-                    </button>
-                    <div class="item-dropdown">
-                        <a href="{{ url_for('file.visualizar_arquivo', caminho_arquivo=caminho + '/' + pdf.nome if caminho else pdf.nome) }}"
-                            class="dropdown-item" target="_blank" onclick="fecharDropdowns()">
-                            <i data-lucide="eye"></i> Visualizar
-                        </a>
-                        <a href="{{ url_for('file.download', caminho_arquivo=caminho + '/' + pdf.nome if caminho else pdf.nome) }}"
-                            class="dropdown-item" onclick="fecharDropdowns()">
-                            <i data-lucide="download"></i> Download
-                        </a>
-                        <button type="button" class="dropdown-item"
-                            onclick="fecharDropdowns(); abrirModalCompartilhar('{{ caminho + '/' + pdf.nome if caminho else pdf.nome }}', '{{ pdf.nome }}')">
-                            <i data-lucide="share-2"></i> Compartilhar
-                        </button>
-                        <button type="button" class="dropdown-item"
-                            onclick="fecharDropdowns(); abrirModalRenomear('{{ caminho + '/' + pdf.nome if caminho else pdf.nome }}', '{{ pdf.nome }}', 'pdf')">
-                            <i data-lucide="edit-2"></i> Renomear
-                        </button>
-                        <div class="dropdown-divider"></div>
-                        <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=caminho + '/' + pdf.nome if caminho else pdf.nome) }}"
-                            method="post" class="form-excluir"
-                            onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusao('{{ pdf.nome }}', this); return false;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="dropdown-item danger">
-                                <i data-lucide="trash-2"></i> Excluir
-                            </button>
-                        </form>
+
+            <div class="item-card-info">
+                <div class="item-card-title-row">
+                    <div class="item-mini-icon">
+                        <i data-lucide="file-text" style="color: var(--pdf-color);"></i>
                     </div>
+                    <div class="item-card-title" title="{{ pdf.nome }}">{{ pdf.nome }}</div>
+                </div>
+                <div class="item-card-meta">
+                    <span class="item-tipo">PDF</span>
+                    <span class="item-meta-dot">•</span>
+                    <span class="item-tamanho">{{ pdf.tamanho_formatado }}</span>
+                    {% if pdf.data_modificacao %}
+                    <span class="item-meta-dot">•</span>
+                    <span class="item-data">{{ pdf.data_modificacao }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="item-menu-wrapper" onclick="event.stopPropagation()">
+                <button class="btn-card-more" onclick="toggleDropdown(this)" title="Mais opções" aria-label="Mais opções para {{ pdf.nome }}">
+                    <i data-lucide="more-vertical"></i>
+                </button>
+                <div class="item-dropdown">
+                    <a href="{{ url_for('file.visualizar_arquivo', caminho_arquivo=item_path) }}" class="dropdown-item" target="_blank" onclick="fecharDropdowns()">
+                        <i data-lucide="eye"></i> Visualizar
+                    </a>
+                    <a href="{{ url_for('file.download', caminho_arquivo=item_path) }}" class="dropdown-item" onclick="fecharDropdowns()">
+                        <i data-lucide="download"></i> Download
+                    </a>
+                    <button type="button" class="dropdown-item" onclick="fecharDropdowns(); abrirModalCompartilhar('{{ item_path }}', '{{ pdf.nome }}')">
+                        <i data-lucide="share-2"></i> Compartilhar
+                    </button>
+                    <button type="button" class="dropdown-item" onclick="fecharDropdowns(); abrirModalRenomear('{{ item_path }}', '{{ pdf.nome }}', 'pdf')">
+                        <i data-lucide="edit-2"></i> Renomear
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=item_path) }}" method="post" class="form-excluir"
+                        onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusao('{{ pdf.nome }}', this); return false;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="dropdown-item danger">
+                            <i data-lucide="trash-2"></i> Excluir
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
@@ -216,60 +254,78 @@
     {% endfor %}
     {% endif %}
 
-    <!-- Arquivos comuns -->
+    <!-- ARQUIVOS DIVERSOS -->
     {% if arquivos %}
     {% for arquivo in arquivos %}
-    <div class="item-link" data-nome="{{ arquivo.nome }}" data-tipo="arquivo"
-        data-caminho="{{ caminho + '/' + arquivo.nome if caminho else arquivo.nome }}">
+    {% set item_path = caminho + '/' + arquivo.nome if caminho else arquivo.nome %}
+    <div class="item-link" data-nome="{{ arquivo.nome }}" data-tipo="arquivo" data-caminho="{{ item_path }}">
         <div class="item-card item-arquivo">
             <div class="item-checkbox" onclick="event.stopPropagation()">
-                <input type="checkbox" class="item-checkbox-input" data-nome="{{ arquivo.nome }}" data-tipo="arquivo"
-                    data-caminho="{{ caminho + '/' + arquivo.nome if caminho else arquivo.nome }}">
+                <input type="checkbox" class="item-checkbox-input" data-nome="{{ arquivo.nome }}" data-tipo="arquivo" data-caminho="{{ item_path }}">
             </div>
-            <div class="item-icone file-icon"
-                data-extensao="{{ arquivo.nome.split('.')[-1].lower() if '.' in arquivo.nome else 'file' }}">
-            </div>
-            <div class="item-info">
-                <div class="item-nome" title="{{ arquivo.nome }}">{{ arquivo.nome }}</div>
-                <div class="item-meta">
-                    <span class="item-tipo">Arquivo</span>
-                    <span class="item-tamanho">{{ arquivo.tamanho_formatado }}</span>
-                    <span class="item-data">{{ arquivo.data_modificacao }}</span>
+
+            <div class="item-card-preview">
+                <div class="item-generic-preview file-icon" data-extensao="{{ arquivo.nome.split('.')[-1].lower() if '.' in arquivo.nome else 'file' }}">
+                    <i data-lucide="file" style="width: 40px; height: 40px; color: var(--text-secondary);"></i>
                 </div>
             </div>
-            <div class="item-acoes" onclick="event.stopPropagation()">
-                <div class="item-menu-wrapper">
-                    <button class="btn-menu-item" onclick="toggleDropdown(this)" title="Mais opções">
-                        <i data-lucide="ellipsis-vertical" style="width:18px;height:18px;"></i>
-                    </button>
-                    <div class="item-dropdown">
-                        <a href="{{ url_for('file.download', caminho_arquivo=caminho + '/' + arquivo.nome if caminho else arquivo.nome) }}"
-                            class="dropdown-item" onclick="fecharDropdowns()">
-                            <i data-lucide="download"></i> Download
-                        </a>
-                        <button type="button" class="dropdown-item"
-                            onclick="fecharDropdowns(); abrirModalCompartilhar('{{ caminho + '/' + arquivo.nome if caminho else arquivo.nome }}', '{{ arquivo.nome }}')">
-                            <i data-lucide="share-2"></i> Compartilhar
-                        </button>
-                        <button type="button" class="dropdown-item"
-                            onclick="fecharDropdowns(); abrirModalRenomear('{{ caminho + '/' + arquivo.nome if caminho else arquivo.nome }}', '{{ arquivo.nome }}', 'arquivo')">
-                            <i data-lucide="edit-2"></i> Renomear
-                        </button>
-                        <div class="dropdown-divider"></div>
-                        <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=caminho + '/' + arquivo.nome if caminho else arquivo.nome) }}"
-                            method="post" class="form-excluir"
-                            onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusao('{{ arquivo.nome }}', this); return false;">
-                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                            <button type="submit" class="dropdown-item danger">
-                                <i data-lucide="trash-2"></i> Excluir
-                            </button>
-                        </form>
+
+            <div class="item-card-info">
+                <div class="item-card-title-row">
+                    <div class="item-mini-icon file-icon" data-extensao="{{ arquivo.nome.split('.')[-1].lower() if '.' in arquivo.nome else 'file' }}">
+                        <i data-lucide="file" style="color: var(--text-secondary);"></i>
                     </div>
+                    <div class="item-card-title" title="{{ arquivo.nome }}">{{ arquivo.nome }}</div>
+                </div>
+                <div class="item-card-meta">
+                    <span class="item-tipo">Arquivo</span>
+                    <span class="item-meta-dot">•</span>
+                    <span class="item-tamanho">{{ arquivo.tamanho_formatado }}</span>
+                    {% if arquivo.data_modificacao %}
+                    <span class="item-meta-dot">•</span>
+                    <span class="item-data">{{ arquivo.data_modificacao }}</span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="item-menu-wrapper" onclick="event.stopPropagation()">
+                <button class="btn-card-more" onclick="toggleDropdown(this)" title="Mais opções" aria-label="Mais opções para {{ arquivo.nome }}">
+                    <i data-lucide="more-vertical"></i>
+                </button>
+                <div class="item-dropdown">
+                    <a href="{{ url_for('file.download', caminho_arquivo=item_path) }}" class="dropdown-item" onclick="fecharDropdowns()">
+                        <i data-lucide="download"></i> Download
+                    </a>
+                    <button type="button" class="dropdown-item" onclick="fecharDropdowns(); abrirModalCompartilhar('{{ item_path }}', '{{ arquivo.nome }}')">
+                        <i data-lucide="share-2"></i> Compartilhar
+                    </button>
+                    <button type="button" class="dropdown-item" onclick="fecharDropdowns(); abrirModalRenomear('{{ item_path }}', '{{ arquivo.nome }}', 'arquivo')">
+                        <i data-lucide="edit-2"></i> Renomear
+                    </button>
+                    <div class="dropdown-divider"></div>
+                    <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=item_path) }}" method="post" class="form-excluir"
+                        onsubmit="event.preventDefault(); fecharDropdowns(); confirmarExclusao('{{ arquivo.nome }}', this); return false;">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="dropdown-item danger">
+                            <i data-lucide="trash-2"></i> Excluir
+                        </button>
+                    </form>
                 </div>
             </div>
         </div>
     </div>
     {% endfor %}
+    {% endif %}
+
+    <!-- ESTADO VAZIO -->
+    {% if not pastas and not imagens and not audios and not pdfs and not arquivos %}
+    <div class="empty-state" style="grid-column: 1 / -1;">
+        <div class="empty-state-icon">
+            <i data-lucide="folder-open"></i>
+        </div>
+        <h2 class="empty-state-title">Nenhum item nesta pasta</h2>
+        <p class="empty-state-desc">Toque no botão <strong>+</strong> para fazer upload ou criar uma nova pasta.</p>
+    </div>
     {% endif %}
 
 </section>

@@ -1,311 +1,45 @@
-<!--erro.html-->
+<!-- erro.html -->
 <!DOCTYPE html>
 <html lang="pt-br" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Erro — Meu Drive</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
-    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
     <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
-    <style>
-        /* ===== ERROR PAGE STYLES ===== */
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg);
-            padding: 24px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .login-container::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at 50% 50%, rgba(239, 68, 68, 0.08) 0%, transparent 50%);
-            animation: bgPulse 20s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        @keyframes bgPulse {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.1) rotate(5deg); }
-        }
-
-        .login-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
-            max-width: 520px;
-            width: 100%;
-            position: relative;
-            z-index: 1;
-            animation: slideUp 0.4s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .login-header {
-            text-align: center;
-            padding: 40px 32px 32px;
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        .login-logo {
-            width: 72px;
-            height: 72px;
-            background: linear-gradient(135deg, #ef4444 0%, #f87171 100%);
-            border-radius: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            box-shadow: 0 8px 24px rgba(239, 68, 68, 0.25);
-            animation: logoFloat 3s ease-in-out infinite;
-        }
-
-        @keyframes logoFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-        }
-
-        .login-logo i { color: white; }
-
-        .login-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin: 0 0 8px;
-            background: linear-gradient(135deg, #ef4444, #f87171);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .login-subtitle {
-            font-size: 0.9375rem;
-            color: var(--text-secondary);
-            margin: 0;
-        }
-
-        .login-body {
-            padding: 32px;
-            text-align: center;
-        }
-
-        .error-message {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(248, 113, 113, 0.1) 100%);
-            border: 2px solid rgba(239, 68, 68, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 0 0 24px;
-            color: var(--text);
-            font-size: 0.9375rem;
-            line-height: 1.6;
-            word-break: break-word;
-        }
-
-        .error-code {
-            display: inline-block;
-            background: var(--bg);
-            padding: 8px 16px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.875rem;
-            color: #dc2626;
-            border: 1px solid var(--border);
-            margin-top: 12px;
-            font-weight: 600;
-        }
-
-        .login-footer {
-            padding: 24px 32px 32px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.3);
-            text-decoration: none;
-        }
-
-        .btn-login:hover {
-            background: var(--primary-hover);
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(26, 115, 232, 0.4);
-        }
-
-        .btn-login:active { transform: translateY(0); }
-
-        .btn-secondary {
-            width: 100%;
-            padding: 14px;
-            background: var(--bg);
-            color: var(--text);
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.2s;
-            text-decoration: none;
-        }
-
-        .btn-secondary:hover {
-            background: var(--card);
-            border-color: var(--primary);
-            color: var(--primary);
-            transform: translateY(-2px);
-        }
-
-        .btn-secondary:active { transform: translateY(0); }
-
-        .theme-toggle {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
-            z-index: 10;
-        }
-
-        .theme-toggle:hover {
-            background: var(--primary-light);
-            border-color: var(--primary);
-            transform: scale(1.05);
-        }
-
-        /* Responsividade Mobile */
-        @media (max-width: 768px) {
-            .login-container { padding: 16px; }
-            .login-card { border-radius: 16px; }
-            .login-header { padding: 32px 24px 24px; }
-            .login-logo { width: 64px; height: 64px; border-radius: 16px; margin-bottom: 16px; }
-            .login-logo i { width: 36px !important; height: 36px !important; }
-            .login-title { font-size: 1.5rem; }
-            .login-subtitle { font-size: 0.875rem; }
-            .login-body { padding: 24px; }
-            .login-footer { padding: 20px 24px 24px; }
-            .theme-toggle { top: 16px; right: 16px; width: 40px; height: 40px; }
-            .error-message { font-size: 0.875rem; padding: 16px; }
-        }
-
-        @media (max-width: 480px) {
-            .login-container { padding: 12px; }
-            .login-header { padding: 28px 20px 20px; }
-            .login-logo { width: 56px; height: 56px; border-radius: 14px; }
-            .login-logo i { width: 32px !important; height: 32px !important; }
-            .login-title { font-size: 1.35rem; }
-            .login-body { padding: 20px; }
-            .btn-login, .btn-secondary { padding: 13px; font-size: 0.95rem; }
-            .login-footer { padding: 18px 20px 20px; }
-            .theme-toggle { width: 36px; height: 36px; }
-            .theme-toggle i { width: 18px !important; height: 18px !important; }
-            .error-message { padding: 14px; }
-        }
-    </style>
 </head>
+
 <body>
-    <div class="login-container">
-        <!-- Theme Toggle -->
-        <button class="theme-toggle" id="theme-toggle" title="Alternar tema">
-            <i data-lucide="sun" id="theme-icon" style="width:20px;height:20px;color:var(--text);"></i>
-        </button>
-
-        <div class="login-card">
-            <!-- Header -->
-            <div class="login-header">
-                <div class="login-logo">
-                    <i data-lucide="triangle-alert" style="width:40px;height:40px;"></i>
+    <div class="auth-container">
+        <div class="auth-card" style="max-width: 500px; text-align: center;">
+            <div class="auth-header">
+                <div class="auth-logo" style="background: var(--danger-light); color: var(--danger);">
+                    <i data-lucide="alert-triangle" style="width: 32px; height: 32px;"></i>
                 </div>
-                <h1 class="login-title">Ops! Algo deu errado</h1>
-                <p class="login-subtitle">Encontramos um problema ao processar sua solicitação</p>
+                <h1>Ops! Algo deu errado</h1>
+                <p>Encontramos uma instabilidade ao processar sua solicitação.</p>
             </div>
 
-            <!-- Body -->
-            <div class="login-body">
-                <div class="error-message">
-                    {{ mensagem or 'Ocorreu um erro inesperado. Por favor, tente novamente.' }}
+            <div class="auth-body">
+                <div class="alert alert-error" style="margin-bottom: 24px; text-align: left;">
+                    <i data-lucide="info"></i>
+                    <span>{{ mensagem or 'Ocorreu um erro inesperado no servidor. Por favor, tente novamente.' }}</span>
                 </div>
-            </div>
 
-            <!-- Footer com botões -->
-            <div class="login-footer">
-                <a href="{{ url_for('file.explorar') }}" class="btn-login">
-                    <i data-lucide="home" style="width:20px;height:20px;"></i>
-                    Voltar para o início
-                </a>
-                <a href="javascript:history.back()" class="btn-secondary">
-                    <i data-lucide="arrow-left" style="width:20px;height:20px;"></i>
-                    Voltar para página anterior
-                </a>
+                <div style="display: flex; gap: 12px; flex-direction: column;">
+                    <a href="{{ url_for('file.explorar') }}" class="btn btn-primary" style="width: 100%;">
+                        <i data-lucide="home"></i> Ir para Meus arquivos
+                    </a>
+                    <a href="javascript:history.back()" class="btn btn-secondary" style="width: 100%;">
+                        <i data-lucide="arrow-left"></i> Voltar à página anterior
+                    </a>
+                </div>
             </div>
         </div>
     </div>
-
-    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
-    <script>
-        lucide.createIcons();
-
-        // Theme toggle
-        const themeToggle = document.getElementById('theme-toggle');
-        const themeIcon = document.getElementById('theme-icon');
-        const html = document.documentElement;
-
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        html.setAttribute('data-theme', savedTheme);
-        updateThemeIcon(savedTheme);
-
-        themeToggle.addEventListener('click', () => {
-            const currentTheme = html.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            html.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateThemeIcon(newTheme);
-        });
-
-        function updateThemeIcon(theme) {
-            themeIcon.setAttribute('data-lucide', theme === 'light' ? 'sun' : 'moon');
-            lucide.createIcons();
-        }
-    </script>
+    <script>lucide.createIcons();</script>
 </body>
 </html>

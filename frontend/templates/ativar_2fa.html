@@ -1,404 +1,99 @@
-<!--ativar_2fa.html-->
+<!-- ativar_2fa.html -->
 <!DOCTYPE html>
 <html lang="pt-br" data-theme="{{ current_user.tema if current_user.is_authenticated else 'light' }}">
+
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Ativar 2FA — Meu Drive</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
     <style>
-        /* ===== ATIVAR 2FA PAGE STYLES ===== */
-        .login-container {
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--bg);
-            padding: 24px;
-            position: relative;
-            overflow: hidden;
-        }
-
-        .login-container::before {
-            content: '';
+        .auth-theme-toggle {
             position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle at 50% 50%, rgba(26, 115, 232, 0.08) 0%, transparent 50%);
-            animation: bgPulse 20s ease-in-out infinite;
-            pointer-events: none;
-        }
-
-        @keyframes bgPulse {
-            0%, 100% { transform: scale(1) rotate(0deg); }
-            50% { transform: scale(1.1) rotate(5deg); }
-        }
-
-        .login-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.08);
-            max-width: 680px;
-            width: 100%;
-            position: relative;
-            z-index: 1;
-            animation: slideUp 0.4s ease-out;
-        }
-
-        @keyframes slideUp {
-            from { opacity: 0; transform: translateY(30px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .login-header {
-            text-align: center;
-            padding: 40px 32px 32px;
-            border-bottom: 1px solid var(--border-light);
-        }
-
-        .login-logo {
-            width: 72px;
-            height: 72px;
-            background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 100%);
-            border-radius: 18px;
+            top: calc(16px + var(--sat));
+            right: 16px;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 20px;
-            box-shadow: 0 8px 24px rgba(139, 92, 246, 0.25);
-            animation: logoFloat 3s ease-in-out infinite;
-        }
-
-        @keyframes logoFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-8px); }
-        }
-
-        .login-logo i { color: white; }
-
-        .login-title {
-            font-size: 1.75rem;
-            font-weight: 700;
-            margin: 0 0 8px;
-            background: linear-gradient(135deg, #8b5cf6, #a78bfa);
-            -webkit-background-clip: text;
-            background-clip: text;
-            color: transparent;
-        }
-
-        .login-subtitle {
-            font-size: 0.9375rem;
-            color: var(--text-secondary);
-            margin: 0;
-        }
-
-        .login-body { padding: 32px; }
-
-        /* Step List */
-        .step-list {
-            list-style: none;
-            padding: 0;
-            margin: 0 0 24px;
-        }
-
-        .step-list li {
-            padding: 12px 16px;
-            margin-bottom: 8px;
-            background: var(--bg);
-            border-left: 4px solid var(--primary);
-            border-radius: 8px;
-            font-size: 0.9rem;
-            color: var(--text);
-            transition: all 0.2s;
-        }
-
-        .step-list li:hover {
-            background: var(--primary-light);
-            transform: translateX(4px);
-        }
-
-        .step-list li strong {
-            color: var(--primary);
-            font-weight: 600;
-        }
-
-        /* QR Code Container */
-        .qrcode-container {
-            text-align: center;
-            padding: 24px;
-            background: var(--bg);
-            border-radius: 12px;
-            margin: 24px 0;
+            background: var(--surface);
             border: 1px solid var(--border);
-        }
-
-        .qrcode-container h3 {
-            margin: 0 0 16px;
-            font-size: 1.1rem;
-            font-weight: 600;
-            color: var(--text);
-        }
-
-        .qrcode-image {
-            max-width: 240px;
-            border-radius: 12px;
-            border: 3px solid var(--border);
-            background: white;
-            padding: 12px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-        }
-
-        .secret-code {
-            background: var(--card);
-            padding: 12px 16px;
-            border-radius: 8px;
-            margin: 16px auto 0;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            font-weight: 600;
-            word-break: break-all;
-            border: 1px solid var(--border);
-            color: var(--primary);
-            max-width: 400px;
-        }
-
-        /* Backup Codes */
-        .backup-codes {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(251, 191, 36, 0.1) 100%);
-            border: 2px solid rgba(245, 158, 11, 0.3);
-            border-radius: 12px;
-            padding: 20px;
-            margin: 24px 0;
-        }
-
-        .backup-codes h3 {
-            margin: 0 0 8px;
-            color: #d97706;
-            font-size: 1.1rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .backup-codes p {
-            margin: 0 0 16px;
-            font-size: 0.875rem;
-            color: var(--text);
-            line-height: 1.5;
-        }
-
-        .backup-codes strong {
-            color: #d97706;
-            font-weight: 700;
-        }
-
-        .backup-codes-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-            gap: 8px;
-            margin: 16px 0;
-        }
-
-        .backup-code-item {
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            font-family: 'Courier New', monospace;
-            font-weight: 700;
-            text-align: center;
-            border: 2px solid rgba(245, 158, 11, 0.3);
-            color: #d97706;
-            font-size: 0.85rem;
-        }
-
-        .backup-codes .warning {
-            font-size: 0.8rem;
             color: var(--text-secondary);
-            margin-top: 12px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-
-        /* Form Elements */
-        .form-group { margin-bottom: 20px; }
-
-        .form-label {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text);
-            margin-bottom: 8px;
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid var(--border);
-            border-radius: 10px;
-            font-size: 0.9375rem;
-            color: var(--text);
-            background: var(--bg);
-            transition: all 0.2s;
-        }
-
-        .code-input {
-            font-size: 20px;
-            letter-spacing: 4px;
-            text-align: center;
-            font-family: 'Courier New', monospace;
-            font-weight: 600;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            background: var(--card);
-            box-shadow: 0 0 0 4px var(--primary-light);
-        }
-
-        .form-input.error {
-            border-color: #dc3545;
-            background: rgba(220, 53, 69, 0.05);
-        }
-
-        .form-error {
-            font-size: 0.8125rem;
-            color: #dc3545;
-            margin-top: 6px;
-            display: none;
-            font-weight: 500;
-        }
-
-        .form-small {
-            display: block;
-            margin-top: 6px;
-            font-size: 0.8125rem;
-            color: var(--text-secondary);
-        }
-
-        .login-footer { padding: 24px 32px 32px; }
-
-        .btn-login {
-            width: 100%;
-            padding: 14px;
-            background: #8b5cf6;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            transition: all 0.2s;
-            box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
-        }
-
-        .btn-login:hover {
-            background: #7c3aed;
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
-        }
-
-        .btn-login:active { transform: translateY(0); }
-
-        .theme-toggle {
-            position: absolute;
-            top: 24px;
-            right: 24px;
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            width: 44px;
-            height: 44px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            transition: all 0.2s;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition-fast);
             z-index: 10;
         }
-
-        .theme-toggle:hover {
-            background: var(--primary-light);
-            border-color: var(--primary);
-            transform: scale(1.05);
+        .auth-theme-toggle:hover {
+            background: var(--surface-hover);
+            color: var(--text);
         }
-
-        /* Responsividade Mobile */
-        @media (max-width: 768px) {
-            .login-container { padding: 16px; }
-            .login-card { border-radius: 16px; max-width: 100%; }
-            .login-header { padding: 32px 24px 24px; }
-            .login-logo { width: 64px; height: 64px; border-radius: 16px; margin-bottom: 16px; }
-            .login-logo i { width: 36px !important; height: 36px !important; }
-            .login-title { font-size: 1.5rem; }
-            .login-subtitle { font-size: 0.875rem; }
-            .login-body { padding: 24px; }
-            .login-footer { padding: 20px 24px 24px; }
-            .theme-toggle { top: 16px; right: 16px; width: 40px; height: 40px; }
-            .qrcode-image { max-width: 200px; }
-            .backup-codes-grid { grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)); }
-            .step-list li { font-size: 0.85rem; padding: 10px 12px; }
+        .qrcode-box {
+            background: #ffffff;
+            padding: 16px;
+            border-radius: var(--radius-md);
+            display: inline-flex;
+            border: 1px solid var(--border);
+            margin: 12px auto;
         }
-
-        @media (max-width: 480px) {
-            .login-container { padding: 12px; }
-            .login-header { padding: 28px 20px 20px; }
-            .login-logo { width: 56px; height: 56px; border-radius: 14px; }
-            .login-logo i { width: 32px !important; height: 32px !important; }
-            .login-title { font-size: 1.35rem; }
-            .login-body { padding: 20px; }
-            .form-input { padding: 11px 14px; font-size: 0.9rem; }
-            .code-input { font-size: 18px; letter-spacing: 3px; }
-            .btn-login { padding: 13px; font-size: 0.95rem; }
-            .login-footer { padding: 18px 20px 20px; }
-            .theme-toggle { width: 36px; height: 36px; }
-            .theme-toggle i { width: 18px !important; height: 18px !important; }
-            .qrcode-image { max-width: 180px; }
-            .backup-codes { padding: 16px; }
-            .backup-codes-grid { grid-template-columns: repeat(2, 1fr); }
-            .backup-code-item { font-size: 0.75rem; padding: 8px; }
+        .qrcode-image {
+            width: 180px;
+            height: 180px;
+            display: block;
+        }
+        .secret-box {
+            font-family: monospace;
+            background: var(--surface-variant);
+            padding: 8px 14px;
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            font-weight: 700;
+            letter-spacing: 2px;
+            display: inline-block;
+            margin-top: 6px;
+            word-break: break-all;
+            user-select: all;
+        }
+        .code-input {
+            text-align: center;
+            font-size: 1.5rem !important;
+            letter-spacing: 6px;
+            font-family: monospace;
+            font-weight: 700;
         }
     </style>
 </head>
+
 <body>
-    <div class="login-container">
-        <!-- Theme Toggle -->
-        <button class="theme-toggle" id="theme-toggle" title="Alternar tema">
-            <i data-lucide="sun" id="theme-icon" style="width:20px;height:20px;color:var(--text);"></i>
+    <div class="auth-container">
+        <!-- Alternador de tema -->
+        <button class="auth-theme-toggle" id="theme-toggle" title="Alternar tema">
+            <i data-lucide="sun" id="theme-icon"></i>
         </button>
 
-        <div class="login-card">
+        <div class="auth-card" style="max-width: 580px;">
             <!-- Header -->
-            <div class="login-header">
-                <div class="login-logo">
-                    <i data-lucide="shield-plus" style="width:40px;height:40px;"></i>
+            <div class="auth-header">
+                <div class="auth-logo" style="background: rgba(168, 85, 247, 0.1); color: #a855f7;">
+                    <i data-lucide="shield-plus" style="width: 32px; height: 32px;"></i>
                 </div>
-                <h1 class="login-title">Ativar 2FA</h1>
-                <p class="login-subtitle">Configure a autenticação de dois fatores para maior segurança</p>
+                <h1>Ativar Autenticação 2FA</h1>
+                <p>Proteja sua conta do Drive exigindo um código no celular a cada login.</p>
             </div>
 
             <!-- Alertas -->
             {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
-            <div style="padding: 0 32px; padding-top: 24px;">
+            <div style="padding: 0 32px 16px;">
                 {% for category, message in messages %}
-                <div class="alert alert-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }}" style="margin-bottom: 16px;">
-                    <i data-lucide="{{ 'check-circle' if category == 'success' else 'alert-circle' if category == 'error' else 'info' }}" style="width: 18px; height: 18px;"></i>
+                <div class="alert alert-{{ 'success' if category == 'success' else 'error' if category == 'error' else 'info' }}" style="margin: 0;">
+                    <i data-lucide="{{ 'check-circle' if category == 'success' else 'alert-circle' if category == 'error' else 'info' }}"></i>
                     <span>{{ message }}</span>
                 </div>
                 {% endfor %}
@@ -406,40 +101,46 @@
             {% endif %}
             {% endwith %}
 
-            <div class="login-body">
+            <div class="auth-body">
                 <!-- Passo a Passo -->
-                <h3 style="color: var(--text); margin: 0 0 16px; font-size: 1.1rem; font-weight: 600;">📱 Passo a Passo</h3>
-                <ol class="step-list">
-                    <li><strong>1.</strong> Instale um aplicativo autenticador no seu celular (Google Authenticator, Microsoft Authenticator, Authy)</li>
-                    <li><strong>2.</strong> Abra o app e escolha "Adicionar conta" ou "Escanear QR Code"</li>
-                    <li><strong>3.</strong> Escaneie o QR code abaixo com o aplicativo</li>
-                    <li><strong>4.</strong> Digite o código de 6 dígitos gerado para confirmar</li>
-                </ol>
+                <div style="background: var(--surface-variant); padding: 16px; border-radius: var(--radius-md); margin-bottom: 20px; font-size: 0.875rem;">
+                    <h3 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="smartphone" style="width: 18px; height: 18px; color: var(--primary);"></i>
+                        Como configurar no seu celular:
+                    </h3>
+                    <ol style="padding-left: 20px; display: flex; flex-direction: column; gap: 6px; color: var(--text-secondary);">
+                        <li>Abra seu aplicativo autenticador (Google Authenticator, Authy, Microsoft Authenticator).</li>
+                        <li>Toque em <strong>Escanear QR Code</strong> e aponte a câmera para a imagem abaixo.</li>
+                        <li>Digite o código de 6 dígitos gerado pelo aplicativo para confirmar a ativação.</li>
+                    </ol>
+                </div>
 
-                <!-- QR Code -->
-                <div class="qrcode-container">
-                    <h3>QR Code</h3>
-                    <img src="{{ qrcode_data }}" alt="QR Code 2FA" class="qrcode-image">
-                    <p style="margin: 12px 0 0; font-size: 0.85rem; color: var(--text-secondary);">
-                        Não consegue escanear? Digite manualmente:
-                    </p>
-                    <div class="secret-code">{{ secret }}</div>
+                <!-- QR Code e Segredo -->
+                <div style="text-align: center; margin-bottom: 24px;">
+                    <div class="qrcode-box">
+                        <img src="{{ qrcode_data }}" alt="QR Code 2FA" class="qrcode-image">
+                    </div>
+                    <div style="font-size: 0.8125rem; color: var(--text-muted); margin-top: 4px;">
+                        Não consegue ler o QR code? Digite a chave manualmente:
+                    </div>
+                    <div class="secret-box">{{ secret }}</div>
                 </div>
 
                 <!-- Códigos de Backup -->
-                <div class="backup-codes">
-                    <h3>🔑 Códigos de Backup</h3>
-                    <p>
-                        <strong>IMPORTANTE:</strong> Guarde estes códigos em local seguro! Use-os se perder acesso ao autenticador.
+                <div style="border: 1px solid var(--border); border-radius: var(--radius-md); padding: 16px; margin-bottom: 24px;">
+                    <h3 style="font-size: 0.95rem; font-weight: 600; margin-bottom: 4px; display: flex; align-items: center; gap: 8px;">
+                        <i data-lucide="key" style="width: 18px; height: 18px; color: var(--warning);"></i>
+                        Códigos de Backup de Emergência
+                    </h3>
+                    <p style="font-size: 0.8125rem; color: var(--text-muted); margin-bottom: 12px;">
+                        Anote estes códigos. Eles permitirão entrar caso você perca seu celular:
                     </p>
-                    <div class="backup-codes-grid">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 8px;">
                         {% for code in backup_codes %}
-                        <div class="backup-code-item">{{ code }}</div>
+                        <div class="badge badge-secondary" style="font-family: monospace; font-size: 0.85rem; padding: 8px; justify-content: center;">
+                            {{ code }}
+                        </div>
                         {% endfor %}
-                    </div>
-                    <div class="warning">
-                        <i data-lucide="alert-triangle" style="width:14px;height:14px;color:#d97706;"></i>
-                        <span>Cada código pode ser usado apenas uma vez</span>
                     </div>
                 </div>
 
@@ -449,29 +150,18 @@
 
                     <div class="form-group">
                         <label for="codigo" class="form-label">
-                            <i data-lucide="key" style="width:16px;height:16px;"></i>
-                            Código de Verificação
+                            <i data-lucide="shield-check"></i> Código de 6 dígitos gerado pelo App
                         </label>
-                        <input
-                            type="text"
-                            name="codigo"
-                            id="codigo"
-                            class="form-input code-input"
-                            placeholder="000000"
-                            autofocus
-                            autocomplete="off"
-                            maxlength="6"
-                            inputmode="numeric"
-                            required
-                        >
-                        <div class="form-error" id="codigo-error"></div>
-                        <span class="form-small">Digite o código de 6 dígitos gerado pelo app</span>
+                        <input type="text" name="codigo" id="codigo" class="form-input code-input" placeholder="000000" autofocus autocomplete="off" maxlength="6" inputmode="numeric" required>
+                        <div class="form-error" id="codigo-error" style="display: none;"></div>
                     </div>
 
-                    <button type="submit" class="btn-login">
-                        <i data-lucide="shield-check" style="width:20px;height:20px;"></i>
-                        Confirmar e Ativar 2FA
-                    </button>
+                    <div style="display: flex; gap: 12px; margin-top: 8px;">
+                        <a href="{{ url_for('auth.perfil') }}" class="btn btn-secondary" style="flex: 1;">Cancelar</a>
+                        <button type="submit" class="btn btn-primary" style="flex: 2; height: 44px;">
+                            <i data-lucide="check"></i> Confirmar e Ativar
+                        </button>
+                    </div>
                 </form>
             </div>
         </div>
@@ -490,7 +180,7 @@
         html.setAttribute('data-theme', savedTheme);
         updateThemeIcon(savedTheme);
 
-        themeToggle.addEventListener('click', () => {
+        themeToggle?.addEventListener('click', () => {
             const currentTheme = html.getAttribute('data-theme');
             const newTheme = currentTheme === 'light' ? 'dark' : 'light';
             html.setAttribute('data-theme', newTheme);
@@ -499,8 +189,10 @@
         });
 
         function updateThemeIcon(theme) {
-            themeIcon.setAttribute('data-lucide', theme === 'light' ? 'sun' : 'moon');
-            lucide.createIcons();
+            if (themeIcon) {
+                themeIcon.setAttribute('data-lucide', theme === 'light' ? 'sun' : 'moon');
+                lucide.createIcons();
+            }
         }
 
         // Validação
@@ -527,19 +219,16 @@
                 return false;
             }
             if (!/^\d{6}$/.test(v)) {
-                showError(codigoInput, codigoError, 'Digite um código de 6 dígitos');
+                showError(codigoInput, codigoError, 'Digite os 6 dígitos numéricos');
                 return false;
             }
             clearError(codigoInput, codigoError);
             return true;
         }
 
-        codigoInput.addEventListener('input', validateCodigo);
-
-        activateForm.addEventListener('submit', function (e) {
-            if (!validateCodigo()) {
-                e.preventDefault();
-            }
+        codigoInput?.addEventListener('input', validateCodigo);
+        activateForm?.addEventListener('submit', function (e) {
+            if (!validateCodigo()) e.preventDefault();
         });
     </script>
 </body>

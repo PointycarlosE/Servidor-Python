@@ -1,7 +1,11 @@
-// Variável global para rastrear se o drag começou dentro da página
+// ==========================================================================
+// CLOUD STORAGE APP — EXPLORAR.JS
+// Módulo do Explorador de Arquivos (Google Drive Material 3)
+// ==========================================================================
+
 let isInternalDrag = false;
 
-// ===== LIGHTBOX PARA IMAGENS =====
+// ===== 1. LIGHTBOX PARA IMAGENS =====
 document.addEventListener('DOMContentLoaded', function () {
     const lightbox = document.getElementById('lightbox');
     const lightboxImage = document.getElementById('lightbox-image');
@@ -13,17 +17,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const lightboxPrev = document.getElementById('lightbox-prev');
     const lightboxNext = document.getElementById('lightbox-next');
 
-    // Debug: verificar se os elementos existem
-    console.log('Lightbox elementos:', {
-        lightbox: !!lightbox,
-        lightboxImage: !!lightboxImage,
-        lightboxTitle: !!lightboxTitle
-    });
-
-    if (!lightbox || !lightboxImage) {
-        console.error('Elementos do lightbox não encontrados!');
-        return;
-    }
+    if (!lightbox || !lightboxImage) return;
 
     let currentImageIndex = 0;
     let images = [];
@@ -33,12 +27,12 @@ document.addEventListener('DOMContentLoaded', function () {
         document.querySelectorAll('.item-imagem').forEach((card, index) => {
             const link = card.closest('.item-link');
             if (link) {
-                const thumbnail = card.querySelector('.item-thumbnail');
-                const nomeElement = card.querySelector('.item-nome');
+                const thumbnail = card.querySelector('.item-thumbnail-preview, .item-thumbnail');
+                const nomeElement = card.querySelector('.item-card-title, .item-nome');
                 const downloadBtn = card.querySelector('a[href^="/download/"]');
                 const deleteForm = card.querySelector('form');
                 images.push({
-                    nome: nomeElement ? nomeElement.textContent : '',
+                    nome: nomeElement ? nomeElement.textContent.trim() : '',
                     visualizarUrl: thumbnail ? thumbnail.src : '',
                     downloadUrl: downloadBtn ? downloadBtn.getAttribute('href') : '',
                     deleteForm: deleteForm,
@@ -55,33 +49,32 @@ document.addEventListener('DOMContentLoaded', function () {
         const image = images[currentImageIndex];
         lightboxImage.src = image.visualizarUrl;
         lightboxTitle.textContent = image.nome;
-        lightboxInfo.textContent = `Imagem ${currentImageIndex + 1} de ${images.length}`;
+        lightboxInfo.textContent = `${currentImageIndex + 1} de ${images.length}`;
         lightboxDownload.href = image.downloadUrl;
 
         lightboxDelete.onclick = async function (e) {
             e.preventDefault();
-            const image = images[currentImageIndex];
+            const img = images[currentImageIndex];
             const confirmado = await ConfirmModal.open({
-                title: 'Excluir imagem',
-                message: `Tem certeza que deseja excluir a imagem "${image.nome}"?`,
-                detail: 'Esta ação não pode ser desfeita.'
+                title: 'Excluir Imagem',
+                message: `Deseja mover a imagem "${img.nome}" para a lixeira?`,
+                detail: 'Você poderá restaurá-la a qualquer momento em até 30 dias.'
             });
-            if (confirmado && image.deleteForm) {
-                showToast(`Excluindo ${image.nome}...`, 'info', 2000);
-                const form = image.deleteForm.cloneNode(true);
-                document.body.appendChild(form);
-                form.submit();
-                setTimeout(() => { if (document.body.contains(form)) document.body.removeChild(form); }, 1000);
+            if (confirmado && img.deleteForm) {
+                closeLightbox();
+                const form = img.deleteForm;
+                if (form.action) {
+                    executarExclusaoAjax(form.action, img.nome, 'arquivo');
+                } else {
+                    form.submit();
+                }
             }
         };
 
-        lightbox.classList.add('active');
-        lightbox.style.display = 'flex'; // Forçar exibição do modal
-        console.log('Lightbox aberto! Classes:', lightbox.className, 'Display:', lightbox.style.display);
+        lightbox.style.display = 'flex';
+        setTimeout(() => lightbox.classList.add('active'), 10);
+        document.body.style.overflow = 'hidden';
 
-        // Não bloquear o scroll do body - removido: document.body.style.overflow = 'hidden';
-
-        // Empurra um estado falso no histórico para capturar o botão voltar do celular
         if (!history.state?.lightboxOpen) {
             history.pushState({ lightboxOpen: true }, '');
         }
@@ -89,65 +82,61 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function closeLightbox() {
         lightbox.classList.remove('active');
-        lightbox.style.display = 'none'; // Esconder o modal
-        lightboxImage.src = '';
-        console.log('Lightbox fechado!');
-        // Não é necessário restaurar overflow - removido: document.body.style.overflow = '';
+        setTimeout(() => {
+            lightbox.style.display = 'none';
+            lightboxImage.src = '';
+            document.body.style.overflow = '';
+        }, 200);
 
-        // Descarta o estado falso que empurramos ao abrir
         if (history.state?.lightboxOpen) {
             history.back();
         }
     }
 
-    // Intercepta o botão "voltar" do celular (e Alt+Seta no desktop)
-    window.addEventListener('popstate', function (e) {
+    window.addEventListener('popstate', function () {
         if (lightbox.classList.contains('active')) {
             lightbox.classList.remove('active');
-            lightbox.style.display = 'none'; // Esconder o modal
+            lightbox.style.display = 'none';
             lightboxImage.src = '';
-            // Não é necessário restaurar overflow
+            document.body.style.overflow = '';
         }
     });
 
     function prevImage() {
-        if (images.length > 0) { currentImageIndex = (currentImageIndex - 1 + images.length) % images.length; openLightbox(currentImageIndex); }
+        if (images.length > 0) {
+            currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+            openLightbox(currentImageIndex);
+        }
     }
 
     function nextImage() {
-        if (images.length > 0) { currentImageIndex = (currentImageIndex + 1) % images.length; openLightbox(currentImageIndex); }
+        if (images.length > 0) {
+            currentImageIndex = (currentImageIndex + 1) % images.length;
+            openLightbox(currentImageIndex);
+        }
     }
 
     updateImageList();
 
-    // ✅ DELEGAÇÃO DE EVENTO: Lightbox para imagens
+    // Clique para abrir lightbox na imagem
     document.addEventListener('click', function (e) {
-        const link = e.target.closest('.item-link');
-        if (link && link.querySelector('.item-imagem')) {
-            console.log('Clique em imagem detectado!', link);
-
-            if (e.ctrlKey) return; // Ctrl+Clique é para seleção, não para abrir lightbox
-            if (e.target.closest('.botao-download') || e.target.closest('.botao-excluir') ||
-                e.target.closest('form') || e.target.closest('button') ||
-                e.target.closest('.item-checkbox') || e.target.closest('.item-checkbox-input')) {
-                console.log('Clique em botão/checkbox detectado, ignorando');
+        const card = e.target.closest('.item-imagem');
+        if (card) {
+            if (e.ctrlKey) return;
+            if (e.target.closest('.item-menu-wrapper') || e.target.closest('.btn-card-more') || e.target.closest('.item-checkbox')) {
                 return;
             }
-
-            console.log('Abrindo lightbox...');
             e.preventDefault();
             e.stopPropagation();
             updateImageList();
-            const currentCard = link.querySelector('.item-imagem');
-            const newIndex = Array.from(document.querySelectorAll('.item-imagem')).indexOf(currentCard);
-            console.log('Index da imagem:', newIndex, 'Total de imagens:', images.length);
+            const newIndex = Array.from(document.querySelectorAll('.item-imagem')).indexOf(card);
             if (newIndex !== -1) openLightbox(newIndex);
         }
     });
 
-    lightboxClose.addEventListener('click', closeLightbox);
-    lightboxPrev.addEventListener('click', prevImage);
-    lightboxNext.addEventListener('click', nextImage);
+    lightboxClose?.addEventListener('click', closeLightbox);
+    lightboxPrev?.addEventListener('click', prevImage);
+    lightboxNext?.addEventListener('click', nextImage);
 
     document.addEventListener('keydown', function (e) {
         if (e.key === 'Escape' && lightbox.classList.contains('active')) closeLightbox();
@@ -157,112 +146,94 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     });
 
-    lightbox.addEventListener('click', function (e) { if (e.target === lightbox) closeLightbox(); });
+    lightbox?.addEventListener('click', function (e) {
+        if (e.target === lightbox) closeLightbox();
+    });
 });
 
-// ===== BARRA DE PESQUISA =====
+// ===== 2. BARRA DE PESQUISA =====
 document.addEventListener('DOMContentLoaded', function () {
     const searchInput = document.getElementById('pesquisa-input');
     const searchClear = document.getElementById('pesquisa-limpar');
-    const searchCounter = document.getElementById('pesquisa-contador');
     let searchTimeout;
-
-    function updateCounter() {
-        const items = document.querySelectorAll('.item-link');
-        const visibleItems = Array.from(items).filter(item => item.style.display !== 'none').length;
-        if (!searchCounter) return;
-        if (visibleItems === 0) searchCounter.textContent = 'Nenhum resultado';
-        else if (visibleItems === 1) searchCounter.textContent = '1 resultado';
-        else searchCounter.textContent = `${visibleItems} resultados`;
-    }
 
     function performSearch() {
         const searchTerm = searchInput.value.toLowerCase().trim();
         const items = document.querySelectorAll('.item-link');
-        searchClear.classList.toggle('visible', searchTerm.length > 0);
 
         if (searchTerm === '') {
-            items.forEach(item => { item.style.display = 'block'; item.classList.remove('destaque-pesquisa'); });
-            updateCounter();
-            if (typeof window.updateItemCount === 'function') window.updateItemCount();
+            items.forEach(item => { item.style.display = ''; });
             return;
         }
 
         items.forEach(item => {
-            const nome = item.querySelector('.item-nome')?.textContent.toLowerCase() || '';
-            const tipo = item.querySelector('.item-tipo')?.textContent.toLowerCase() || '';
+            const nome = item.querySelector('.item-card-title, .item-nome')?.textContent.toLowerCase() || '';
+            const tipo = item.dataset.tipo?.toLowerCase() || '';
             const matches = nome.includes(searchTerm) || tipo.includes(searchTerm);
-            if (matches) {
-                item.style.display = 'block';
-                if (nome === searchTerm || tipo === searchTerm) {
-                    item.classList.add('destaque-pesquisa');
-                    setTimeout(() => item.classList.remove('destaque-pesquisa'), 1000);
-                }
-            } else {
-                item.style.display = 'none';
-            }
+            item.style.display = matches ? '' : 'none';
         });
-
-        updateCounter();
-        if (typeof window.updateItemCount === 'function') window.updateItemCount();
     }
 
-    if (searchInput) searchInput.addEventListener('input', function () { clearTimeout(searchTimeout); searchTimeout = setTimeout(performSearch, 150); });
-    if (searchClear) searchClear.addEventListener('click', function () { searchInput.value = ''; searchInput.focus(); performSearch(); });
-    
-    // Re-executa busca se a lista for atualizada via AJAX
+    if (searchInput) {
+        searchInput.addEventListener('input', function () {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(performSearch, 120);
+        });
+    }
+
+    if (searchClear && searchInput) {
+        searchClear.addEventListener('click', function () {
+            searchInput.value = '';
+            performSearch();
+            searchInput.focus();
+        });
+    }
+
     document.addEventListener('listaAtualizada', performSearch);
-    updateCounter();
 });
 
-// ===== ALTERNAR VISUALIZAÇÃO (GRID/LISTA) =====
+// ===== 3. ALTERNADOR DE VISUALIZAÇÃO (GRADE / LISTA SEGMENTADO) =====
 document.addEventListener('DOMContentLoaded', function () {
     const viewGrid = document.getElementById('view-grid');
     const viewList = document.getElementById('view-list');
-    const totalItensSpan = document.getElementById('view-total-itens');
-
-    window.updateItemCount = function () {
-        const visibleItems = document.querySelectorAll('.item-link:not([style*="display: none"])').length;
-        if (totalItensSpan) totalItensSpan.textContent = visibleItems;
-    };
 
     const savedView = localStorage.getItem('viewMode') || 'grid';
     setViewMode(savedView);
 
-    if (viewGrid) viewGrid.addEventListener('click', () => setViewMode('grid'));
-    if (viewList) viewList.addEventListener('click', () => setViewMode('list'));
+    viewGrid?.addEventListener('click', () => setViewMode('grid'));
+    viewList?.addEventListener('click', () => setViewMode('list'));
 
     function setViewMode(mode) {
         const listagemContainer = document.querySelector('.listagem-itens');
         viewGrid?.classList.toggle('active', mode === 'grid');
         viewList?.classList.toggle('active', mode === 'list');
-        if (listagemContainer) listagemContainer.classList.toggle('view-list', mode === 'list');
+        if (listagemContainer) listagemContainer.classList.toggle('list-view', mode === 'list');
         localStorage.setItem('viewMode', mode);
-        setTimeout(window.updateItemCount, 50);
     }
 
     document.addEventListener('listaAtualizada', () => {
         setViewMode(localStorage.getItem('viewMode') || 'grid');
-        window.updateItemCount();
     });
-
-    window.updateItemCount();
 });
 
-// ===== ORDENAÇÃO =====
+// ===== 4. ORDENAÇÃO DE ARQUIVOS (GOOGLE DRIVE POPOVER — IMAGEM 2) =====
 document.addEventListener('DOMContentLoaded', function () {
-    const ordenacaoBotoes = {
-        nome: document.getElementById('ordenar-nome'),
-        tipo: document.getElementById('ordenar-tipo'),
-        tamanho: document.getElementById('ordenar-tamanho'),
-        data: document.getElementById('ordenar-data')
+    const sortBtn = document.getElementById('sort-dropdown-btn');
+    const sortLabel = document.getElementById('sort-dropdown-label');
+    const sortArrow = document.getElementById('sort-indicator-arrow');
+    const popoverOverlay = document.getElementById('sort-popover-overlay');
+    const popoverMenu = document.getElementById('sort-popover-menu');
+    const descLabel = document.getElementById('sort-desc-label');
+    const ascLabel = document.getElementById('sort-asc-label');
+
+    const labels = {
+        data: 'Data de modificação',
+        nome: 'Nome',
+        tipo: 'Tipo de arquivo',
+        tamanho: 'Tamanho'
     };
 
-    if (!ordenacaoBotoes.nome) return;
-
-    // Tamanho e data iniciam desc (maior/mais recente primeiro), os demais asc
-    const ordemPadrao = { nome: 'asc', tipo: 'asc', tamanho: 'desc', data: 'desc' };
-    let ordenacaoAtual = { criterio: 'tipo', ordem: 'asc' };
+    let ordenacaoAtual = { criterio: 'data', ordem: 'desc' };
     let isOrdenando = false;
 
     try {
@@ -270,11 +241,83 @@ document.addEventListener('DOMContentLoaded', function () {
         if (saved) ordenacaoAtual = JSON.parse(saved);
     } catch (e) {}
 
-    function atualizarBotoesOrdenacao() {
-        Object.values(ordenacaoBotoes).forEach(btn => { if (btn) { btn.classList.remove('active'); btn.removeAttribute('data-order'); } });
-        const btnAtual = ordenacaoBotoes[ordenacaoAtual.criterio];
-        if (btnAtual) { btnAtual.classList.add('active'); btnAtual.setAttribute('data-order', ordenacaoAtual.ordem); }
+    function atualizarTextosDirecao() {
+        if (!descLabel || !ascLabel) return;
+        if (ordenacaoAtual.criterio === 'data') {
+            descLabel.textContent = 'Do mais recente ao mais antigo';
+            ascLabel.textContent = 'Do mais antigo ao mais recente';
+        } else if (ordenacaoAtual.criterio === 'nome') {
+            descLabel.textContent = 'De Z a A';
+            ascLabel.textContent = 'De A a Z';
+        } else if (ordenacaoAtual.criterio === 'tamanho') {
+            descLabel.textContent = 'Do maior ao menor';
+            ascLabel.textContent = 'Do menor ao maior';
+        } else if (ordenacaoAtual.criterio === 'tipo') {
+            descLabel.textContent = 'Arquivos primeiro';
+            ascLabel.textContent = 'Pastas primeiro';
+        }
     }
+
+    function atualizarEstadoUI() {
+        if (sortLabel) sortLabel.textContent = labels[ordenacaoAtual.criterio] || 'Data de modificação';
+        if (sortArrow) {
+            sortArrow.setAttribute('data-lucide', ordenacaoAtual.ordem === 'asc' ? 'arrow-up' : 'arrow-down');
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        }
+
+        atualizarTextosDirecao();
+
+        // Atualiza classes ativas no popover
+        document.querySelectorAll('.sort-popover-item[data-criterio]').forEach(item => {
+            const crit = item.getAttribute('data-criterio');
+            item.classList.toggle('active', crit === ordenacaoAtual.criterio);
+        });
+
+        document.querySelectorAll('.sort-popover-item[data-ordem]').forEach(item => {
+            const ord = item.getAttribute('data-ordem');
+            item.classList.toggle('active', ord === ordenacaoAtual.ordem);
+        });
+    }
+
+    function abrirPopover() {
+        if (!popoverMenu || !popoverOverlay) return;
+        atualizarEstadoUI();
+        popoverOverlay.style.display = 'block';
+        popoverMenu.style.display = 'flex';
+        if (typeof lucide !== 'undefined') lucide.createIcons();
+    }
+
+    function fecharPopover() {
+        if (popoverMenu) popoverMenu.style.display = 'none';
+        if (popoverOverlay) popoverOverlay.style.display = 'none';
+    }
+
+    sortBtn?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        abrirPopover();
+    });
+
+    popoverOverlay?.addEventListener('click', fecharPopover);
+
+    // Cliques nos critérios
+    document.querySelectorAll('.sort-popover-item[data-criterio]').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            ordenacaoAtual.criterio = item.getAttribute('data-criterio');
+            ordenarItens();
+            fecharPopover();
+        });
+    });
+
+    // Cliques na direção
+    document.querySelectorAll('.sort-popover-item[data-ordem]').forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.stopPropagation();
+            ordenacaoAtual.ordem = item.getAttribute('data-ordem');
+            ordenarItens();
+            fecharPopover();
+        });
+    });
 
     function parseTamanho(t) {
         if (!t || t === '--') return 0;
@@ -286,8 +329,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function parseData(d) {
         if (!d) return 0;
-
-        // Formato: "Hoje às HH:MM"
         if (d.includes('Hoje')) {
             const h = d.match(/(\d{2}):(\d{2})/);
             if (h) {
@@ -295,24 +336,18 @@ document.addEventListener('DOMContentLoaded', function () {
                 hoje.setHours(parseInt(h[1]), parseInt(h[2]), 0, 0);
                 return hoje.getTime();
             }
-            return new Date().getTime(); // Se não conseguir extrair hora, usar agora
+            return Date.now();
         }
-
-        // Formato: "DD/MM/YYYY" ou "DD/MM/YYYY HH:MM"
-        const partes = d.split(' ')[0].split('/'); // Pega só a parte da data antes do espaço
+        const partes = d.split(' ')[0].split('/');
         if (partes.length === 3) {
             const [dia, mes, ano] = partes;
             const dataObj = new Date(parseInt(ano), parseInt(mes) - 1, parseInt(dia));
-
-            // Se tiver horário também, adiciona
             const horario = d.match(/(\d{2}):(\d{2})/);
             if (horario) {
                 dataObj.setHours(parseInt(horario[1]), parseInt(horario[2]), 0, 0);
             }
-
             return dataObj.getTime();
         }
-
         return 0;
     }
 
@@ -325,7 +360,6 @@ document.addEventListener('DOMContentLoaded', function () {
         const ordemTipos = { 'pasta': 0, 'imagem': 1, 'audio': 2, 'pdf': 3, 'arquivo': 4 };
 
         items.sort((a, b) => {
-            // Pastas sempre primeiro em qualquer critério exceto tipo (que já tem ordem própria)
             if (ordenacaoAtual.criterio !== 'tipo') {
                 const aIsPasta = a.dataset.tipo === 'pasta';
                 const bIsPasta = b.dataset.tipo === 'pasta';
@@ -334,45 +368,41 @@ document.addEventListener('DOMContentLoaded', function () {
             }
 
             let valA, valB;
-            if (ordenacaoAtual.criterio === 'nome') { valA = a.dataset.nome.toLowerCase(); valB = b.dataset.nome.toLowerCase(); }
-            else if (ordenacaoAtual.criterio === 'tipo') {
+            if (ordenacaoAtual.criterio === 'nome') {
+                valA = (a.dataset.nome || '').toLowerCase();
+                valB = (b.dataset.nome || '').toLowerCase();
+            } else if (ordenacaoAtual.criterio === 'tipo') {
                 valA = ordemTipos[a.dataset.tipo] ?? 99;
                 valB = ordemTipos[b.dataset.tipo] ?? 99;
+            } else if (ordenacaoAtual.criterio === 'tamanho') {
+                valA = parseTamanho(a.querySelector('.item-tamanho')?.textContent);
+                valB = parseTamanho(b.querySelector('.item-tamanho')?.textContent);
+            } else if (ordenacaoAtual.criterio === 'data') {
+                valA = parseData(a.querySelector('.item-data')?.textContent);
+                valB = parseData(b.querySelector('.item-data')?.textContent);
             }
-            else if (ordenacaoAtual.criterio === 'tamanho') { valA = parseTamanho(a.querySelector('.item-tamanho')?.textContent); valB = parseTamanho(b.querySelector('.item-tamanho')?.textContent); }
-            else if (ordenacaoAtual.criterio === 'data') { valA = parseData(a.querySelector('.item-data')?.textContent); valB = parseData(b.querySelector('.item-data')?.textContent); }
+
             if (valA < valB) return ordenacaoAtual.ordem === 'asc' ? -1 : 1;
             if (valA > valB) return ordenacaoAtual.ordem === 'asc' ? 1 : -1;
             return 0;
         });
+
         items.forEach(item => container.appendChild(item));
-        atualizarBotoesOrdenacao();
+        atualizarEstadoUI();
         localStorage.setItem('ordenacao', JSON.stringify(ordenacaoAtual));
         isOrdenando = false;
     }
-
-    Object.entries(ordenacaoBotoes).forEach(([criterio, btn]) => {
-        if (btn) btn.addEventListener('click', () => {
-            if (ordenacaoAtual.criterio === criterio) {
-                ordenacaoAtual.ordem = ordenacaoAtual.ordem === 'asc' ? 'desc' : 'asc';
-            } else {
-                ordenacaoAtual.criterio = criterio;
-                ordenacaoAtual.ordem = ordemPadrao[criterio] || 'asc';
-            }
-            ordenarItens();
-        });
-    });
 
     document.addEventListener('listaAtualizada', ordenarItens);
     ordenarItens();
 });
 
-// ===== CLIQUE NOS ITENS (DELEGAÇÃO) =====
+// ===== 5. CLIQUE NOS ITENS (NAVEGAÇÃO / ABERTURA) =====
 document.addEventListener('DOMContentLoaded', function () {
     document.addEventListener('click', function (e) {
         const card = e.target.closest('.item-link');
         if (!card) return;
-        if (e.target.closest('.botao-download') || e.target.closest('.botao-excluir') ||
+        if (e.target.closest('.item-menu-wrapper') || e.target.closest('.btn-card-more') ||
             e.target.closest('form') || e.target.closest('button') ||
             e.target.closest('.item-checkbox') || e.target.closest('.item-checkbox-input') ||
             e.ctrlKey) return;
@@ -381,20 +411,17 @@ document.addEventListener('DOMContentLoaded', function () {
         const caminho = card.dataset.caminho;
 
         if (tipo === 'pasta') {
-            if (caminho) window.location.href = `/explorar/${caminho}`;
+            if (caminho) window.location.href = `/explorar/${encodeURIComponent(caminho).replace(/%2F/g, '/')}`;
         } else if (tipo === 'imagem') {
-            // NÃO fazer nada aqui - o lightbox é tratado por outro listener
-            // Retornar para não bloquear o evento
-            return;
+            return; // Tratado pelo lightbox
         } else if (tipo === 'audio') {
-            if (e.target.closest('audio')) return;
-            e.preventDefault(); e.stopPropagation();
-            const nome = card.querySelector('.item-nome')?.textContent || '';
+            e.preventDefault();
+            e.stopPropagation();
+            const nome = card.querySelector('.item-card-title, .item-nome')?.textContent.trim() || '';
             if (typeof window.openAudioModal === 'function') {
                 window.openAudioModal(`/visualizar/${caminho}`, nome, `/download/${caminho}`, card.querySelector('.form-excluir'));
             }
         } else if (tipo === 'pdf') {
-            // PDF abre em nova aba para visualização no navegador
             if (caminho) window.open(`/visualizar/${caminho}`, '_blank');
         } else if (tipo === 'arquivo') {
             if (caminho) window.location.href = `/download/${caminho}`;
@@ -402,23 +429,23 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// ===== SELEÇÃO MÚLTIPLA =====
+// ===== 6. SELEÇÃO MÚLTIPLA & BARRA FLUTUANTE =====
 document.addEventListener('DOMContentLoaded', function () {
-    const selecaoBarra    = document.getElementById('selecao-barra');
+    const selecaoBarra = document.getElementById('selecao-barra');
     const selecaoContador = document.getElementById('selecao-contador');
     const selecaoSelectAll = document.getElementById('selecao-select-all');
-    const selecaoClear    = document.getElementById('selecao-clear');
-    const selecaoDelete   = document.getElementById('selecao-delete');
+    const selecaoClear = document.getElementById('selecao-clear');
+    const selecaoDelete = document.getElementById('selecao-delete');
     const selecaoDownload = document.getElementById('selecao-download');
 
     let itensSelecionados = new Set();
 
-    // Ctrl+Clique para seleção individual (Delegação)
     document.addEventListener('click', function (e) {
         if (e.ctrlKey) {
             const card = e.target.closest('.item-link');
             if (card) {
-                e.preventDefault(); e.stopPropagation();
+                e.preventDefault();
+                e.stopPropagation();
                 const checkbox = card.querySelector('.item-checkbox-input');
                 if (checkbox) {
                     checkbox.checked = !checkbox.checked;
@@ -430,41 +457,32 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function atualizarSelecao() {
         const count = itensSelecionados.size;
-        if (selecaoContador) {
-            selecaoContador.textContent = count;
-        }
-        
+        if (selecaoContador) selecaoContador.textContent = count;
+
         if (selecaoBarra) {
-            if (count > 0) {
-                if (selecaoBarra.style.display === 'none') {
-                    selecaoBarra.style.display = 'flex';
-                }
-                requestAnimationFrame(() => {
-                    selecaoBarra.classList.add('active');
-                });
-            } else {
-                selecaoBarra.classList.remove('active');
-                setTimeout(() => {
-                    if (itensSelecionados.size === 0) {
-                        selecaoBarra.style.display = 'none';
-                    }
-                }, 400);
-            }
+            selecaoBarra.style.display = count > 0 ? 'flex' : 'none';
         }
-        
-        document.querySelectorAll('.item-link').forEach(item => {
-            item.classList.toggle('selecionado', itensSelecionados.has(item.dataset.caminho));
+
+        document.querySelectorAll('.item-card').forEach(card => {
+            const link = card.closest('.item-link');
+            if (link) {
+                card.classList.toggle('selected', itensSelecionados.has(link.dataset.caminho));
+            }
         });
     }
 
-    // ✅ DELEGAÇÃO DE EVENTO: Checkboxes
     document.addEventListener('change', function (e) {
         if (e.target.classList.contains('item-checkbox-input')) {
             const checkbox = e.target;
             const caminho = checkbox.dataset.caminho;
-            const item = checkbox.closest('.item-link');
-            if (checkbox.checked) { itensSelecionados.add(caminho); item?.classList.add('selecionado'); }
-            else { itensSelecionados.delete(caminho); item?.classList.remove('selecionado'); }
+            const card = checkbox.closest('.item-card');
+            if (checkbox.checked) {
+                itensSelecionados.add(caminho);
+                card?.classList.add('selected');
+            } else {
+                itensSelecionados.delete(caminho);
+                card?.classList.remove('selected');
+            }
             atualizarSelecao();
         }
     });
@@ -475,43 +493,45 @@ document.addEventListener('DOMContentLoaded', function () {
         checkboxes.forEach(checkbox => {
             checkbox.checked = !todosSelecionados;
             const caminho = checkbox.dataset.caminho;
-            const item = checkbox.closest('.item-link');
-            if (!todosSelecionados) { itensSelecionados.add(caminho); item?.classList.add('selecionado'); }
-            else { itensSelecionados.delete(caminho); item?.classList.remove('selecionado'); }
+            const card = checkbox.closest('.item-card');
+            if (!todosSelecionados) {
+                itensSelecionados.add(caminho);
+                card?.classList.add('selected');
+            } else {
+                itensSelecionados.delete(caminho);
+                card?.classList.remove('selected');
+            }
         });
         atualizarSelecao();
     });
 
     selecaoClear?.addEventListener('click', function () {
-        document.querySelectorAll('.item-checkbox-input').forEach(cb => { cb.checked = false; cb.closest('.item-link')?.classList.remove('selecionado'); });
+        document.querySelectorAll('.item-checkbox-input').forEach(cb => {
+            cb.checked = false;
+            cb.closest('.item-card')?.classList.remove('selected');
+        });
         itensSelecionados.clear();
         atualizarSelecao();
     });
 
-    // Limpar seleção ao atualizar lista
     document.addEventListener('listaAtualizada', () => {
         itensSelecionados.clear();
         atualizarSelecao();
     });
 
-    // ===== DELETAR MÚLTIPLOS — com CSRF =====
+    // Exclusão em lote
     selecaoDelete?.addEventListener('click', async function (e) {
         e.stopPropagation();
         if (itensSelecionados.size === 0) return;
 
-        const mensagem = itensSelecionados.size === 1
-            ? 'Tem certeza que deseja excluir este item?'
-            : `Tem certeza que deseja excluir ${itensSelecionados.size} itens?`;
+        const count = itensSelecionados.size;
+        const confirmado = await ConfirmModal.open({
+            title: 'Excluir Itens Selecionados',
+            message: `Deseja mover os ${count} itens selecionados para a lixeira?`,
+            detail: 'Você poderá restaurá-los nos próximos 30 dias.'
+        });
 
-        const detalhe = Array.from(itensSelecionados).slice(0, 5).join('\n')
-            + (itensSelecionados.size > 5 ? `\n... e mais ${itensSelecionados.size - 5} itens` : '');
-
-        const confirmado = await ConfirmModal.open({ title: 'Excluir itens selecionados', message: mensagem, detail: detalhe });
         if (!confirmado) return;
-
-        const textoOriginal = selecaoDelete.innerHTML;
-        selecaoDelete.disabled = true;
-        selecaoDelete.textContent = '⏳';
 
         try {
             const response = await fetch('/deletar_multiplos', {
@@ -526,25 +546,17 @@ document.addEventListener('DOMContentLoaded', function () {
             const resultado = await response.json();
 
             if (resultado.sucesso) {
-                if (resultado.erros && resultado.erros.length > 0) {
-                    showToast(`✅ ${resultado.excluidos} excluídos | ❌ ${resultado.erros.length} falhas`, 'warning');
-                } else {
-                    showToast(`✅ ${resultado.excluidos} itens excluídos com sucesso!`, 'success');
-                }
+                showToast(`✅ ${resultado.excluidos} itens movidos para a lixeira.`, 'success');
                 if (typeof atualizarLista === 'function') atualizarLista();
             } else {
                 showToast(`Erro: ${resultado.erro}`, 'error');
             }
         } catch (error) {
-            showToast('Erro ao excluir itens. Tente novamente.', 'error');
-        } finally {
-            selecaoDelete.disabled = false;
-            selecaoDelete.innerHTML = textoOriginal;
-            if (typeof lucide !== 'undefined') lucide.createIcons();
+            showToast('Erro de conexão ao excluir itens selecionados', 'error');
         }
     });
 
-    // ===== DOWNLOAD ZIP — com CSRF =====
+    // Download ZIP
     selecaoDownload?.addEventListener('click', function () {
         if (itensSelecionados.size === 0) return;
 
@@ -569,81 +581,18 @@ document.addEventListener('DOMContentLoaded', function () {
 
         document.body.appendChild(form);
         form.submit();
-        setTimeout(() => { if (document.body.contains(form)) document.body.removeChild(form); }, 1000);
-    });
-
-    // Atalhos de teclado
-    document.addEventListener('keydown', function (e) {
-        const tag = e.target.tagName.toLowerCase();
-        if (tag === 'input' || tag === 'textarea' || e.target.isContentEditable) return;
-
-        // Ctrl+A: Selecionar todos
-        if (e.ctrlKey && e.key.toLowerCase() === 'a') {
-            e.preventDefault();
-            selecaoSelectAll?.click();
-        }
-
-        // Delete: Excluir selecionados
-        if (e.key === 'Delete' || e.key === 'Del') {
-            if (itensSelecionados.size > 0) {
-                e.preventDefault();
-                selecaoDelete?.click();
-            }
-        }
+        setTimeout(() => {
+            if (document.body.contains(form)) document.body.removeChild(form);
+        }, 1000);
     });
 });
 
-// ===== ÍCONES DINÂMICOS (LUCIDE) =====
-document.addEventListener('DOMContentLoaded', function () {
-    // Mapeia extensão → nome do ícone Lucide
-    const iconMap = {
-        'doc': 'file-text', 'docx': 'file-text', 'txt': 'file-text', 'rtf': 'file-text', 'md': 'file-text',
-        'xls': 'bar-chart-2', 'xlsx': 'bar-chart-2', 'csv': 'bar-chart-2',
-        'ppt': 'presentation', 'pptx': 'presentation',
-        'mp4': 'video', 'avi': 'video', 'mkv': 'video', 'mov': 'video', 'webm': 'video',
-        'zip': 'archive', 'rar': 'archive', '7z': 'archive', 'tar': 'archive', 'gz': 'archive',
-        'html': 'globe', 'htm': 'globe',
-        'css': 'palette',
-        'js': 'zap', 'ts': 'zap', 'mjs': 'zap',
-        'py': 'terminal', 'sh': 'terminal', 'bash': 'terminal',
-        'json': 'braces', 'xml': 'braces', 'yaml': 'braces', 'yml': 'braces',
-        'sql': 'database', 'db': 'database', 'sqlite': 'database',
-        'exe': 'settings', 'msi': 'settings', 'bat': 'settings',
-        'java': 'coffee', 'c': 'cpu', 'cpp': 'cpu', 'php': 'code',
-    };
-
-    function updateIcons() {
-        document.querySelectorAll('.file-icon').forEach(icon => {
-            if (icon.innerHTML.trim() !== '') return; // já tem ícone
-            const ext = icon.dataset.extensao;
-            const lucideIcon = (ext && iconMap[ext]) ? iconMap[ext] : 'file';
-            icon.innerHTML = `<i data-lucide="${lucideIcon}" style="width:40px;height:40px;color:var(--text-secondary);"></i>`;
-        });
-        if (typeof lucide !== 'undefined') lucide.createIcons();
-    }
-
-    updateIcons();
-    document.addEventListener('listaAtualizada', updateIcons);
-});
-
-// ===== SALVAR POSIÇÃO DE ROLAGEM =====
-(function () {
-    window.addEventListener('beforeunload', () => sessionStorage.setItem('scrollPosition', window.scrollY));
-    window.addEventListener('load', function () {
-        const pos = sessionStorage.getItem('scrollPosition');
-        if (pos) { setTimeout(() => { window.scrollTo(0, parseInt(pos)); sessionStorage.removeItem('scrollPosition'); }, 100); }
-    });
-})();
-
-// ===== DRAG & DROP (BLINDADO) =====
+// ===== 7. DRAG & DROP BLINDADO =====
 document.addEventListener('DOMContentLoaded', function () {
     const overlay = document.getElementById('global-drop-overlay');
     let dragCounter = 0;
 
-    document.addEventListener('dragstart', () => {
-        isInternalDrag = true;
-    });
-
+    document.addEventListener('dragstart', () => { isInternalDrag = true; });
     document.addEventListener('dragend', () => {
         isInternalDrag = false;
         dragCounter = 0;
@@ -698,39 +647,30 @@ document.addEventListener('DOMContentLoaded', function () {
     });
 });
 
-// ===== AUDIO PLAYER MODAL =====
+// ===== 8. PLAYER DE ÁUDIO CUSTOMIZADO =====
 (function () {
     function initAudioModal() {
-        const audioModal       = document.getElementById('audioModal');
-        const audioPlayer      = document.getElementById('audioPlayer');
-        const audioSource      = document.getElementById('audioSource');
-        const audioModalTitle  = document.getElementById('audioModalTitle');
-        const audioModalInfo   = document.getElementById('audioModalInfo');
+        const audioModal = document.getElementById('audioModal');
+        const audioPlayer = document.getElementById('audioPlayer');
+        const audioSource = document.getElementById('audioSource');
+        const audioModalTitle = document.getElementById('audioModalTitle');
         const audioModalDownload = document.getElementById('audioModalDownload');
         const audioModalDelete = document.getElementById('audioModalDelete');
-        const audioModalClose  = document.getElementById('audioModalClose');
-        const audioDuration    = document.getElementById('audioDuration');
+        const audioModalClose = document.getElementById('audioModalClose');
+        const audioDuration = document.getElementById('audioDuration');
 
         if (!audioModal) return;
 
         let currentAudioDeleteForm = null;
 
-        function closeAudioModalAndReload() {
+        function closeAudio() {
             audioPlayer?.pause();
             if (audioPlayer) audioPlayer.currentTime = 0;
             audioModal.classList.remove('active');
-            document.body.style.overflow = '';
-            // Recarregar a página para resetar o estado
-            window.location.reload();
-        }
-
-        function closeAudioModalOnly() {
-            audioModal.classList.remove('active');
-            document.body.style.overflow = '';
-            audioPlayer?.pause();
-            if (audioPlayer) audioPlayer.currentTime = 0;
-            // Recarregar a página para resetar o estado
-            window.location.reload();
+            setTimeout(() => {
+                audioModal.style.display = 'none';
+                document.body.style.overflow = '';
+            }, 200);
         }
 
         window.openAudioModal = function (audioUrl, audioName, downloadUrl, deleteForm) {
@@ -741,22 +681,23 @@ document.addEventListener('DOMContentLoaded', function () {
             audioPlayer?.load();
             if (audioDuration) audioDuration.textContent = '';
             if (audioModalTitle) audioModalTitle.textContent = audioName;
-            if (audioModalInfo) audioModalInfo.textContent = 'Áudio';
             if (audioModalDownload) audioModalDownload.href = downloadUrl;
 
             const handleDelete = async function (e) {
                 e.preventDefault();
                 const confirmado = await ConfirmModal.open({
-                    title: 'Excluir áudio',
-                    message: `Tem certeza que deseja excluir o áudio "${audioName}"?`,
-                    detail: 'Esta ação não pode ser desfeita.'
+                    title: 'Excluir Áudio',
+                    message: `Deseja mover "${audioName}" para a lixeira?`,
+                    detail: 'Você poderá restaurá-lo em até 30 dias.'
                 });
                 if (confirmado && currentAudioDeleteForm) {
-                    showToast(`Excluindo ${audioName}...`, 'info', 2000);
-                    closeAudioModalOnly();
-                    const form = currentAudioDeleteForm.cloneNode(true);
-                    document.body.appendChild(form);
-                    form.submit();
+                    closeAudio();
+                    const form = currentAudioDeleteForm;
+                    if (form.action) {
+                        executarExclusaoAjax(form.action, audioName, 'arquivo');
+                    } else {
+                        form.submit();
+                    }
                 }
             };
 
@@ -766,208 +707,100 @@ document.addEventListener('DOMContentLoaded', function () {
                 newBtn.addEventListener('click', handleDelete);
             }
 
-            if (audioPlayer) {
-                const updateDuration = function () {
-                    const dur = audioPlayer.duration;
-                    if (!isNaN(dur) && dur > 0) {
-                        const m = Math.floor(dur / 60), s = Math.floor(dur % 60);
-                        if (audioDuration) audioDuration.textContent = `Duração: ${m}:${s.toString().padStart(2, '0')}`;
-                        audioPlayer.removeEventListener('loadedmetadata', updateDuration);
-                    }
-                };
-                audioPlayer.addEventListener('loadedmetadata', updateDuration);
-            }
-
-            audioModal.classList.add('active');
+            audioModal.style.display = 'flex';
+            setTimeout(() => audioModal.classList.add('active'), 10);
             document.body.style.overflow = 'hidden';
+
             audioPlayer?.play().catch(() => {});
         };
 
-        if (audioModalClose) audioModalClose.onclick = closeAudioModalAndReload;
-        if (audioModal) audioModal.onclick = (e) => { if (e.target === audioModal) closeAudioModalAndReload(); };
+        if (audioModalClose) audioModalClose.onclick = closeAudio;
+        if (audioModal) audioModal.onclick = (e) => { if (e.target === audioModal) closeAudio(); };
 
-        // Listener de Escape para fechar o modal
         document.addEventListener('keydown', (e) => {
             if (e.key === 'Escape' && audioModal && audioModal.classList.contains('active')) {
-                e.preventDefault();
-                closeAudioModalAndReload();
+                closeAudio();
             }
         });
 
-        // ===== CONTROLES CUSTOMIZADOS DO PLAYER =====
         const playPauseBtn = document.getElementById('playPauseBtn');
-        const playPauseIcon = document.getElementById('playPauseIcon');
         const progressBar = document.getElementById('progressBar');
         const progressFill = document.getElementById('progressFill');
-        const progressHandle = document.getElementById('progressHandle');
         const currentTimeEl = document.getElementById('currentTime');
         const totalTimeEl = document.getElementById('totalTime');
         const volumeBtn = document.getElementById('volumeBtn');
-        const volumeIcon = document.getElementById('volumeIcon');
         const volumeSlider = document.getElementById('volumeSlider');
 
-        let isDragging = false;
-
-        // Formatar tempo (segundos para MM:SS)
-        function formatTime(seconds) {
-            if (!seconds || isNaN(seconds)) return '0:00';
-            const mins = Math.floor(seconds / 60);
-            const secs = Math.floor(seconds % 60);
-            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        function formatTime(sec) {
+            if (!sec || isNaN(sec)) return '0:00';
+            const m = Math.floor(sec / 60);
+            const s = Math.floor(sec % 60);
+            return `${m}:${s.toString().padStart(2, '0')}`;
         }
 
-        // Play/Pause
-        if (playPauseBtn && audioPlayer) {
-            playPauseBtn.addEventListener('click', () => {
-                if (audioPlayer.paused) {
-                    audioPlayer.play();
-                } else {
-                    audioPlayer.pause();
-                }
-            });
+        playPauseBtn?.addEventListener('click', () => {
+            if (!audioPlayer) return;
+            if (audioPlayer.paused) {
+                audioPlayer.play();
+                playPauseBtn.innerHTML = '<i data-lucide="pause"></i>';
+            } else {
+                audioPlayer.pause();
+                playPauseBtn.innerHTML = '<i data-lucide="play"></i>';
+            }
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        });
 
-            audioPlayer.addEventListener('play', () => {
-                const oldIcon = document.getElementById('playPauseIcon');
-                if (oldIcon) oldIcon.remove();
+        audioPlayer?.addEventListener('play', () => {
+            if (playPauseBtn) {
+                playPauseBtn.innerHTML = '<i data-lucide="pause"></i>';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        });
 
-                const newIcon = document.createElement('i');
-                newIcon.id = 'playPauseIcon';
-                newIcon.setAttribute('data-lucide', 'pause');
-                playPauseBtn.appendChild(newIcon);
-                lucide.createIcons();
-            });
+        audioPlayer?.addEventListener('pause', () => {
+            if (playPauseBtn) {
+                playPauseBtn.innerHTML = '<i data-lucide="play"></i>';
+                if (typeof lucide !== 'undefined') lucide.createIcons();
+            }
+        });
 
-            audioPlayer.addEventListener('pause', () => {
-                const oldIcon = document.getElementById('playPauseIcon');
-                if (oldIcon) oldIcon.remove();
+        audioPlayer?.addEventListener('loadedmetadata', () => {
+            if (totalTimeEl) totalTimeEl.textContent = formatTime(audioPlayer.duration);
+        });
 
-                const newIcon = document.createElement('i');
-                newIcon.id = 'playPauseIcon';
-                newIcon.setAttribute('data-lucide', 'play');
-                playPauseBtn.appendChild(newIcon);
-                lucide.createIcons();
-            });
-        }
+        audioPlayer?.addEventListener('timeupdate', () => {
+            if (audioPlayer.duration) {
+                const pct = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                if (progressFill) progressFill.style.width = pct + '%';
+                if (currentTimeEl) currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
+            }
+        });
 
-        // Atualizar progresso e tempo
-        if (audioPlayer) {
-            audioPlayer.addEventListener('loadedmetadata', () => {
-                if (totalTimeEl) totalTimeEl.textContent = formatTime(audioPlayer.duration);
-            });
+        progressBar?.addEventListener('click', (e) => {
+            if (!audioPlayer || !audioPlayer.duration) return;
+            const rect = progressBar.getBoundingClientRect();
+            const pct = (e.clientX - rect.left) / rect.width;
+            audioPlayer.currentTime = pct * audioPlayer.duration;
+        });
 
-            audioPlayer.addEventListener('timeupdate', () => {
-                if (!isDragging && audioPlayer.duration) {
-                    const percent = (audioPlayer.currentTime / audioPlayer.duration) * 100;
-                    if (progressFill) progressFill.style.width = percent + '%';
-                    if (progressHandle) progressHandle.style.left = percent + '%';
-                    if (currentTimeEl) currentTimeEl.textContent = formatTime(audioPlayer.currentTime);
-                }
-            });
+        volumeSlider?.addEventListener('input', (e) => {
+            if (!audioPlayer) return;
+            audioPlayer.volume = e.target.value / 100;
+        });
 
-            audioPlayer.addEventListener('ended', () => {
-                playPauseIcon.setAttribute('data-lucide', 'play');
-                lucide.createIcons();
-                if (progressFill) progressFill.style.width = '0%';
-                if (progressHandle) progressHandle.style.left = '0%';
-            });
-        }
-
-        // Clicar na barra de progresso
-        if (progressBar && audioPlayer) {
-            progressBar.addEventListener('click', (e) => {
-                const rect = progressBar.getBoundingClientRect();
-                const percent = (e.clientX - rect.left) / rect.width;
-                audioPlayer.currentTime = percent * audioPlayer.duration;
-            });
-
-            // Arrastar o handle
-            progressHandle.addEventListener('mousedown', (e) => {
-                isDragging = true;
-                e.preventDefault();
-            });
-
-            document.addEventListener('mousemove', (e) => {
-                if (isDragging && audioPlayer.duration) {
-                    const rect = progressBar.getBoundingClientRect();
-                    let percent = (e.clientX - rect.left) / rect.width;
-                    percent = Math.max(0, Math.min(1, percent));
-
-                    progressFill.style.width = (percent * 100) + '%';
-                    progressHandle.style.left = (percent * 100) + '%';
-                    audioPlayer.currentTime = percent * audioPlayer.duration;
-                }
-            });
-
-            document.addEventListener('mouseup', () => {
-                isDragging = false;
-            });
-        }
-
-        // Controle de volume
-        if (volumeSlider && audioPlayer) {
-            volumeSlider.addEventListener('input', (e) => {
-                const volume = e.target.value / 100;
-                audioPlayer.volume = volume;
-
-                // Atualizar ícone
-                const oldIcon = document.getElementById('volumeIcon');
-                if (oldIcon) oldIcon.remove();
-
-                const newIcon = document.createElement('i');
-                newIcon.id = 'volumeIcon';
-                if (volume === 0) {
-                    newIcon.setAttribute('data-lucide', 'volume-x');
-                } else if (volume < 0.5) {
-                    newIcon.setAttribute('data-lucide', 'volume-1');
-                } else {
-                    newIcon.setAttribute('data-lucide', 'volume-2');
-                }
-                volumeBtn.appendChild(newIcon);
-                lucide.createIcons();
-            });
-        }
-
-        // Botão de mute/unmute
-        if (volumeBtn && audioPlayer) {
-            let lastVolume = 1;
-            volumeBtn.addEventListener('click', () => {
-                const oldIcon = document.getElementById('volumeIcon');
-                if (oldIcon) oldIcon.remove();
-
-                const newIcon = document.createElement('i');
-                newIcon.id = 'volumeIcon';
-
-                if (audioPlayer.volume > 0) {
-                    lastVolume = audioPlayer.volume;
-                    audioPlayer.volume = 0;
-                    volumeSlider.value = 0;
-                    newIcon.setAttribute('data-lucide', 'volume-x');
-                } else {
-                    audioPlayer.volume = lastVolume;
-                    volumeSlider.value = lastVolume * 100;
-                    if (lastVolume < 0.5) {
-                        newIcon.setAttribute('data-lucide', 'volume-1');
-                    } else {
-                        newIcon.setAttribute('data-lucide', 'volume-2');
-                    }
-                }
-                volumeBtn.appendChild(newIcon);
-                lucide.createIcons();
-            });
-        }
+        volumeBtn?.addEventListener('click', () => {
+            if (!audioPlayer) return;
+            audioPlayer.muted = !audioPlayer.muted;
+            volumeBtn.innerHTML = audioPlayer.muted ? '<i data-lucide="volume-x"></i>' : '<i data-lucide="volume-2"></i>';
+            if (typeof lucide !== 'undefined') lucide.createIcons();
+        });
     }
 
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', initAudioModal);
     else initAudioModal();
 })();
 
-// ===== FECHAR PAINEL DE UPLOAD =====
-function fecharPainel() {
-    const panel = document.getElementById('upload-panel');
-    if (panel) panel.style.display = 'none';
-}
-
-// ===== ATUALIZAR LISTA DE ARQUIVOS (AJAX) =====
+// ===== 9. ATUALIZAR LISTA VIA AJAX =====
 async function atualizarLista() {
     const container = document.getElementById('file-list-container');
     if (!container) return;
@@ -976,411 +809,190 @@ async function atualizarLista() {
         const response = await fetch(`/partial/lista${caminho}`);
         if (response.ok) {
             container.innerHTML = await response.text();
-            showToast('📂 Lista atualizada!', 'info', 2000);
             document.dispatchEvent(new CustomEvent('listaAtualizada'));
         }
     } catch (error) {
         console.error('Erro ao atualizar lista:', error);
     }
 }
+window.atualizarLista = atualizarLista;
 
-// ===== MENU DROPDOWN (TRÊS PONTINHOS) =====
+// ===== 10. DROPDOWN DESKTOP & BOTTOM SHEET MOBILE (3 PONTINHOS) =====
 window.toggleDropdown = function (btn) {
-    // Identifica o dropdown associado ao botão
-    // Se o dropdown já foi movido para o body, ele não é mais o nextElementSibling
-    let dropdown;
-    if (btn.dataset.dropdownId) {
-        dropdown = document.getElementById(btn.dataset.dropdownId);
+    const isMobile = window.innerWidth <= 768;
+    const card = btn.closest('.item-card');
+    const link = btn.closest('.item-link');
+    const dropdown = btn.closest('.item-menu-wrapper')?.querySelector('.item-dropdown');
+
+    if (!card || !dropdown) return;
+
+    if (isMobile) {
+        // MOBILE: Abrir Bottom Sheet
+        abrirBottomSheet(card, link, dropdown);
     } else {
-        dropdown = btn.nextElementSibling;
-        // Gera um ID único para o dropdown para podermos achá-lo depois de mover para o body
-        const uniqueId = 'dropdown-' + Math.random().toString(36).substr(2, 9);
-        dropdown.id = uniqueId;
-        btn.dataset.dropdownId = uniqueId;
-    }
+        // DESKTOP: Menu suspenso ancorado
+        let menu;
+        if (btn.dataset.dropdownId) {
+            menu = document.getElementById(btn.dataset.dropdownId);
+        } else {
+            menu = dropdown;
+            const uniqueId = 'dropdown-' + Math.random().toString(36).substr(2, 9);
+            menu.id = uniqueId;
+            btn.dataset.dropdownId = uniqueId;
+        }
 
-    if (!dropdown) return;
-    
-    const isOpen = dropdown.classList.contains('open');
-    
-    // Se o dropdown clicado já estiver aberto, fecha tudo e para
-    if (isOpen) {
+        if (!menu) return;
+        const isOpen = menu.classList.contains('open');
         fecharDropdowns();
-        return;
+
+        if (isOpen) return;
+
+        if (menu.parentNode !== document.body) {
+            document.body.appendChild(menu);
+        }
+
+        const rect = btn.getBoundingClientRect();
+        const dropdownWidth = 180;
+        let left = rect.right - dropdownWidth;
+        let top = rect.bottom + 6;
+
+        if (left < 10) left = 10;
+        if (left + dropdownWidth > window.innerWidth - 10) {
+            left = window.innerWidth - dropdownWidth - 10;
+        }
+
+        menu.style.position = 'fixed';
+        menu.style.display = 'flex';
+        menu.style.visibility = 'hidden';
+
+        const dropdownHeight = menu.offsetHeight;
+        if (top + dropdownHeight > window.innerHeight - 10) {
+            top = rect.top - dropdownHeight - 6;
+        }
+
+        menu.style.visibility = 'visible';
+        menu.style.top = top + 'px';
+        menu.style.left = left + 'px';
+        menu.style.zIndex = '10000';
+
+        requestAnimationFrame(() => menu.classList.add('open'));
     }
-
-    // Fecha qualquer outro dropdown aberto antes de abrir o novo
-    fecharDropdowns();
-
-    // Move o dropdown para o final do body para evitar problemas de overflow/z-index
-    if (dropdown.parentNode !== document.body) {
-        document.body.appendChild(dropdown);
-    }
-
-    // Calcula a posição
-    const rect = btn.getBoundingClientRect();
-    const dropdownWidth = 160; // Largura fixa definida no CSS
-    const margin = 8;
-
-    // Posição horizontal: alinhado à direita do botão
-    let left = rect.right - dropdownWidth;
-    
-    // Posição vertical: logo abaixo do botão
-    let top = rect.bottom + margin;
-
-    // Ajustes de segurança para não sair da tela
-    if (left < margin) left = margin;
-    if (left + dropdownWidth > window.innerWidth - margin) {
-        left = window.innerWidth - dropdownWidth - margin;
-    }
-
-    // Aplica estilos iniciais para medição
-    dropdown.style.position = 'fixed';
-    dropdown.style.display = 'flex';
-    dropdown.style.visibility = 'hidden'; // Invisível para medir altura real
-
-    // Se não couber embaixo, abre em cima
-    const dropdownHeight = dropdown.offsetHeight;
-    if (top + dropdownHeight > window.innerHeight - margin) {
-        top = rect.top - dropdownHeight - margin;
-    }
-
-    // Aplica os estilos finais
-    dropdown.style.visibility = 'visible';
-    dropdown.style.top = top + 'px';
-    dropdown.style.left = left + 'px';
-    dropdown.style.zIndex = '10000';
-    
-    // Pequeno delay para a animação de fade-in funcionar
-    requestAnimationFrame(() => {
-        dropdown.classList.add('open');
-    });
 };
 
-// Sobrescreve fecharDropdowns para lidar com os elementos movidos para o body
+function abrirBottomSheet(card, link, dropdown) {
+    const bottomSheet = document.getElementById('mobile-bottom-sheet');
+    const bottomSheetTitle = document.getElementById('bottom-sheet-title');
+    const bottomSheetIcon = document.getElementById('bottom-sheet-icon');
+    const bottomSheetOptions = document.getElementById('bottom-sheet-options');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    if (!bottomSheet || !bottomSheetOptions) return;
+
+    const nome = link?.dataset.nome || card.querySelector('.item-card-title, .item-nome')?.textContent.trim() || 'Arquivo';
+    const tipo = link?.dataset.tipo || 'arquivo';
+
+    if (bottomSheetTitle) bottomSheetTitle.textContent = nome;
+
+    if (bottomSheetIcon) {
+        const cardIcon = card.querySelector('.item-mini-icon i, .item-mini-icon svg');
+        if (cardIcon) {
+            bottomSheetIcon.innerHTML = cardIcon.outerHTML;
+        } else {
+            bottomSheetIcon.innerHTML = '<i data-lucide="file"></i>';
+        }
+    }
+
+    bottomSheetOptions.innerHTML = '';
+    const items = dropdown.querySelectorAll('.dropdown-item, form');
+
+    items.forEach(el => {
+        if (el.tagName.toLowerCase() === 'form') {
+            const formClone = el.cloneNode(true);
+            const submitBtn = formClone.querySelector('button');
+            if (submitBtn) {
+                submitBtn.className = 'bottom-sheet-btn danger';
+                submitBtn.addEventListener('click', () => {
+                    fecharBottomSheet();
+                });
+            }
+            bottomSheetOptions.appendChild(formClone);
+        } else if (el.classList.contains('dropdown-item')) {
+            const btn = document.createElement(el.tagName.toLowerCase() === 'a' ? 'a' : 'button');
+            btn.className = 'bottom-sheet-btn' + (el.classList.contains('danger') ? ' danger' : '');
+            btn.innerHTML = el.innerHTML;
+            if (el.href) btn.href = el.href;
+            if (el.getAttribute('download') !== null) btn.setAttribute('download', '');
+            if (el.getAttribute('target')) btn.setAttribute('target', el.getAttribute('target'));
+
+            btn.addEventListener('click', (e) => {
+                fecharBottomSheet();
+                if (el.getAttribute('onclick')) {
+                    eval(el.getAttribute('onclick'));
+                }
+            });
+            bottomSheetOptions.appendChild(btn);
+        }
+    });
+
+    bottomSheet.classList.add('active');
+    overlay?.classList.add('active');
+    document.body.style.overflow = 'hidden';
+
+    if (typeof lucide !== 'undefined') lucide.createIcons();
+}
+
+function fecharBottomSheet() {
+    const bottomSheet = document.getElementById('mobile-bottom-sheet');
+    const overlay = document.getElementById('sidebar-overlay');
+    if (bottomSheet) bottomSheet.classList.remove('active');
+    if (overlay && !document.getElementById('sidebar')?.classList.contains('active')) {
+        overlay.classList.remove('active');
+    }
+    document.body.style.overflow = '';
+}
+
 window.fecharDropdowns = function () {
     document.querySelectorAll('.item-dropdown.open').forEach(d => {
         d.classList.remove('open');
         d.style.display = 'none';
     });
+    fecharBottomSheet();
 };
 
-// Fecha dropdown ao clicar fora ou rolar a página
 document.addEventListener('click', function (e) {
-    if (!e.target.closest('.item-menu-wrapper')) fecharDropdowns();
+    if (!e.target.closest('.item-menu-wrapper') && !e.target.closest('.mobile-bottom-sheet')) {
+        fecharDropdowns();
+    }
 });
 
 document.addEventListener('scroll', fecharDropdowns, true);
 
-// Fecha dropdown com Escape
 document.addEventListener('keydown', function (e) {
     if (e.key === 'Escape') fecharDropdowns();
 });
 
-// ===== ATALHOS DE NAVEGAÇÃO =====
-document.addEventListener('keydown', function (e) {
-    if (e.altKey && e.key === 'ArrowLeft') { e.preventDefault(); document.querySelector('.back-btn')?.click() || window.history.back(); }
-    if (e.altKey && e.key === 'ArrowRight') { e.preventDefault(); window.history.forward(); }
-});
-
-// ===== LAZY LOADING / PAGINAÇÃO =====
-// Sistema de paginação para evitar travamento em pastas com muitos arquivos
-
-(function () {
-    let currentOffset = 0;
-    let isLoading = false;
-    let hasMore = true;
-    let itemsPerPage = 100;
-    let totalCount = 0;
-
-    function initPagination() {
-        const explorarPage = document.querySelector('[data-total-count]');
-        if (!explorarPage) return;
-
-        const totalCountAttr = explorarPage.getAttribute('data-total-count');
-        const itemsPerPageAttr = explorarPage.getAttribute('data-items-per-page');
-
-        if (totalCountAttr) totalCount = parseInt(totalCountAttr);
-        if (itemsPerPageAttr) itemsPerPage = parseInt(itemsPerPageAttr);
-
-        const loadedItems = document.querySelectorAll('.item-link').length;
-        currentOffset = loadedItems;
-        hasMore = loadedItems < totalCount;
-
-        updateLoadMoreButton();
-    }
-
-    function updateLoadMoreButton() {
-        let loadMoreContainer = document.getElementById('load-more-container');
-
-        if (hasMore && totalCount > currentOffset) {
-            if (!loadMoreContainer) {
-                loadMoreContainer = document.createElement('div');
-                loadMoreContainer.id = 'load-more-container';
-                loadMoreContainer.style.cssText = 'text-align:center;padding:2rem;';
-                loadMoreContainer.innerHTML = `
-                    <button id="load-more-btn" class="btn-secondary" style="padding:0.75rem 2rem;">
-                        <i data-lucide="chevron-down" style="width:20px;height:20px;"></i>
-                        Carregar mais (${totalCount - currentOffset} restantes)
-                    </button>
-                `;
-
-                const container = document.querySelector('.listagem-itens');
-                if (container && container.parentNode) {
-                    container.parentNode.appendChild(loadMoreContainer);
-                }
-
-                document.getElementById('load-more-btn')?.addEventListener('click', loadMoreItems);
-                if (typeof lucide !== 'undefined') lucide.createIcons();
-            } else {
-                const btn = document.getElementById('load-more-btn');
-                if (btn) {
-                    btn.innerHTML = `<i data-lucide="chevron-down"></i> Carregar mais (${totalCount - currentOffset} restantes)`;
-                    if (typeof lucide !== 'undefined') lucide.createIcons();
-                }
-            }
-        } else {
-            if (loadMoreContainer) loadMoreContainer.remove();
-        }
-    }
-
-    async function loadMoreItems() {
-        if (isLoading || !hasMore) return;
-        isLoading = true;
-        const btn = document.getElementById('load-more-btn');
-
-        if (btn) {
-            btn.disabled = true;
-            btn.innerHTML = '<i data-lucide="loader"></i> Carregando...';
-            if (typeof lucide !== 'undefined') lucide.createIcons();
-        }
-
-        try {
-            const caminho = window.location.pathname.replace(/^\/explorar\/?/, '');
-            const url = `/partial/lista${caminho ? '/' + caminho : '/'}?offset=${currentOffset}&limit=${itemsPerPage}`;
-            const response = await fetch(url);
-
-            if (response.ok) {
-                const html = await response.text();
-                const container = document.querySelector('.listagem-itens');
-
-                if (container) {
-                    const temp = document.createElement('div');
-                    temp.innerHTML = html;
-                    const newItems = temp.querySelectorAll('.item-link');
-                    newItems.forEach(item => container.appendChild(item));
-
-                    currentOffset += newItems.length;
-                    hasMore = currentOffset < totalCount;
-
-                    document.dispatchEvent(new CustomEvent('listaAtualizada'));
-                    updateLoadMoreButton();
-
-                    if (typeof showToast === 'function') {
-                        showToast(`✅ ${newItems.length} itens carregados`, 'success', 2000);
-                    }
-                }
-            }
-        } catch (error) {
-            console.error('Erro ao carregar mais itens:', error);
-            if (typeof showToast === 'function') {
-                showToast('❌ Erro ao carregar mais itens', 'error');
-            }
-        } finally {
-            isLoading = false;
-            if (btn) btn.disabled = false;
-        }
-    }
-
-    if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', initPagination);
-    } else {
-        initPagination();
-    }
-
-    document.addEventListener('listaAtualizada', () => {
-        currentOffset = document.querySelectorAll('.item-link').length;
-        const explorarPage = document.querySelector('[data-total-count]');
-        if (explorarPage) {
-            const totalCountAttr = explorarPage.getAttribute('data-total-count');
-            if (totalCountAttr) totalCount = parseInt(totalCountAttr);
-        }
-        hasMore = currentOffset < totalCount;
-        updateLoadMoreButton();
-    });
-})();
-
-// ===== FAB EXPANSÍVEL (MOBILE) =====
-(function() {
-    const fabContainer = document.getElementById('fab-container');
+// ===== 11. FLOATING ACTION BUTTON (FAB DUPLO — IMAGEM 1) =====
+document.addEventListener('DOMContentLoaded', function () {
     const fabMain = document.getElementById('fab-main');
-    const fabOverlay = document.getElementById('fab-overlay');
-    const fabUploadOption = document.getElementById('fab-upload-option');
-    const fabFolderOption = document.getElementById('fab-folder-option');
+    const fabUpload = document.getElementById('fab-upload-option');
     const uploadInput = document.getElementById('arquivo');
 
-    if (!fabContainer || !fabMain) return;
-
-    // Toggle FAB menu
-    function toggleFAB() {
-        const isOpen = fabContainer.classList.contains('open');
-        
-        if (isOpen) {
-            closeFAB();
-        } else {
-            openFAB();
-        }
-    }
-
-    function openFAB() {
-        fabContainer.classList.add('open');
-        fabOverlay.classList.add('active');
-        document.body.style.overflow = 'hidden';
-    }
-
-    function closeFAB() {
-        fabContainer.classList.remove('open');
-        fabOverlay.classList.remove('active');
-        document.body.style.overflow = '';
-    }
-
-    // Event listeners
-    fabMain.addEventListener('click', toggleFAB);
-    fabOverlay.addEventListener('click', closeFAB);
-
-    // Upload option
-    if (fabUploadOption && uploadInput) {
-        fabUploadOption.addEventListener('click', () => {
-            closeFAB();
-            uploadInput.click();
-        });
-    }
-
-    // Folder option
-    if (fabFolderOption) {
-        fabFolderOption.addEventListener('click', () => {
-            closeFAB();
-            const createFolderTrigger = document.getElementById('create-folder-trigger');
-            if (createFolderTrigger) {
-                createFolderTrigger.click();
-            } else {
-                // Fallback: abre modal diretamente
-                const createFolderModal = document.getElementById('create-folder-modal');
-                if (createFolderModal) {
-                    createFolderModal.style.display = 'flex';
-                }
-            }
-        });
-    }
-
-    // Fecha FAB ao pressionar Escape
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && fabContainer.classList.contains('open')) {
-            closeFAB();
-        }
-    });
-})();
-
-// ===== DROPDOWN DE ORDENAÇÃO MOBILE =====
-(function() {
-    const dropdownBtn = document.getElementById('sort-dropdown-btn');
-    const dropdownMenu = document.getElementById('sort-dropdown-menu');
-    const dropdownLabel = document.getElementById('sort-dropdown-label');
-    const dropdownItems = document.querySelectorAll('.sort-dropdown-item');
-
-    // Botões desktop (para sincronizar)
-    const desktopButtons = {
-        tipo: document.getElementById('ordenar-tipo'),
-        nome: document.getElementById('ordenar-nome'),
-        tamanho: document.getElementById('ordenar-tamanho'),
-        data: document.getElementById('ordenar-data')
-    };
-
-    if (!dropdownBtn || !dropdownMenu) return;
-
-    // Toggle do dropdown
-    dropdownBtn.addEventListener('click', (e) => {
+    fabUpload?.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
-        dropdownMenu.classList.toggle('open');
+        uploadInput?.click();
     });
 
-    // Fechar ao clicar fora
-    document.addEventListener('click', (e) => {
-        if (!dropdownMenu.contains(e.target) && e.target !== dropdownBtn) {
-            dropdownMenu.classList.remove('open');
+    fabMain?.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        if (typeof window.abrirModalCriarPasta === 'function') {
+            window.abrirModalCriarPasta();
         }
     });
+});
 
-    // Itens do dropdown
-    dropdownItems.forEach(item => {
-        item.addEventListener('click', (e) => {
-            e.stopPropagation();
-
-            const sortType = item.getAttribute('data-sort');
-            const currentOrder = item.getAttribute('data-order') || 'asc';
-            const newOrder = currentOrder === 'asc' ? 'desc' : 'asc';
-
-            // Atualiza o estado visual do dropdown
-            dropdownItems.forEach(i => {
-                i.classList.remove('active');
-                i.removeAttribute('data-order');
-            });
-            item.classList.add('active');
-            item.setAttribute('data-order', newOrder);
-
-            // Atualiza o label do botão
-            dropdownLabel.textContent = item.querySelector('span').textContent;
-
-            // Sincroniza com o botão desktop correspondente e aciona o clique
-            const desktopBtn = desktopButtons[sortType];
-            if (desktopBtn) {
-                // Remove active de todos os botões desktop
-                Object.values(desktopButtons).forEach(btn => {
-                    if (btn) btn.classList.remove('active');
-                });
-
-                // Adiciona active no botão correto
-                desktopBtn.classList.add('active');
-                desktopBtn.setAttribute('data-order', newOrder);
-
-                // Aciona o clique para executar a ordenação
-                desktopBtn.click();
-            }
-
-            // Fecha o dropdown
-            dropdownMenu.classList.remove('open');
-        });
-    });
-
-    // Sincroniza quando os botões desktop são clicados
-    Object.entries(desktopButtons).forEach(([sortType, btn]) => {
-        if (!btn) return;
-
-        btn.addEventListener('click', () => {
-            const order = btn.getAttribute('data-order') || 'asc';
-            const dropdownItem = Array.from(dropdownItems).find(
-                item => item.getAttribute('data-sort') === sortType
-            );
-
-            if (dropdownItem) {
-                // Atualiza dropdown
-                dropdownItems.forEach(i => i.classList.remove('active'));
-                dropdownItem.classList.add('active');
-                dropdownItem.setAttribute('data-order', order);
-                dropdownLabel.textContent = dropdownItem.querySelector('span').textContent;
-            }
-        });
-    });
-
-    // Fecha dropdown ao pressionar Escape
-    document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && dropdownMenu.classList.contains('open')) {
-            dropdownMenu.classList.remove('open');
-        }
-    });
-})();
-
-// ===== MODAL RENOMEAR =====
+// ===== 12. MODAL DE RENOMEAR =====
 (function () {
     const renameModal = document.getElementById('rename-modal');
     const renameForm = document.getElementById('rename-form');
@@ -1395,10 +1007,7 @@ document.addEventListener('keydown', function (e) {
     window.abrirModalRenomear = function (caminho, nomeAtual, tipo) {
         renameCaminhoAntigo.value = caminho;
         renameNovoNome.value = nomeAtual;
-        renameNovoNome.focus();
-        renameNovoNome.select();
 
-        // Atualiza o hint do tipo
         const tipoLabels = {
             'pasta': 'Pasta',
             'imagem': 'Imagem',
@@ -1412,12 +1021,11 @@ document.addEventListener('keydown', function (e) {
 
         fecharDropdowns();
         renameModal.style.display = 'flex';
-        setTimeout(() => renameModal.classList.add('active'), 10);
-
-        // Empurra um estado falso no histórico para capturar o botão voltar do celular
-        if (!history.state?.renameModalOpen) {
-            history.pushState({ renameModalOpen: true }, '');
-        }
+        setTimeout(() => {
+            renameModal.classList.add('active');
+            renameNovoNome.focus();
+            renameNovoNome.select();
+        }, 10);
     };
 
     function fecharModalRenomear() {
@@ -1426,19 +1034,14 @@ document.addEventListener('keydown', function (e) {
             renameModal.style.display = 'none';
             renameForm.reset();
         }, 200);
-
-        // Descarta o estado falso que empurramos ao abrir
-        if (history.state?.renameModalOpen) {
-            history.back();
-        }
     }
 
-    // Fechar modal
     closeRenameModal?.addEventListener('click', fecharModalRenomear);
     cancelRenameModal?.addEventListener('click', fecharModalRenomear);
-    renameModal.addEventListener('click', (e) => { if (e.target === renameModal) fecharModalRenomear(); });
+    renameModal.addEventListener('click', (e) => {
+        if (e.target === renameModal) fecharModalRenomear();
+    });
 
-    // Submeter formulário
     renameForm.addEventListener('submit', async function (e) {
         e.preventDefault();
 
@@ -1450,14 +1053,12 @@ document.addEventListener('keydown', function (e) {
             return;
         }
 
-        // Construir a URL do endpoint de renomeação
-        // O endpoint é POST /renomear/<path:caminho_arquivo>
-        const renameUrl = `/renomear/${encodeURIComponent(caminhoAntigo)}`;
-
+        const renameUrl = `/renomear/${encodeURIComponent(caminhoAntigo).replace(/%2F/g, '/')}`;
         const submitBtn = renameForm.querySelector('button[type="submit"]');
         const originalText = submitBtn.innerHTML;
+
         submitBtn.disabled = true;
-        submitBtn.innerHTML = '<i data-lucide="loader-2" style="width:16px;height:16px;animation:spin 1s linear infinite;"></i> Renomeando...';
+        submitBtn.innerHTML = '<i data-lucide="loader-2" style="animation:spin 1s linear infinite;"></i> Renomeando...';
         if (typeof lucide !== 'undefined') lucide.createIcons();
 
         try {
@@ -1477,11 +1078,10 @@ document.addEventListener('keydown', function (e) {
                 fecharModalRenomear();
                 if (typeof atualizarLista === 'function') atualizarLista();
             } else {
-                showToast(data.erro || data.error || 'Erro ao renomear', 'error');
+                showToast(data.erro || data.error || 'Erro ao renomear item', 'error');
             }
         } catch (error) {
-            console.error('Erro ao renomear:', error);
-            showToast('Erro ao renomear. Tente novamente.', 'error');
+            showToast('Erro ao renomear. Verifique sua conexão.', 'error');
         } finally {
             submitBtn.disabled = false;
             submitBtn.innerHTML = originalText;
@@ -1489,19 +1089,9 @@ document.addEventListener('keydown', function (e) {
         }
     });
 
-    // Fechar com ESC
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && renameModal && renameModal.classList.contains('active')) {
-            e.preventDefault();
+        if (e.key === 'Escape' && renameModal.classList.contains('active')) {
             fecharModalRenomear();
-        }
-    });
-
-    // Intercepta o botão "voltar" do celular
-    window.addEventListener('popstate', function (e) {
-        if (renameModal && renameModal.classList.contains('active')) {
-            renameModal.classList.remove('active');
-            renameModal.style.display = 'none';
         }
     });
 })();
