@@ -5,6 +5,7 @@ Documentação completa de todos os recursos do Cloud Storage App.
 ## Índice
 
 - [Gerenciamento de Arquivos](#gerenciamento-de-arquivos)
+- [Gerenciamento de Armazenamento & Métricas](#gerenciamento-de-armazenamento--métricas)
 - [Sistema de Lixeira](#sistema-de-lixeira)
 - [Sistema de Compartilhamento](#sistema-de-compartilhamento)
 - [Autenticação e Segurança](#autenticação-e-segurança)
@@ -144,6 +145,46 @@ Delete pastas e todo seu conteúdo.
 - Arquivos individuais vão para a **lixeira**
 - Pastas vazias são excluídas permanentemente
 - Pastas com conteúdo movem os arquivos para a lixeira
+
+---
+
+---
+
+## Gerenciamento de Armazenamento & Métricas
+
+### Visão Geral
+Painel visual de alta precisão inspirado no Google Drive e OneDrive para monitorar o uso real de disco, auditar os maiores arquivos e liberar espaço rapidamente.
+
+### Acessar o Gerenciador de Armazenamento
+- Clique no widget de **Armazenamento** na barra lateral (ou no botão **"Gerenciar espaço"**)
+- Ou acesse a rota direta `/armazenamento`
+
+### Principais Recursos
+
+#### 1. Cálculo Real e Seguro do App
+- Calcula estritamente o espaço consumido pela **pasta do aplicativo (`PASTA_BASE`)** somado ao espaço retido na **Lixeira (`.trash`)**.
+- Não mistura nem superestima o espaço com arquivos de sistema operacional, programas instalados ou outras pastas do computador.
+- Ignora pastas de cache e desenvolvimento (`.git`, `node_modules`, `__pycache__`, `.venv`, etc.).
+- Suporte a Cota Fixa configurável via `.env` (`STORAGE_QUOTA_GB`).
+
+#### 2. Barra de Progresso Multi-Segmentada
+- Gráfico de barras dividido e colorido dinamicamente por categorias de arquivos (Imagens, Vídeos, Áudios, Documentos, Compactados, Lixeira e Outros).
+- Tooltips informativos ao passar o mouse ou tocar em cada segmento.
+
+#### 3. Grade de Categorias e Filtro Instantâneo
+- Cards de métricas exibindo o espaço total ocupado, quantidade de arquivos e porcentagem de cada categoria.
+- **Filtro Interativo com 1 Clique**: clicar em qualquer categoria filtra instantaneamente a lista de arquivos abaixo para exibir apenas os arquivos do tipo selecionado.
+- Barra superior de **pílulas de filtro (*pills*)** para alternar rapidamente entre "Todos", "Imagens", "Vídeos", "Áudios", "Documentos", "Compactados" e "Outros".
+
+#### 4. Ações Rápidas de Limpeza
+- **Esvaziar Lixeira**: botão de 1 clique com modal de confirmação para liberação instantânea de espaço ocupado por arquivos deletados.
+- **Identificador de Arquivos Grandes**: destaque e atalho direto para arquivos com mais de 50 MB.
+- **Recalcular em Tempo Real**: botão para atualizar o escaneamento e invalidar o cache sob demanda.
+
+#### 5. Tabela Responsiva dos Maiores Arquivos (Desktop & Mobile)
+- **Desktop**: Tabela com layout fixo sem rolagem horizontal indesejada, mantendo os botões de ação (Baixar e Mover para Lixeira) sempre visíveis e alinhados.
+- **Encurtamento Inteligente de Pastas (`...`)**: caminhos profundos exibem as 3 pastas iniciais e as 2 finais (ex: `pasta1/pasta2/pasta3/.../subA/subB`), mantendo o caminho completo disponível via tooltip.
+- **Mobile (Card View Exclusivo)**: em telas de smartphone (`<= 768px`), a tabela se transforma em uma sequência de cartões modernos, com badge de tamanho destacado, caminho com ícone dedicado e botões largos de toque para download e exclusão.
 
 ---
 

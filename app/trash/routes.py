@@ -8,6 +8,7 @@ from flask_login import login_required, current_user
 
 from app.trash import models as trash_models
 from app.extensions import limiter
+from app.storage.service import StorageService
 from app.utils.audit import (
     log_restored, log_permanently_deleted, log_trash_emptied
 )
@@ -80,6 +81,7 @@ def restaurar(item_id):
         if sucesso:
             # Log de auditoria
             log_restored(current_user.username, mensagem)
+            StorageService.invalidate_cache()
             return jsonify({'success': True, 'message': mensagem})
 
         return jsonify({'error': mensagem}), 400
@@ -101,6 +103,7 @@ def deletar(item_id):
         if sucesso:
             # Log de auditoria
             log_permanently_deleted(current_user.username, mensagem)
+            StorageService.invalidate_cache()
             return jsonify({'success': True, 'message': mensagem})
 
         return jsonify({'error': mensagem}), 400
@@ -122,6 +125,7 @@ def esvaziar():
         if sucesso:
             # Log de auditoria
             log_trash_emptied(current_user.username, quantidade)
+            StorageService.invalidate_cache()
             return jsonify({
                 'success': True,
                 'message': mensagem,
@@ -182,6 +186,9 @@ def restaurar_multiplos():
             else:
                 erros.append(mensagem)
 
+        if sucessos > 0:
+            StorageService.invalidate_cache()
+
         return jsonify({
             'success': True,
             'restored': sucessos,
@@ -222,6 +229,9 @@ def deletar_multiplos():
                 log_permanently_deleted(current_user.username, mensagem)
             else:
                 erros.append(mensagem)
+
+        if sucessos > 0:
+            StorageService.invalidate_cache()
 
         return jsonify({
             'success': True,

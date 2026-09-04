@@ -24,6 +24,7 @@ from app.utils.audit import (
 )
 from app.trash import mover_para_lixeira
 from app.share.models import revogar_links_por_caminho
+from app.storage.service import StorageService
 
 file_bp = Blueprint('file', __name__)
 
@@ -429,6 +430,8 @@ def upload(caminho):
 
         log_upload(usuario, caminho, os.path.basename(caminho_final))
 
+    StorageService.invalidate_cache()
+
     if request.headers.get('X-Requested-With') == 'XMLHttpRequest' or request.is_json:
         return jsonify(sucesso=True, mensagem="Upload concluído")
     return redirect(url_for('file.explorar', caminho=caminho))
@@ -440,23 +443,17 @@ def upload(caminho):
 @limiter.limit(RATELIMIT_DELETE)
 @login_required_optional
 def criar_pasta(caminho):
-    pasta_atual = caminho_seguro(caminho)
+    nome = request.form.get('nome', '').strip()
 
-    if pasta_atual is None:
-        log_path_traversal(caminho)
-        abort(403)
+    if not nome:
+        return "Nome da pasta é obrigatório", 400
 
-    if not os.path.exists(pasta_atual) or not os.path.isdir(pasta_atual):
-        abort(400)
-
-    nome_pasta = request.form.get('nome_pasta', '').strip()
-    if not nome_pasta:
-        return "Nome da pasta inválido", 400
-
-    nome_seguro = secure_filename(nome_pasta)
+    from werkzeug.utils import secure_filename
+    nome_seguro = secure_filename(nome)
     if not nome_seguro:
-        return "Nome da pasta inválido após sanitização", 400
+        return "Nome inválido", 400
 
+    pasta_atual = os.path.join(PASTA_BASE, caminho) if caminho else PASTA_BASE
     nova_pasta = os.path.join(pasta_atual, nome_seguro)
 
     if caminho_seguro(os.path.relpath(nova_pasta, os.path.realpath(PASTA_BASE))) is None:
@@ -464,6 +461,7 @@ def criar_pasta(caminho):
 
     try:
         os.mkdir(nova_pasta)
+        StorageService.invalidate_cache()
     except FileExistsError:
         return "A pasta já existe", 400
     except PermissionError:
@@ -501,6 +499,7 @@ def deletar_arquivo(caminho_arquivo):
         revogados = revogar_links_por_caminho(caminho_arquivo, current_user.username)
 
         log_moved_to_trash(current_user.username, caminho_arquivo)
+        StorageService.invalidate_cache()
     except PermissionError:
         return "Sem permissão", 403
 
@@ -543,6 +542,7 @@ def deletar_pasta(caminho_pasta):
         revogados = revogar_links_por_caminho(caminho_pasta, current_user.username)
 
         log_moved_to_trash(current_user.username, caminho_pasta)
+        StorageService.invalidate_cache()
     except PermissionError:
         return "Sem permissão", 403
 
@@ -613,6 +613,9 @@ def deletar_multiplos():
                     "Erro ao deletar item em lote: %s", caminho_relativo
                 )
                 erros.append(f"{caminho_relativo}: {str(ex)}")
+
+        if sucessos:
+            StorageService.invalidate_cache()
 
         return {
             'sucesso': True,
@@ -690,6 +693,8 @@ def renomear(caminho_arquivo):
         # Log de auditoria
         from app.utils.audit import log_rename
         log_rename(current_user.username, caminho_arquivo, novo_nome)
+
+        StorageService.invalidate_cache()
 
     except PermissionError:
         if request.is_json:

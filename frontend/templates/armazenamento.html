@@ -1,0 +1,351 @@
+<!-- armazenamento.html — Interface Google Drive Material 3 -->
+<!DOCTYPE html>
+<html lang="pt-br" data-theme="{{ current_user.tema if current_user.is_authenticated else 'light' }}">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Armazenamento — Meu Drive Pessoal</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='img/favicon.png') }}">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='img/favicon.ico') }}">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script src="{{ url_for('static', filename='js/lucide.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}">
+</head>
+
+<body>
+    <div class="app">
+
+        <!-- ===== 1. SIDEBAR (GAVETA LATERAL NO MOBILE) ===== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="logo">
+                <span class="logo-icon"><i data-lucide="cloud"></i></span>
+                <span class="logo-text">Meu Drive</span>
+            </div>
+
+            <!-- Botão + Novo (Google Drive Desktop) -->
+            <div class="sidebar-action-container">
+                <button class="btn-novo-gdrive" id="sidebar-btn-novo" onclick="window.location.href='{{ url_for('file.explorar') }}'">
+                    <i data-lucide="plus"></i>
+                    <span>Novo</span>
+                </button>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="{{ url_for('file.explorar') }}" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="folder"></i></span>
+                    <span class="nav-text">Meus arquivos</span>
+                </a>
+                <a href="{{ url_for('share.compartilhamentos_page') }}" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="users"></i></span>
+                    <span class="nav-text">Compartilhados</span>
+                </a>
+                <a href="{{ url_for('trash.lixeira_page') }}" class="nav-item">
+                    <span class="nav-icon"><i data-lucide="trash-2"></i></span>
+                    <span class="nav-text">Lixeira</span>
+                </a>
+            </nav>
+
+            <!-- Seção de Armazenamento do Servidor -->
+            <div class="drawer-storage-section">
+                <div class="drawer-storage-header">
+                    <i data-lucide="hard-drive" style="width: 18px; height: 18px; color: var(--primary);"></i>
+                    <span>Armazenamento</span>
+                </div>
+                <div class="drawer-storage-bar-bg">
+                    <div class="drawer-storage-bar-fill" style="width: {{ storage_info.percent if storage_info else 0 }}%;"></div>
+                </div>
+                <div class="drawer-storage-text" id="sidebar-storage-text">
+                    {{ storage_info.text if storage_info else 'Armazenamento indisponível' }}
+                </div>
+                <a href="{{ url_for('storage.armazenamento_page') }}" class="drawer-storage-btn" style="border-color: var(--primary); color: var(--primary);">
+                    Gerenciar espaço
+                </a>
+            </div>
+
+            <div class="sidebar-footer">
+                <a href="{{ url_for('auth.logout') }}" class="logout-link">
+                    <span class="nav-icon"><i data-lucide="log-out"></i></span>
+                    <span>Sair</span>
+                </a>
+            </div>
+        </aside>
+
+        <!-- BACKDROP OVERLAY PARA GAVETA LATERAL -->
+        <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+        <!-- ===== 2. MAIN AREA ===== -->
+        <main class="main">
+
+            <!-- TOPBAR / BUSCA -->
+            <header class="topbar">
+                <button class="mobile-menu-btn" id="mobile-menu-btn" aria-label="Menu de navegação">
+                    <i data-lucide="menu"></i>
+                </button>
+                <div class="search-wrapper" style="max-width: 680px; flex: 1;">
+                    <span class="search-icon"><i data-lucide="search"></i></span>
+                    <input type="text" id="pesquisa-storage" class="search-input" placeholder="Filtrar maiores arquivos..." autocomplete="off">
+                    <button id="pesquisa-limpar" class="search-clear" title="Limpar busca" style="display: none;">
+                        <i data-lucide="x"></i>
+                    </button>
+                </div>
+                <a href="{{ url_for('auth.perfil') }}" class="topbar-avatar" title="Meu Perfil">
+                    {{ current_user.nome[0]|upper if current_user.is_authenticated and current_user.nome else 'U' }}
+                </a>
+            </header>
+
+            <!-- SUBHEADER TABS -->
+            <div class="nav-tabs-wrapper" style="justify-content: space-between; align-items: center;">
+                <div class="nav-tab-item active">
+                    <i data-lucide="hard-drive" style="width: 18px; height: 18px;"></i>
+                    <span>Armazenamento</span>
+                </div>
+                <div class="storage-header-actions">
+                    <button class="btn btn-secondary btn-sm" id="btn-refresh-storage" title="Recalcular espaço agora">
+                        <i data-lucide="refresh-cw" id="refresh-icon"></i>
+                        <span>Recalcular</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- CONTEÚDO PRINCIPAL -->
+            <div class="content">
+                <div class="storage-container">
+
+                    <!-- CARD 1: OVERVIEW & BARRA SEGMENTADA -->
+                    <div class="storage-overview-card">
+                        <div class="storage-overview-header">
+                            <div class="storage-usage-headline">
+                                <div class="storage-usage-title" id="storage-title-text">
+                                    {{ stats.resumo.total_usado_formatado }} de {{ stats.resumo.capacidade_total_formatado }} usados
+                                </div>
+                                <div class="storage-usage-subtitle" id="storage-subtitle-text">
+                                    {{ stats.resumo.percentual_usado }}% em uso • {{ stats.resumo.espaco_livre_formatado }} livres
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- BARRA DE PROGRESSO MULTI-SEGMENTADA -->
+                        <div class="storage-progress-segmented" id="storage-segmented-bar">
+                            {% for cat in stats.categorias %}
+                            {% if cat.percentual_capacidade > 0 %}
+                            <div class="storage-segment" style="width: {{ cat.percentual_capacidade }}%; background-color: {{ cat.color }};" title="{{ cat.label }}: {{ cat.formatado }} ({{ cat.percentual_usado }}% do total usado)"></div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+
+                        <!-- GRADE DE CATEGORIAS -->
+                        <div class="storage-cat-grid" id="storage-cat-grid">
+                            {% for cat in stats.categorias %}
+                            <div class="storage-cat-card" data-category="{{ cat.chave }}" title="Clique para listar arquivos de {{ cat.label }}">
+                                <div class="storage-cat-icon cat-{{ cat.chave }}">
+                                    <i data-lucide="{{ cat.icon }}"></i>
+                                </div>
+                                <div class="storage-cat-info">
+                                    <span class="storage-cat-label">{{ cat.label }}</span>
+                                    <span class="storage-cat-size">{{ cat.formatado }}</span>
+                                    <span class="storage-cat-count">{{ cat.count }} arquivo(s) ({{ cat.percentual_usado }}%)</span>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <!-- CARD 2: LIMPEZA RÁPIDA / LIBERAR ESPAÇO -->
+                    <div class="storage-cleanup-grid">
+                        <div class="storage-cleanup-card">
+                            <div class="storage-cleanup-header">
+                                <div class="storage-cleanup-icon danger">
+                                    <i data-lucide="trash-2"></i>
+                                </div>
+                                <div>
+                                    <h4 class="storage-cleanup-title">Itens na Lixeira</h4>
+                                    <p class="storage-cleanup-desc">Arquivos deletados que continuam ocupando espaço.</p>
+                                </div>
+                            </div>
+                            <div style="font-size: 1.15rem; font-weight: 700; color: var(--text);">
+                                {{ stats.resumo.total_lixeira_formatado }} <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">({{ stats.resumo.total_lixeira_count }} item(s))</span>
+                            </div>
+                            <div class="storage-cleanup-action" style="display: flex; gap: 8px;">
+                                <a href="{{ url_for('trash.lixeira_page') }}" class="btn btn-secondary btn-sm" style="flex: 1; justify-content: center;">
+                                    <i data-lucide="folder"></i> Abrir Lixeira
+                                </a>
+                                {% if stats.resumo.total_lixeira_count > 0 %}
+                                <button class="btn btn-danger btn-sm" id="btn-esvaziar-lixeira-storage" style="flex: 1; justify-content: center;">
+                                    <i data-lucide="trash-2"></i> Esvaziar
+                                </button>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <div class="storage-cleanup-card">
+                            <div class="storage-cleanup-header">
+                                <div class="storage-cleanup-icon">
+                                    <i data-lucide="layers"></i>
+                                </div>
+                                <div>
+                                    <h4 class="storage-cleanup-title">Arquivos Grandes</h4>
+                                    <p class="storage-cleanup-desc">Arquivos acima de 50 MB no seu drive.</p>
+                                </div>
+                            </div>
+                            <div style="font-size: 1.15rem; font-weight: 700; color: var(--text);">
+                                {{ stats.resumo.total_arquivos_grandes_formatado }} <span style="font-size: 0.85rem; font-weight: 500; color: var(--text-muted);">({{ stats.resumo.total_arquivos_grandes_count }} arquivo(s))</span>
+                            </div>
+                            <div class="storage-cleanup-action">
+                                <a href="#tabela-maiores-arquivos" class="btn btn-primary btn-sm" style="width: 100%; justify-content: center;">
+                                    <i data-lucide="arrow-down"></i> Ver Maiores Arquivos
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CARD 3: TABELA DOS MAIORES ARQUIVOS -->
+                    <div class="storage-files-card" id="tabela-maiores-arquivos">
+                        <div class="storage-files-header">
+                            <div>
+                                <h3 class="storage-files-title" id="storage-table-title">
+                                    <i data-lucide="file-stack" style="color: var(--primary);"></i>
+                                    <span>Arquivos no Drive</span>
+                                </h3>
+                                <span style="font-size: 0.82rem; color: var(--text-muted);" id="storage-table-count">
+                                    Mostrando os maiores arquivos ordenados por tamanho
+                                </span>
+                            </div>
+                            
+                            <!-- PÍLULAS DE FILTRO POR CATEGORIA -->
+                            <div class="storage-filter-pills" id="storage-filter-pills">
+                                <button type="button" class="filter-pill active" data-filter="todos">
+                                    <span>Todos</span>
+                                </button>
+                                {% for cat in stats.categorias %}
+                                {% if cat.chave != 'lixeira' %}
+                                <button type="button" class="filter-pill" data-filter="{{ cat.chave }}">
+                                    <i data-lucide="{{ cat.icon }}"></i>
+                                    <span>{{ cat.label }} ({{ cat.count }})</span>
+                                </button>
+                                {% endif %}
+                                {% endfor %}
+                            </div>
+                        </div>
+
+                        <div class="storage-table-wrapper">
+                            <table class="storage-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 38%;">Arquivo</th>
+                                        <th style="width: 13%;">Tamanho</th>
+                                        <th style="width: 27%;" class="storage-col-pasta">Pasta</th>
+                                        <th style="width: 12%;" class="storage-col-data">Modificado</th>
+                                        <th style="width: 10%; text-align: right;">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="storage-files-tbody">
+                                    {% if stats.maiores_arquivos %}
+                                    {% for arq in stats.maiores_arquivos %}
+                                    <tr class="storage-row" data-nome="{{ arq.nome | lower }}" data-pasta="{{ arq.pasta | lower }}" data-categoria="{{ arq.categoria }}">
+                                        <td class="storage-cell-file">
+                                            <div class="storage-file-cell">
+                                                <div class="storage-file-icon cat-{{ arq.categoria }}">
+                                                    {% if arq.categoria == 'imagens' %}
+                                                    <i data-lucide="image"></i>
+                                                    {% elif arq.categoria == 'videos' %}
+                                                    <i data-lucide="video"></i>
+                                                    {% elif arq.categoria == 'audios' %}
+                                                    <i data-lucide="music"></i>
+                                                    {% elif arq.categoria == 'documentos' %}
+                                                    <i data-lucide="file-text"></i>
+                                                    {% elif arq.categoria == 'compactados' %}
+                                                    <i data-lucide="archive"></i>
+                                                    {% else %}
+                                                    <i data-lucide="file"></i>
+                                                    {% endif %}
+                                                </div>
+                                                <div class="storage-file-meta">
+                                                    <div class="storage-file-name" title="{{ arq.nome }}">{{ arq.nome }}</div>
+                                                    <div class="storage-file-submeta">
+                                                        <span class="storage-badge badge-{{ arq.categoria }}">{{ arq.categoria }}</span>
+                                                        <span class="storage-mobile-size-badge">{{ arq.tamanho_formatado }}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                        <td class="storage-cell-size">
+                                            <strong class="storage-file-size" style="color: var(--text);">{{ arq.tamanho_formatado }}</strong>
+                                        </td>
+                                        <td class="storage-col-pasta storage-cell-pasta">
+                                            <span class="storage-file-path" title="{{ arq.pasta }}">
+                                                <i data-lucide="folder" class="storage-meta-icon"></i>
+                                                <span>{{ arq.pasta_curta }}</span>
+                                            </span>
+                                        </td>
+                                        <td class="storage-col-data storage-cell-data">
+                                            <span class="storage-file-date" title="{{ arq.modificado_em }}">
+                                                <i data-lucide="calendar" class="storage-meta-icon"></i>
+                                                <span>{{ arq.modificado_em }}</span>
+                                            </span>
+                                        </td>
+                                        <td class="storage-cell-actions">
+                                            <div class="storage-actions-group">
+                                                <a href="{{ url_for('file.download', caminho_arquivo=arq.caminho) }}" class="btn-storage-action download" title="Download">
+                                                    <i data-lucide="download"></i>
+                                                    <span class="storage-mobile-action-text">Baixar</span>
+                                                </a>
+                                                <form action="{{ url_for('file.deletar_arquivo', caminho_arquivo=arq.caminho) }}" method="post" style="display: inline; margin: 0;" onsubmit="event.preventDefault(); confirmarExclusaoStorage('{{ arq.nome }}', this);">
+                                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                                    <button type="submit" class="btn-storage-action danger" title="Mover para lixeira">
+                                                        <i data-lucide="trash-2"></i>
+                                                        <span class="storage-mobile-action-text">Apagar</span>
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                    {% else %}
+                                    <tr>
+                                        <td colspan="5" style="text-align: center; padding: 32px; color: var(--text-muted);">
+                                            Nenhum arquivo encontrado no drive.
+                                        </td>
+                                    </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
+            <!-- MODAL DE CONFIRMAÇÃO UNIVERSAL -->
+            <div id="confirmModal" class="modal-overlay" style="display: none;">
+                <div class="modal-container modal-small">
+                    <div class="modal-header">
+                        <h3 class="modal-title" id="modalTitle">Confirmar ação</h3>
+                        <button class="modal-close" id="modalClose"><i data-lucide="x"></i></button>
+                    </div>
+                    <div class="modal-body">
+                        <p id="modalMessage" style="margin-bottom: 8px; font-weight: 600;"></p>
+                        <p id="modalDetail" style="font-size: 0.85rem; color: var(--text-muted); white-space: pre-wrap;"></p>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" id="modalCancel">Cancelar</button>
+                        <button class="btn btn-danger" id="modalConfirm">Confirmar</button>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- TOAST NOTIFICAÇÃO -->
+    <div id="toast" class="toast"></div>
+
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+    <script src="{{ url_for('static', filename='js/storage.js') }}"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+
+</html>

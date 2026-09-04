@@ -8,6 +8,24 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ## [Não Lançado]
 
 ### Adicionado
+- **Página de Análise e Gerenciamento de Armazenamento (`/armazenamento`)**
+  - Painel visual completo de auditoria e métricas de espaço inspirado no Google Drive e OneDrive
+  - Cálculo estrito do ecossistema do aplicativo (`PASTA_BASE` + `Lixeira`), sem interferência de arquivos do SO/HD
+  - Barra de progresso multi-segmentada colorida por categoria de arquivo
+  - Grade com métricas detalhadas: Imagens, Vídeos, Áudios, Documentos, Compactados, Lixeira e Outros
+  - Filtro interativo instantâneo por categorias (clique no card ou nas pílulas de filtro)
+  - Cards de ação rápida para liberação de espaço (Esvaziamento da Lixeira com 1 clique e filtro de arquivos grandes > 50 MB)
+  - Tabela dos Top 50 maiores arquivos do drive com caminho, tamanho e ações rápidas (download e exclusão direta)
+  - Serviço backend `StorageService` de alta performance com escaneamento seguro (`os.scandir`, proteção a symlinks, tratamento de permissões)
+  - Tabela dos maiores arquivos do drive com caminho, tamanho e ações rápidas (download e exclusão direta)
+  - **Encurtamento Inteligente de Caminhos (`...`)**: caminhos profundos exibem as 3 pastas iniciais e as 2 finais, mantendo tooltip com caminho completo
+  - **Layout Desktop 100% Responsivo (`table-layout: fixed`)**: sem barras de rolagem horizontais indesejadas, botões de ação sempre acessíveis
+  - **Visualização Exclusiva em Cards no Mobile**: linhas da tabela transformadas em cartões individuais elegantes com botões largos de toque
+  - Serviço backend `StorageService` de alta performance com escaneamento seguro (`os.scandir`, proteção a symlinks, tratamento de permissões e exclusão de pastas de build/cache)
+  - Cache em memória com TTL e invalidação automática inteligente em uploads, renomeações e deleções
+  - Endpoints de API: `/api/storage/breakdown` e `/api/storage/refresh`
+  - Atualização do botão "Gerenciar espaço" da sidebar em todas as páginas para redirecionar para a nova página
+
 - **Painel de Detalhes de Arquivos/Pastas**
   - Painel lateral no desktop (360px) que desliza da direita ao clicar em "Ver informações"
   - Tela full-screen no mobile com animação fluida

@@ -15,13 +15,16 @@ Uma solução de armazenamento em nuvem auto-hospedada com interface moderna e o
 
 ### Principais Recursos
 
+- **Gerenciamento de Armazenamento & Métricas** - Painel visual completo com barra segmentada, estatísticas por tipo de arquivo, filtros interativos e liberação rápida de espaço
 - **Sistema de Lixeira** - Recupere arquivos excluídos com um clique, visualize e restaure facilmente
 - **Sistema de Compartilhamento de Arquivos** - Gere links públicos com proteção por senha opcional e expiração
 - **Autenticação Avançada** - Autenticação de dois fatores (2FA), recuperação de senha e notificações de login
 - **Interface Otimizada para Mobile** - Interface redesenhada com ~40% mais espaço na tela para conteúdo
+- **Interface Otimizada para Mobile** - Interface moderna em cards fluidos, gaveta lateral e ~40% mais espaço na tela para conteúdo
 - **Player de Áudio Customizado** - Controles modernos e estilosos com barra de progresso interativa
 - **Multi-Plataforma** - Funciona em Windows, Linux, macOS e Android (Termux)
 - **Interface Moderna** - Design totalmente redesenhado com temas claro e escuro
+- **Interface Moderna** - Design totalmente redesenhado inspirado no Material 3 com temas claro e escuro
 - **Segurança em Primeiro Lugar** - Rate limiting, proteção CSRF, sessões seguras e log de auditoria
 - **Deploy Fácil** - Modo de produção integrado com suporte a Cloudflare Tunnel
 

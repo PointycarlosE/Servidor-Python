@@ -662,18 +662,22 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!audioModal) return;
 
         let currentAudioDeleteForm = null;
+        let audioCloseTimeout = null;
 
         function closeAudio() {
             audioPlayer?.pause();
             if (audioPlayer) audioPlayer.currentTime = 0;
             audioModal.classList.remove('active');
-            setTimeout(() => {
+            if (audioCloseTimeout) clearTimeout(audioCloseTimeout);
+            audioCloseTimeout = setTimeout(() => {
                 audioModal.style.display = 'none';
+                if (audioSource) audioSource.src = '';
                 document.body.style.overflow = '';
             }, 200);
         }
 
         window.openAudioModal = function (audioUrl, audioName, downloadUrl, deleteForm) {
+            if (audioCloseTimeout) clearTimeout(audioCloseTimeout);
             currentAudioDeleteForm = deleteForm;
             audioPlayer?.pause();
             if (audioPlayer) audioPlayer.currentTime = 0;
@@ -701,10 +705,9 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             };
 
-            if (audioModalDelete) {
-                const newBtn = audioModalDelete.cloneNode(true);
-                audioModalDelete.parentNode.replaceChild(newBtn, audioModalDelete);
-                newBtn.addEventListener('click', handleDelete);
+            const deleteBtn = document.getElementById('audioModalDelete');
+            if (deleteBtn) {
+                deleteBtn.onclick = handleDelete;
             }
 
             audioModal.style.display = 'flex';

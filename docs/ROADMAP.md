@@ -39,6 +39,20 @@ Este documento descreve a evolução do Cloud Storage App, incluindo recursos im
 - **Navegação Especial** - Clique atualiza info, duplo-clique abre pastas
 - **Animações Fluidas** - Transições suaves com cubic-bezier
 
+#### Gerenciamento e Análise de Armazenamento
+- **Página Dedicada (`/armazenamento`)** - Painel visual inspirado no Google Drive e OneDrive
+- **Cálculo Real do App** - Isola o espaço da pasta base e lixeira, desconsiderando arquivos do SO/HD
+- **Barra de Progresso Segmentada** - Distribuição proporcional com cores por categoria
+- **Métricas por Categoria** - Imagens, Vídeos, Áudios, Documentos, Compactados, Lixeira e Outros
+- **Ações Rápidas de Liberação** - Esvaziamento de Lixeira e filtro de arquivos grandes (> 50 MB)
+- **Top 50 Maiores Arquivos** - Tabela ordenada por tamanho com download e exclusão direta
+- **Cache de Alta Performance** - Escaneamento rápido via `os.scandir` com TTL e invalidação automática
+- **Filtro Interativo por Categorias** - Filtragem instantânea ao clicar nos cards ou pílulas superiores
+- **Ações Rápidas de Liberação** - Esvaziamento de Lixeira com 1 clique e identificador de arquivos grandes (> 50 MB)
+- **Tabela dos Maiores Arquivos** - Tabela sem overflow no desktop com encurtamento inteligente de pastas (`...`)
+- **Card View no Mobile** - Visualização em cartões independentes e botões confortáveis para toque
+- **Cache de Alta Performance** - Escaneamento rápido via `os.scandir` com TTL e invalidação automática inteligente
+
 #### Interface Otimizada para Mobile
 - **Redesign Completo** - ~40% mais espaço para conteúdo
 - **FAB (Floating Action Button)** - Ações rápidas de upload

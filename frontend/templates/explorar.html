@@ -68,7 +68,7 @@
                 <div class="drawer-storage-text">
                     {{ storage_info.text if storage_info else 'Armazenamento indisponível' }}
                 </div>
-                <a href="{{ url_for('trash.lixeira_page') }}" class="drawer-storage-btn">
+                <a href="{{ url_for('storage.armazenamento_page') }}" class="drawer-storage-btn">
                     Gerenciar espaço
                 </a>
             </div>
@@ -292,18 +292,18 @@
                     <div class="modal-body" style="padding: 12px; text-align: center; position: relative; overflow: hidden;">
                         <img src="" alt="Imagem" class="lightbox-image" id="lightbox-image">
                     </div>
-                    <div class="modal-footer" style="justify-content: space-between;">
-                        <div style="display: flex; gap: 8px;">
+                    <div class="modal-footer lightbox-footer">
+                        <div class="lightbox-nav-group">
                             <button class="lightbox-nav prev" id="lightbox-prev" aria-label="Imagem anterior"><i data-lucide="chevron-left"></i></button>
                             <button class="lightbox-nav next" id="lightbox-next" aria-label="Próxima imagem"><i data-lucide="chevron-right"></i></button>
+                            <span class="lightbox-info" id="lightbox-info"></span>
                         </div>
-                        <span class="lightbox-info" id="lightbox-info"></span>
-                        <div style="display: flex; gap: 8px;">
+                        <div class="lightbox-actions">
                             <a href="#" class="btn btn-secondary" id="lightbox-download" download>
-                                <i data-lucide="download"></i> Download
+                                <i data-lucide="download"></i> <span>Download</span>
                             </a>
                             <button class="btn btn-danger" id="lightbox-delete">
-                                <i data-lucide="trash-2"></i> Excluir
+                                <i data-lucide="trash-2"></i> <span>Excluir</span>
                             </button>
                         </div>
                     </div>

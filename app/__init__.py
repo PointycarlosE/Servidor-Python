@@ -19,6 +19,8 @@ from app.routes.main import main_bp
 from app.routes.files import file_bp
 from app.share.routes import share_bp
 from app.trash.routes import trash_bp
+from app.storage.routes import storage_bp
+from app.storage.service import StorageService
 
 csrf = CSRFProtect()
 login_manager = LoginManager()
@@ -81,42 +83,14 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(share_bp)
     app.register_blueprint(trash_bp)
+    app.register_blueprint(storage_bp)
 
     registrar_handlers_seguranca(app)
     registrar_handlers_erro(app)
 
     @app.context_processor
     def inject_globals():
-        storage_info = {
-            'used_str': '0 GB',
-            'total_str': '0 GB',
-            'percent': 0,
-            'text': '0 GB de 0 GB usados'
-        }
-        try:
-            import shutil
-            if PASTA_BASE and os.path.exists(PASTA_BASE):
-                total, used, free = shutil.disk_usage(PASTA_BASE)
-                used_gb = used / (1024 ** 3)
-                total_gb = total / (1024 ** 3)
-                percent = round((used / total) * 100, 1) if total > 0 else 0
-                
-                total_str = f"{total_gb / 1024:.1f} TB" if total_gb >= 1000 else f"{total_gb:.1f} GB"
-                if used_gb >= 1000:
-                    used_str = f"{used_gb / 1024:.2f} TB"
-                elif used_gb >= 1:
-                    used_str = f"{used_gb:.2f} GB"
-                else:
-                    used_str = f"{used / (1024 ** 2):.1f} MB"
-
-                storage_info = {
-                    'used_str': used_str,
-                    'total_str': total_str,
-                    'percent': percent,
-                    'text': f"{used_str} de {total_str} usados"
-                }
-        except Exception:
-            pass
+        storage_info = StorageService.get_storage_summary()
 
         return {
             'PASTA_BASE': PASTA_BASE,
